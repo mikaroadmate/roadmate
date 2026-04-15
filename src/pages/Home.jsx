@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import PostRide from './PostRide'
 import Messages from './Messages'
+import Profile from './Profile'
 
 const CATEGORIES = [
   { id: 'all', label: 'Tous', icon: '🛣️' },
@@ -25,6 +26,7 @@ export default function Home({ user, onSignOut }) {
   const [loading, setLoading] = useState(true)
   const [showPost, setShowPost] = useState(false)
   const [showMessages, setShowMessages] = useState(false)
+  const [showProfile, setShowProfile] = useState(false)
   const [contactId, setContactId] = useState(null)
 
   useEffect(() => { fetchRides() }, [filterCat, filterType])
@@ -41,6 +43,7 @@ export default function Home({ user, onSignOut }) {
 
   if (showPost) return <PostRide user={user} onBack={() => setShowPost(false)} onSuccess={() => { setShowPost(false); fetchRides() }} />
   if (showMessages) return <Messages user={user} contactId={contactId} onBack={() => { setShowMessages(false); setContactId(null) }} />
+  if (showProfile) return <Profile user={user} onBack={() => setShowProfile(false)} />
 
   const getTypeStyle = (id) => ({
     flex: 1, padding: '8px', borderRadius: 20,
@@ -93,7 +96,7 @@ export default function Home({ user, onSignOut }) {
         </div>
       </div>
 
-      <div style={{ padding: '12px 22px 120px' }}>
+      <div style={{ padding: '12px 22px 100px' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 18 }}>Chargement... 🚐</div>
         ) : rides.length === 0 ? (
@@ -155,28 +158,32 @@ export default function Home({ user, onSignOut }) {
                 </div>
               )}
 
-              <button
-                onClick={() => { setContactId(ride.user_id); setShowMessages(true) }}
-                style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: ride.user_id === user.id ? '#B5967A' : '#E8572A', color: '#fff', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
-                {ride.user_id === user.id ? 'Mon trajet 🚐' : 'Contacter 🤙'}
+              <button onClick={() => { setContactId(ride.user_id); setShowMessages(true) }}
+                style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
+                Contacter 🤙
               </button>
             </div>
           )
         })}
       </div>
 
+      {/* Bottom Nav */}
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, background: '#fff', borderTop: '3px solid #3D2B1F', padding: '12px 0 20px', display: 'flex', justifyContent: 'space-around' }}>
-        <button style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+        <button style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
           <span style={{ fontSize: 22 }}>🏠</span>
-          <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#E8572A', textTransform: 'uppercase' }}>Home</span>
+          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#E8572A', textTransform:'uppercase' }}>Home</span>
         </button>
-        <button onClick={() => setShowMessages(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+        <button onClick={() => setShowMessages(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
           <span style={{ fontSize: 22 }}>💬</span>
-          <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>Messages</span>
+          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>Messages</span>
         </button>
-        <button onClick={() => setShowPost(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+        <button onClick={() => setShowPost(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
           <span style={{ fontSize: 22 }}>➕</span>
-          <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>Poster</span>
+          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>Poster</span>
+        </button>
+        <button onClick={() => setShowProfile(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
+          <span style={{ fontSize: 22 }}>👤</span>
+          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>Profil</span>
         </button>
       </div>
     </div>
