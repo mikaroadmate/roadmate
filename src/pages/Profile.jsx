@@ -137,7 +137,7 @@ export default function Profile({ user, onBack }) {
 
         {/* Stats */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
-          {[['🚐', rides.length, 'Trajets'], ['⭐', '0', 'Avis'], ['✅', profile?.verified ? 'Oui' : 'Non', 'Vérifié']].map(([icon, val, label]) => (
+          {[['🚐', rides.length, 'Trajets'], ['⭐', '0', 'Avis'], [profile?.verified ? '✅' : '❌', profile?.verified ? 'Oui' : 'Non', 'Vérifié']].map(([icon, val, label]) => (
             <div key={label} style={{ flex: 1, background: '#fff', borderRadius: 16, padding: '14px 10px', border: '3px solid #3D2B1F', boxShadow: '3px 3px 0 #3D2B1F', textAlign: 'center' }}>
               <div style={{ fontSize: 22 }}>{icon}</div>
               <div style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{val}</div>

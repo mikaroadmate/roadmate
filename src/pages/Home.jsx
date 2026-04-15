@@ -182,7 +182,7 @@ export default function Home({ user, onSignOut }) {
           <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>Poster</span>
         </button>
         <button onClick={() => setShowProfile(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
-          <span style={{ fontSize: 22 }}>👤</span>
+          <span style={{ fontSize: 22 }}>🤠</span>
           <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>Profil</span>
         </button>
       </div>
