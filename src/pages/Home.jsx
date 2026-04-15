@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import PostRide from './PostRide'
-
+import Messages from './Messages'
 const CATEGORIES = [
   { id: 'all', label: 'Tous', icon: '🛣️' },
   { id: 'travel', label: 'Voyage', icon: '✈️' },
@@ -23,7 +23,7 @@ export default function Home({ user, onSignOut }) {
   const [filterType, setFilterType] = useState('all')
   const [loading, setLoading] = useState(true)
   const [showPost, setShowPost] = useState(false)
-
+const [showMessages, setShowMessages] = useState(false)
   useEffect(() => { fetchRides() }, [filterCat, filterType])
 
   const fetchRides = async () => {
@@ -37,7 +37,7 @@ export default function Home({ user, onSignOut }) {
   }
 
   if (showPost) return <PostRide user={user} onBack={() => setShowPost(false)} onSuccess={() => { setShowPost(false); fetchRides() }} />
-
+if (showMessages) return <Messages user={user} onBack={() => setShowMessages(false)} />
   const getTypeStyle = (id) => ({
     flex: 1,
     padding: '8px',
@@ -171,6 +171,20 @@ export default function Home({ user, onSignOut }) {
 
       <div style={{ position: 'fixed', bottom: 24, right: 24 }}>
         <button onClick={() => setShowPost(true)} style={{ width: 60, height: 60, borderRadius: 20, background: '#E8572A', border: '3px solid #3D2B1F', boxShadow: '5px 5px 0 #3D2B1F', cursor: 'pointer', fontSize: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+      </div>
+      <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, background: '#fff', borderTop: '3px solid #3D2B1F', padding: '12px 0 20px', display: 'flex', justifyContent: 'space-around' }}>
+        <button style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
+          <span style={{ fontSize: 22 }}>🏠</span>
+          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#E8572A', textTransform:'uppercase' }}>Home</span>
+        </button>
+        <button onClick={() => setShowMessages(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
+          <span style={{ fontSize: 22 }}>💬</span>
+          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>Messages</span>
+        </button>
+        <button onClick={() => setShowPost(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
+          <span style={{ fontSize: 22 }}>➕</span>
+          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>Poster</span>
+        </button>
       </div>
     </div>
   )

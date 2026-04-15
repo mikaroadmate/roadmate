@@ -1,0 +1,179 @@
+import { useState, useEffect, useRef } from 'react'
+import { supabase } from '../supabase'
+
+export default function Messages({ user, onBack }) {
+  const [conversations, setConversations] = useState([])
+  const [activeConv, setActiveConv] = useState(null)
+  const [messages, setMessages] = useState([])
+  const [newMessage, setNewMessage] = useState('')
+  const [loading, setLoading] = useState(true)
+  const bottomRef = useRef(null)
+
+  useEffect(() => { fetchConversations() }, [])
+  useEffect(() => { if (activeConv) fetchMessages(activeConv) }, [activeConv])
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
+
+  const fetchConversations = async () => {
+    setLoading(true)
+    const { data } = await supabase
+      .from('messages')
+      .select('*, sender:profiles!messages_sender_id_fkey(id, name, nationality), receiver:profiles!messages_receiver_id_fkey(id, name, nationality)')
+      .or('sender_id.eq.' + user.id + ',receiver_id.eq.' + user.id)
+      .order('created_at', { ascending: false })
+
+    if (data) {
+      const convMap = {}
+      data.forEach(msg => {
+        const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id
+        const otherProfile = msg.sender_id === user.id ? msg.receiver : msg.sender
+        if (!convMap[otherId]) {
+          convMap[otherId] = { otherId, otherProfile, lastMsg: msg, unread: 0 }
+        }
+      })
+      setConversations(Object.values(convMap))
+    }
+    setLoading(false)
+  }
+
+  const fetchMessages = async (otherId) => {
+    const { data } = await supabase
+      .from('messages')
+      .select('*, sender:profiles!messages_sender_id_fkey(name)')
+      .or('and(sender_id.eq.' + user.id + ',receiver_id.eq.' + otherId + '),and(sender_id.eq.' + otherId + ',receiver_id.eq.' + user.id + ')')
+      .order('created_at', { ascending: true })
+    setMessages(data || [])
+  }
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !activeConv) return
+    const { error } = await supabase.from('messages').insert({
+      sender_id: user.id,
+      receiver_id: activeConv,
+      content: newMessage.trim(),
+    })
+    if (!error) {
+      setNewMessage('')
+      fetchMessages(activeConv)
+      fetchConversations()
+    }
+  }
+
+  const getOtherName = () => {
+    const conv = conversations.find(c => c.otherId === activeConv)
+    return conv?.otherProfile?.name || 'Utilisateur'
+  }
+
+  if (activeConv) {
+    return (
+      <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: 430, margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
+        <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
+
+        {/* Chat header */}
+        <div style={{ background: '#5BC8D4', padding: '48px 22px 18px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button onClick={() => setActiveConv(null)}
+              style={{ background: 'rgba(255,255,255,0.25)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#3D2B1F', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+              ← Retour
+            </button>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, border: '2.5px solid #3D2B1F' }}>🤙</div>
+            <div>
+              <div style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{getOtherName()}</div>
+              <div style={{ fontSize: 11, fontFamily: "'Kalam', cursive", color: 'rgba(61,43,31,0.7)' }}>En ligne</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {messages.length === 0 && (
+            <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 16 }}>
+              Commence la conversation ! 🤙
+            </div>
+          )}
+          {messages.map(msg => (
+            <div key={msg.id} style={{ display: 'flex', justifyContent: msg.sender_id === user.id ? 'flex-end' : 'flex-start' }}>
+              <div style={{ maxWidth: '75%', padding: '10px 14px', borderRadius: msg.sender_id === user.id ? '18px 18px 4px 18px' : '18px 18px 18px 4px', background: msg.sender_id === user.id ? '#E8572A' : '#fff', border: msg.sender_id === user.id ? '2.5px solid #3D2B1F' : '2.5px solid #EDE0CC', boxShadow: msg.sender_id === user.id ? '3px 3px 0 #3D2B1F' : '2px 2px 0 #EDE0CC' }}>
+                <div style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: msg.sender_id === user.id ? '#fff' : '#3D2B1F', lineHeight: 1.5 }}>{msg.content}</div>
+                <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 700, color: msg.sender_id === user.id ? 'rgba(255,255,255,0.7)' : '#B5967A', marginTop: 3, textAlign: msg.sender_id === user.id ? 'right' : 'left' }}>
+                  {new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+            </div>
+          ))}
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Quick replies */}
+        <div style={{ padding: '8px 18px 0', display: 'flex', gap: 7, overflowX: 'auto', flexShrink: 0 }}>
+          {["Je suis in ! 🤙", "C'est quand ? ⏰", "Quel prix ? 💰", "OK parfait ✓"].map(r => (
+            <button key={r} onClick={() => setNewMessage(r)}
+              style={{ flexShrink: 0, padding: '6px 12px', borderRadius: 20, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#7B5C42', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              {r}
+            </button>
+          ))}
+        </div>
+
+        {/* Input */}
+        <div style={{ padding: '10px 18px 32px', display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0 }}>
+          <input value={newMessage} onChange={e => setNewMessage(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && sendMessage()}
+            placeholder="Tape un message..."
+            style={{ flex: 1, padding: '12px 16px', borderRadius: 18, border: '3px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F' }} />
+          <button onClick={sendMessage}
+            style={{ width: 48, height: 48, borderRadius: 16, border: '3px solid #3D2B1F', background: newMessage.trim() ? '#E8572A' : '#EDE0CC', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: '4px 4px 0 #3D2B1F', flexShrink: 0 }}>
+            🤙
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: 430, margin: '0 auto' }}>
+      <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
+
+      {/* Header */}
+      <div style={{ background: '#3D2B1F', padding: '48px 22px 22px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div>
+            <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>Messages 💬</div>
+            <div style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: 'rgba(255,255,255,0.65)' }}>tes conversations</div>
+          </div>
+          <button onClick={onBack}
+            style={{ background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+            ← Home
+          </button>
+        </div>
+        <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 14, padding: '10px 14px', border: '2px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 16 }}>🔍</span>
+          <span style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: 'rgba(255,255,255,0.45)' }}>Rechercher une conversation...</span>
+        </div>
+      </div>
+
+      {/* Conversations list */}
+      <div style={{ flex: 1 }}>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 18 }}>Chargement... 💬</div>
+        ) : conversations.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 60 }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>💬</div>
+            <div style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#3D2B1F', marginBottom: 6 }}>Aucun message</div>
+            <div style={{ fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>Contacte quelqu'un depuis un trajet ! 🤙</div>
+          </div>
+        ) : conversations.map(conv => (
+          <div key={conv.otherId} onClick={() => setActiveConv(conv.otherId)}
+            style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 22px', cursor: 'pointer', borderBottom: '1.5px solid #EDE0CC', transition: 'background 0.15s' }}>
+            <div style={{ width: 54, height: 54, borderRadius: 18, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, border: '3px solid #3D2B1F', flexShrink: 0 }}>🤙</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#3D2B1F', marginBottom: 3 }}>{conv.otherProfile?.name || 'Utilisateur'}</div>
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#B5967A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{conv.lastMsg.content}</div>
+            </div>
+            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A', flexShrink: 0 }}>
+              {new Date(conv.lastMsg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
