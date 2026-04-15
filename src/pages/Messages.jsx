@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabase'
 
-export default function Messages({ user, onBack }) {
+export default function Messages({ user, contactId, onBack }) {
   const [conversations, setConversations] = useState([])
-  const [activeConv, setActiveConv] = useState(null)
+  const [activeConv, setActiveConv] = useState(contactId || null)
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
+  const [profiles, setProfiles] = useState({})
   const bottomRef = useRef(null)
 
   useEffect(() => { fetchConversations() }, [])
@@ -27,18 +28,24 @@ export default function Messages({ user, onBack }) {
         const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id
         const otherProfile = msg.sender_id === user.id ? msg.receiver : msg.sender
         if (!convMap[otherId]) {
-          convMap[otherId] = { otherId, otherProfile, lastMsg: msg, unread: 0 }
+          convMap[otherId] = { otherId, otherProfile, lastMsg: msg }
         }
       })
       setConversations(Object.values(convMap))
     }
+
+    if (contactId) {
+      const { data: profileData } = await supabase.from('profiles').select('id, name, nationality').eq('id', contactId).single()
+      if (profileData) setProfiles(p => ({ ...p, [contactId]: profileData }))
+    }
+
     setLoading(false)
   }
 
   const fetchMessages = async (otherId) => {
     const { data } = await supabase
       .from('messages')
-      .select('*, sender:profiles!messages_sender_id_fkey(name)')
+      .select('*')
       .or('and(sender_id.eq.' + user.id + ',receiver_id.eq.' + otherId + '),and(sender_id.eq.' + otherId + ',receiver_id.eq.' + user.id + ')')
       .order('created_at', { ascending: true })
     setMessages(data || [])
@@ -58,9 +65,11 @@ export default function Messages({ user, onBack }) {
     }
   }
 
-  const getOtherName = () => {
-    const conv = conversations.find(c => c.otherId === activeConv)
-    return conv?.otherProfile?.name || 'Utilisateur'
+  const getOtherName = (id) => {
+    const conv = conversations.find(c => c.otherId === id)
+    if (conv?.otherProfile?.name) return conv.otherProfile.name
+    if (profiles[id]?.name) return profiles[id].name
+    return 'Utilisateur'
   }
 
   if (activeConv) {
@@ -68,7 +77,6 @@ export default function Messages({ user, onBack }) {
       <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: 430, margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
         <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
 
-        {/* Chat header */}
         <div style={{ background: '#5BC8D4', padding: '48px 22px 18px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={() => setActiveConv(null)}
@@ -77,13 +85,12 @@ export default function Messages({ user, onBack }) {
             </button>
             <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, border: '2.5px solid #3D2B1F' }}>🤙</div>
             <div>
-              <div style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{getOtherName()}</div>
-              <div style={{ fontSize: 11, fontFamily: "'Kalam', cursive", color: 'rgba(61,43,31,0.7)' }}>En ligne</div>
+              <div style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{getOtherName(activeConv)}</div>
+              <div style={{ fontSize: 11, fontFamily: "'Kalam', cursive", color: 'rgba(61,43,31,0.7)' }}>RoadMate</div>
             </div>
           </div>
         </div>
 
-        {/* Messages */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {messages.length === 0 && (
             <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 16 }}>
@@ -103,7 +110,6 @@ export default function Messages({ user, onBack }) {
           <div ref={bottomRef} />
         </div>
 
-        {/* Quick replies */}
         <div style={{ padding: '8px 18px 0', display: 'flex', gap: 7, overflowX: 'auto', flexShrink: 0 }}>
           {["Je suis in ! 🤙", "C'est quand ? ⏰", "Quel prix ? 💰", "OK parfait ✓"].map(r => (
             <button key={r} onClick={() => setNewMessage(r)}
@@ -113,14 +119,13 @@ export default function Messages({ user, onBack }) {
           ))}
         </div>
 
-        {/* Input */}
         <div style={{ padding: '10px 18px 32px', display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0 }}>
           <input value={newMessage} onChange={e => setNewMessage(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && sendMessage()}
             placeholder="Tape un message..."
             style={{ flex: 1, padding: '12px 16px', borderRadius: 18, border: '3px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F' }} />
           <button onClick={sendMessage}
-            style={{ width: 48, height: 48, borderRadius: 16, border: '3px solid #3D2B1F', background: newMessage.trim() ? '#E8572A' : '#EDE0CC', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: '4px 4px 0 #3D2B1F', flexShrink: 0 }}>
+            style={{ width: 48, height: 48, borderRadius: 16, border: '3px solid #3D2B1F', background: newMessage.trim() ? '#E8572A' : '#EDE0CC', cursor: 'pointer', fontSize: 20, boxShadow: '4px 4px 0 #3D2B1F', flexShrink: 0 }}>
             🤙
           </button>
         </div>
@@ -132,7 +137,6 @@ export default function Messages({ user, onBack }) {
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: 430, margin: '0 auto' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
 
-      {/* Header */}
       <div style={{ background: '#3D2B1F', padding: '48px 22px 22px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div>
@@ -144,13 +148,8 @@ export default function Messages({ user, onBack }) {
             ← Home
           </button>
         </div>
-        <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: 14, padding: '10px 14px', border: '2px solid rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 16 }}>🔍</span>
-          <span style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: 'rgba(255,255,255,0.45)' }}>Rechercher une conversation...</span>
-        </div>
       </div>
 
-      {/* Conversations list */}
       <div style={{ flex: 1 }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 18 }}>Chargement... 💬</div>
@@ -162,7 +161,7 @@ export default function Messages({ user, onBack }) {
           </div>
         ) : conversations.map(conv => (
           <div key={conv.otherId} onClick={() => setActiveConv(conv.otherId)}
-            style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 22px', cursor: 'pointer', borderBottom: '1.5px solid #EDE0CC', transition: 'background 0.15s' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 22px', cursor: 'pointer', borderBottom: '1.5px solid #EDE0CC' }}>
             <div style={{ width: 54, height: 54, borderRadius: 18, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, border: '3px solid #3D2B1F', flexShrink: 0 }}>🤙</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#3D2B1F', marginBottom: 3 }}>{conv.otherProfile?.name || 'Utilisateur'}</div>
