@@ -11,7 +11,28 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
   const bottomRef = useRef(null)
 
   useEffect(() => { fetchConversations() }, [])
-  useEffect(() => { if (activeConv) fetchMessages(activeConv) }, [activeConv])
+  useEffect(() => {
+    if (activeConv) {
+      fetchMessages(activeConv)
+      const channel = supabase.channel('messages-' + activeConv)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages'
+        }, (payload) => {
+          const msg = payload.new
+          if (
+            (msg.sender_id === user.id && msg.receiver_id === activeConv) ||
+            (msg.sender_id === activeConv && msg.receiver_id === user.id)
+          ) {
+            setMessages(prev => [...prev, msg])
+          }
+        })
+        .subscribe()
+      return () => supabase.removeChannel(channel)
+    }
+  }, [activeConv])
+
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
   const fetchConversations = async () => {
@@ -60,7 +81,6 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
     })
     if (!error) {
       setNewMessage('')
-      fetchMessages(activeConv)
       fetchConversations()
     }
   }
@@ -81,11 +101,14 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={() => setActiveConv(null)}
               style={{ background: 'rgba(255,255,255,0.25)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#3D2B1F', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-              ← Retour
+              Retour
             </button>
             <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, border: '2.5px solid #3D2B1F' }}>🤙</div>
             <div>
-              <div onClick={() => onViewProfile && onViewProfile(activeConv)} style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F', cursor: 'pointer', textDecoration: 'underline' }}>{getOtherName(activeConv)}</div>
+              <button onClick={() => onViewProfile && onViewProfile(activeConv)}
+                style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
+                {getOtherName(activeConv)}
+              </button>
               <div style={{ fontSize: 11, fontFamily: "'Kalam', cursive", color: 'rgba(61,43,31,0.7)' }}>RoadMate</div>
             </div>
           </div>
@@ -145,7 +168,7 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
           </div>
           <button onClick={onBack}
             style={{ background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-            ← Home
+            Home
           </button>
         </div>
       </div>
