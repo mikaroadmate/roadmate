@@ -7,7 +7,7 @@ const FLAGS = { 'French': '🇫🇷', 'Australian': '🇦🇺', 'British': '🇬
 export default function Profile({ user, onBack }) {
   const [profile, setProfile] = useState(null)
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ name: '', nationality: 'French', visa: 'WHV', bio: '', whatsapp: '', instagram: '' })
+  const [form, setForm] = useState({ name: '', nationality: 'French', visa: 'WHV', bio: '', whatsapp: '', instagram: '', vehicle_brand: '', vehicle_model: '', vehicle_color: '' })
   const [rides, setRides] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -23,7 +23,17 @@ export default function Profile({ user, onBack }) {
     const { data: ridesData } = await supabase.from('rides').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
     if (profileData) {
       setProfile(profileData)
-      setForm({ name: profileData.name || '', nationality: profileData.nationality || 'French', visa: profileData.visa || 'WHV', bio: profileData.bio || '', whatsapp: profileData.whatsapp || '', instagram: profileData.instagram || '' })
+      setForm({
+        name: profileData.name || '',
+        nationality: profileData.nationality || 'French',
+        visa: profileData.visa || 'WHV',
+        bio: profileData.bio || '',
+        whatsapp: profileData.whatsapp || '',
+        instagram: profileData.instagram || '',
+        vehicle_brand: profileData.vehicle_brand || '',
+        vehicle_model: profileData.vehicle_model || '',
+        vehicle_color: profileData.vehicle_color || ''
+      })
     }
     setRides(ridesData || [])
     setLoading(false)
@@ -35,13 +45,12 @@ export default function Profile({ user, onBack }) {
     setUploadingPhoto(true)
     const ext = file.name.split('.').pop()
     const fileName = `${user.id}/${user.id}.${ext}`
-const { error } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true })
-    const { data } = supabase.storage.from('avatars').getPublicUrl(fileName)
+    const { error } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true })
     if (!error) {
       const { data } = supabase.storage.from('avatars').getPublicUrl(fileName)
       await supabase.from('profiles').upsert({ id: user.id, avatar_url: data.publicUrl })
       fetchProfile()
-      setMessage('Photo mise à jour ! ✅')
+      setMessage('Photo mise a jour ! ✅')
       setTimeout(() => setMessage(''), 3000)
     }
     setUploadingPhoto(false)
@@ -51,7 +60,7 @@ const { error } = await supabase.storage.from('avatars').upload(fileName, file, 
     setSaving(true)
     const { error } = await supabase.from('profiles').upsert({ id: user.id, ...form })
     if (!error) {
-      setMessage('Profil sauvegardé ! ✅')
+      setMessage('Profil sauvegarde ! ✅')
       setEditing(false)
       fetchProfile()
     } else {
@@ -76,19 +85,17 @@ const { error } = await supabase.storage.from('avatars').upload(fileName, file, 
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: 430, margin: '0 auto' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
 
-      {/* Header */}
       <div style={{ background: '#8B5CF6', padding: '48px 22px 24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-            ← Home
+            Home
           </button>
           <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
             style={{ background: editing ? '#4CAF7D' : 'rgba(255,255,255,0.2)', border: '2px solid ' + (editing ? '#3D2B1F' : 'rgba(255,255,255,0.4)'), borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer', boxShadow: editing ? '3px 3px 0 #3D2B1F' : 'none' }}>
-            {saving ? 'Sauvegarde...' : editing ? '✓ Sauvegarder' : '✏️ Modifier'}
+            {saving ? 'Sauvegarde...' : editing ? 'Sauvegarder' : 'Modifier'}
           </button>
         </div>
 
-        {/* Avatar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ position: 'relative' }}>
             <div style={{ width: 72, height: 72, borderRadius: 22, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 rgba(0,0,0,0.2)', overflow: 'hidden' }}>
@@ -105,7 +112,7 @@ const { error } = await supabase.storage.from('avatars').upload(fileName, file, 
           <div>
             {editing ? (
               <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                placeholder="Ton prénom"
+                placeholder="Ton prenom"
                 style={{ fontSize: 24, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px', width: '100%' }} />
             ) : (
               <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>{profile?.name || 'Ajoute ton nom'}</div>
@@ -121,24 +128,21 @@ const { error } = await supabase.storage.from('avatars').upload(fileName, file, 
 
       <div style={{ padding: '16px 22px 100px' }}>
 
-        {/* Infos */}
         <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
           <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>Infos voyageur</div>
 
-          {/* Nationalité */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>🌍 Nationalité</div>
+            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>🌍 Nationalite</div>
             {editing ? (
               <select value={form.nationality} onChange={e => setForm(p => ({ ...p, nationality: e.target.value }))}
                 style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>
                 {Object.keys(FLAGS).map(f => <option key={f} value={f}>{FLAGS[f]} {f}</option>)}
               </select>
             ) : (
-              <div style={{ fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{FLAGS[profile?.nationality] || '🌍'} {profile?.nationality || 'Non renseigné'}</div>
+              <div style={{ fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{FLAGS[profile?.nationality] || '🌍'} {profile?.nationality || 'Non renseigne'}</div>
             )}
           </div>
 
-          {/* Visa */}
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📋 Visa</div>
             {editing ? (
@@ -151,23 +155,21 @@ const { error } = await supabase.storage.from('avatars').upload(fileName, file, 
                 ))}
               </div>
             ) : (
-              <div style={{ display: 'inline-block', padding: '6px 14px', borderRadius: 20, background: '#F3EFFE', border: '2px solid #8B5CF6', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#8B5CF6' }}>{profile?.visa || 'Non renseigné'}</div>
+              <div style={{ display: 'inline-block', padding: '6px 14px', borderRadius: 20, background: '#F3EFFE', border: '2px solid #8B5CF6', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#8B5CF6' }}>{profile?.visa || 'Non renseigne'}</div>
             )}
           </div>
 
-          {/* Bio */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>✍️ Bio</div>
+            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Bio</div>
             {editing ? (
               <textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
                 placeholder="Parle de toi, tes projets en Australie..."
                 rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6 }} />
             ) : (
-              <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6 }}>{profile?.bio || 'Ajoute une bio ✏️'}</div>
+              <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6 }}>{profile?.bio || 'Ajoute une bio'}</div>
             )}
           </div>
 
-          {/* WhatsApp */}
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📱 WhatsApp</div>
             {editing ? (
@@ -175,16 +177,15 @@ const { error } = await supabase.storage.from('avatars').upload(fileName, file, 
                 placeholder="+61 4XX XXX XXX (optionnel)"
                 style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
             ) : profile?.whatsapp ? (
-              <a href={`https://wa.me/${profile.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"
+              <a href={'https://wa.me/' + profile.whatsapp.replace(/\D/g, '')} target="_blank" rel="noreferrer"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: '#E8F8EF', border: '2px solid #4CAF7D', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#4CAF7D', textDecoration: 'none' }}>
                 📱 {profile.whatsapp}
               </a>
             ) : (
-              <div style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>Non renseigné</div>
+              <div style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>Non renseigne</div>
             )}
           </div>
 
-          {/* Instagram */}
           <div>
             <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📷 Instagram</div>
             {editing ? (
@@ -192,19 +193,56 @@ const { error } = await supabase.storage.from('avatars').upload(fileName, file, 
                 placeholder="@ton_pseudo (optionnel)"
                 style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
             ) : profile?.instagram ? (
-              <a href={`https://instagram.com/${profile.instagram.replace('@', '')}`} target="_blank" rel="noreferrer"
+              <a href={'https://instagram.com/' + profile.instagram.replace('@', '')} target="_blank" rel="noreferrer"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: '#FFF0F8', border: '2px solid #E1306C', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#E1306C', textDecoration: 'none' }}>
                 📷 {profile.instagram}
               </a>
             ) : (
-              <div style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>Non renseigné</div>
+              <div style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>Non renseigne</div>
+            )}
+          </div>
+        </div>
+
+        {/* Vehicule */}
+        <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>🚗 Mon vehicule</div>
+          <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Marque</div>
+              {editing ? (
+                <input value={form.vehicle_brand} onChange={e => setForm(p => ({ ...p, vehicle_brand: e.target.value }))}
+                  placeholder="Ex: Toyota"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
+              ) : (
+                <div style={{ fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_brand || '-'}</div>
+              )}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Modele</div>
+              {editing ? (
+                <input value={form.vehicle_model} onChange={e => setForm(p => ({ ...p, vehicle_model: e.target.value }))}
+                  placeholder="Ex: HiAce"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
+              ) : (
+                <div style={{ fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_model || '-'}</div>
+              )}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Couleur</div>
+            {editing ? (
+              <input value={form.vehicle_color} onChange={e => setForm(p => ({ ...p, vehicle_color: e.target.value }))}
+                placeholder="Ex: Blanc"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
+            ) : (
+              <div style={{ fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_color || '-'}</div>
             )}
           </div>
         </div>
 
         {/* Stats */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
-          {[['🚐', rides.length, 'Trajets'], ['⭐', '0', 'Avis'], [profile?.verified ? '✅' : '❌', profile?.verified ? 'Oui' : 'Non', 'Vérifié']].map(([icon, val, label]) => (
+          {[['🚐', rides.length, 'Trajets'], ['⭐', '0', 'Avis'], [profile?.verified ? '✅' : '❌', profile?.verified ? 'Oui' : 'Non', 'Verifie']].map(([icon, val, label]) => (
             <div key={label} style={{ flex: 1, background: '#fff', borderRadius: 16, padding: '14px 10px', border: '3px solid #3D2B1F', boxShadow: '3px 3px 0 #3D2B1F', textAlign: 'center' }}>
               <div style={{ fontSize: 22 }}>{icon}</div>
               <div style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{val}</div>
@@ -217,7 +255,7 @@ const { error } = await supabase.storage.from('avatars').upload(fileName, file, 
         <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
           <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>Mes trajets 🚐</div>
           {rides.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '20px 0', fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>Aucun trajet posté 🌊</div>
+            <div style={{ textAlign: 'center', padding: '20px 0', fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>Aucun trajet poste 🌊</div>
           ) : rides.map(ride => (
             <div key={ride.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1.5px solid #EDE0CC' }}>
               <div>
