@@ -23,6 +23,7 @@ export default function Home({ user, onSignOut }) {
   const [rides, setRides] = useState([])
   const [filterCat, setFilterCat] = useState('all')
   const [filterType, setFilterType] = useState('all')
+  const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [showPost, setShowPost] = useState(false)
   const [showMessages, setShowMessages] = useState(false)
@@ -43,8 +44,14 @@ export default function Home({ user, onSignOut }) {
     setLoading(false)
   }
 
+  const filteredRides = rides.filter(ride => {
+    if (!search.trim()) return true
+    const s = search.toLowerCase()
+    return ride.from_city?.toLowerCase().includes(s) || ride.to_city?.toLowerCase().includes(s)
+  })
+
   if (showPost) return <PostRide user={user} onBack={() => setShowPost(false)} onSuccess={() => { setShowPost(false); fetchRides() }} />
-  if (showMessages) return <Messages user={user} contactId={contactId} onBack={() => { setShowMessages(false); setContactId(null) }} />
+  if (showMessages) return <Messages user={user} contactId={contactId} onBack={() => { setShowMessages(false); setContactId(null) }} onViewProfile={(id) => { setShowMessages(false); setOtherUserId(id); setShowOtherProfile(true) }} />
   if (showProfile) return <Profile user={user} onBack={() => setShowProfile(false)} />
   if (showOtherProfile) return <Profile user={user} viewedUserId={otherUserId} onBack={() => { setShowOtherProfile(false); setOtherUserId(null) }} />
 
@@ -78,9 +85,17 @@ export default function Home({ user, onSignOut }) {
             Deco 👋
           </button>
         </div>
-        <div style={{ background: '#fff', borderRadius: 16, padding: '12px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18 }}>📍</span>
-          <span style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>Ou tu vas ?</span>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Ou tu vas ?"
+            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent' }}
+          />
+          {search && (
+            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
+          )}
         </div>
       </div>
 
@@ -100,15 +115,22 @@ export default function Home({ user, onSignOut }) {
       </div>
 
       <div style={{ padding: '12px 22px 100px' }}>
+        {search.trim() && (
+          <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: '#B5967A', marginBottom: 10 }}>
+            {filteredRides.length} trajet(s) pour "{search}"
+          </div>
+        )}
         {loading ? (
           <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 18 }}>Chargement... 🚐</div>
-        ) : rides.length === 0 ? (
+        ) : filteredRides.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40 }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>🚐</div>
             <div style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#3D2B1F', marginBottom: 6 }}>Aucun trajet</div>
-            <div style={{ fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>Sois le premier a poster ! 🤙</div>
+            <div style={{ fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>
+              {search ? 'Essaie une autre ville !' : 'Sois le premier a poster ! 🤙'}
+            </div>
           </div>
-        ) : rides.map(ride => {
+        ) : filteredRides.map(ride => {
           const cat = CATEGORIES.find(c => c.id === ride.category)
           const colors = CAT_COLORS[ride.category] || { bg: '#F5EDD9', color: '#EDE0CC' }
           return (
@@ -126,10 +148,10 @@ export default function Home({ user, onSignOut }) {
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   <div style={{ width: 44, height: 44, borderRadius: 14, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: '2.5px solid #3D2B1F' }}>🤙</div>
                   <div>
-                    <div onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
-                      style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#E8572A', cursor: 'pointer', textDecoration: 'underline' }}>
+                    <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
+                      style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#E8572A', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
                       {ride.profiles?.name || 'Anonyme'}
-                    </div>
+                    </button>
                     <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.profiles?.nationality || ''}</div>
                   </div>
                 </div>

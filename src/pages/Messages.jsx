@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabase'
 
-export default function Messages({ user, contactId, onBack }) {
+export default function Messages({ user, contactId, onBack, onViewProfile }) {
   const [conversations, setConversations] = useState([])
   const [activeConv, setActiveConv] = useState(contactId || null)
   const [messages, setMessages] = useState([])
@@ -85,7 +85,7 @@ export default function Messages({ user, contactId, onBack }) {
             </button>
             <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, border: '2.5px solid #3D2B1F' }}>🤙</div>
             <div>
-              <div style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{getOtherName(activeConv)}</div>
+              <div onClick={() => onViewProfile && onViewProfile(activeConv)} style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F', cursor: 'pointer', textDecoration: 'underline' }}>{getOtherName(activeConv)}</div>
               <div style={{ fontSize: 11, fontFamily: "'Kalam', cursive", color: 'rgba(61,43,31,0.7)' }}>RoadMate</div>
             </div>
           </div>
