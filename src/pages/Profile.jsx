@@ -4,23 +4,33 @@ import { supabase } from '../supabase'
 const VISAS = ['WHV', 'Student', 'Tourist', 'Work', 'Resident', 'Other']
 const FLAGS = { 'French': '🇫🇷', 'Australian': '🇦🇺', 'British': '🇬🇧', 'German': '🇩🇪', 'Spanish': '🇪🇸', 'Italian': '🇮🇹', 'American': '🇺🇸', 'Canadian': '🇨🇦', 'Brazilian': '🇧🇷', 'Japanese': '🇯🇵', 'Other': '🌍' }
 
-export default function Profile({ user, onBack }) {
+export default function Profile({ user, viewedUserId, onBack }) {
+  const isOwnProfile = !viewedUserId || viewedUserId === user.id
+  const targetId = isOwnProfile ? user.id : viewedUserId
+
   const [profile, setProfile] = useState(null)
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({ name: '', nationality: 'French', visa: 'WHV', bio: '', whatsapp: '', instagram: '', vehicle_brand: '', vehicle_model: '', vehicle_color: '' })
   const [rides, setRides] = useState([])
+  const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [showReviewForm, setShowReviewForm] = useState(false)
+  const [rating, setRating] = useState(5)
+  const [comment, setComment] = useState('')
+  const [submittingReview, setSubmittingReview] = useState(false)
   const fileInputRef = useRef(null)
 
-  useEffect(() => { fetchProfile() }, [])
+  useEffect(() => { fetchProfile() }, [targetId])
 
   const fetchProfile = async () => {
     setLoading(true)
-    const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-    const { data: ridesData } = await supabase.from('rides').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
+    const { data: profileData } = await supabase.from('profiles').select('*').eq('id', targetId).single()
+    const { data: ridesData } = await supabase.from('rides').select('*').eq('user_id', targetId).order('created_at', { ascending: false })
+    const { data: reviewsData } = await supabase.from('reviews').select('*, reviewer:profiles!reviews_reviewer_id_fkey(name)').eq('reviewed_id', targetId).order('created_at', { ascending: false })
+
     if (profileData) {
       setProfile(profileData)
       setForm({
@@ -36,6 +46,7 @@ export default function Profile({ user, onBack }) {
       })
     }
     setRides(ridesData || [])
+    setReviews(reviewsData || [])
     setLoading(false)
   }
 
@@ -75,6 +86,27 @@ export default function Profile({ user, onBack }) {
     fetchProfile()
   }
 
+  const submitReview = async () => {
+    setSubmittingReview(true)
+    const { error } = await supabase.from('reviews').insert({
+      reviewer_id: user.id,
+      reviewed_id: targetId,
+      rating,
+      comment
+    })
+    if (!error) {
+      setMessage('Avis envoye ! ✅')
+      setShowReviewForm(false)
+      setComment('')
+      setRating(5)
+      fetchProfile()
+    }
+    setSubmittingReview(false)
+    setTimeout(() => setMessage(''), 3000)
+  }
+
+  const avgRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : '0'
+
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#F5EDD9', fontFamily: "'Kalam', cursive", fontSize: 20, color: '#B5967A' }}>
       Chargement... 🤙
@@ -85,15 +117,17 @@ export default function Profile({ user, onBack }) {
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: 430, margin: '0 auto' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
 
-      <div style={{ background: '#8B5CF6', padding: '48px 22px 24px' }}>
+      <div style={{ background: isOwnProfile ? '#8B5CF6' : '#5BC8D4', padding: '48px 22px 24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-            Home
+            Retour
           </button>
-          <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
-            style={{ background: editing ? '#4CAF7D' : 'rgba(255,255,255,0.2)', border: '2px solid ' + (editing ? '#3D2B1F' : 'rgba(255,255,255,0.4)'), borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer', boxShadow: editing ? '3px 3px 0 #3D2B1F' : 'none' }}>
-            {saving ? 'Sauvegarde...' : editing ? 'Sauvegarder' : 'Modifier'}
-          </button>
+          {isOwnProfile && (
+            <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
+              style={{ background: editing ? '#4CAF7D' : 'rgba(255,255,255,0.2)', border: '2px solid ' + (editing ? '#3D2B1F' : 'rgba(255,255,255,0.4)'), borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer', boxShadow: editing ? '3px 3px 0 #3D2B1F' : 'none' }}>
+              {saving ? 'Sauvegarde...' : editing ? 'Sauvegarder' : 'Modifier'}
+            </button>
+          )}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -103,11 +137,15 @@ export default function Profile({ user, onBack }) {
                 <img src={profile.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : '🤙'}
             </div>
-            <button onClick={() => fileInputRef.current.click()} disabled={uploadingPhoto}
-              style={{ position: 'absolute', bottom: -6, right: -6, width: 26, height: 26, borderRadius: 8, background: '#fff', border: '2px solid #3D2B1F', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {uploadingPhoto ? '⏳' : '📷'}
-            </button>
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={uploadAvatar} style={{ display: 'none' }} />
+            {isOwnProfile && (
+              <>
+                <button onClick={() => fileInputRef.current.click()} disabled={uploadingPhoto}
+                  style={{ position: 'absolute', bottom: -6, right: -6, width: 26, height: 26, borderRadius: 8, background: '#fff', border: '2px solid #3D2B1F', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {uploadingPhoto ? '⏳' : '📷'}
+                </button>
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={uploadAvatar} style={{ display: 'none' }} />
+              </>
+            )}
           </div>
           <div>
             {editing ? (
@@ -115,9 +153,11 @@ export default function Profile({ user, onBack }) {
                 placeholder="Ton prenom"
                 style={{ fontSize: 24, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px', width: '100%' }} />
             ) : (
-              <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>{profile?.name || 'Ajoute ton nom'}</div>
+              <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>{profile?.name || 'Anonyme'}</div>
             )}
-            <div style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>{user.email}</div>
+            <div style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
+              {isOwnProfile ? user.email : (profile?.nationality || '')}
+            </div>
           </div>
         </div>
       </div>
@@ -128,6 +168,7 @@ export default function Profile({ user, onBack }) {
 
       <div style={{ padding: '16px 22px 100px' }}>
 
+        {/* Infos voyageur */}
         <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
           <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>Infos voyageur</div>
 
@@ -166,83 +207,85 @@ export default function Profile({ user, onBack }) {
                 placeholder="Parle de toi, tes projets en Australie..."
                 rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6 }} />
             ) : (
-              <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6 }}>{profile?.bio || 'Ajoute une bio'}</div>
+              <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6 }}>{profile?.bio || 'Aucune bio'}</div>
             )}
           </div>
 
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📱 WhatsApp</div>
-            {editing ? (
-              <input value={form.whatsapp} onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))}
-                placeholder="+61 4XX XXX XXX (optionnel)"
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
-            ) : profile?.whatsapp ? (
-              <a href={'https://wa.me/' + profile.whatsapp.replace(/\D/g, '')} target="_blank" rel="noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: '#E8F8EF', border: '2px solid #4CAF7D', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#4CAF7D', textDecoration: 'none' }}>
-                📱 {profile.whatsapp}
-              </a>
-            ) : (
-              <div style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>Non renseigne</div>
-            )}
-          </div>
+          {(profile?.whatsapp || editing) && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📱 WhatsApp</div>
+              {editing ? (
+                <input value={form.whatsapp} onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))}
+                  placeholder="+61 4XX XXX XXX (optionnel)"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
+              ) : profile?.whatsapp ? (
+                <a href={'https://wa.me/' + profile.whatsapp.replace(/\D/g, '')} target="_blank" rel="noreferrer"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: '#E8F8EF', border: '2px solid #4CAF7D', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#4CAF7D', textDecoration: 'none' }}>
+                  📱 {profile.whatsapp}
+                </a>
+              ) : null}
+            </div>
+          )}
 
-          <div>
-            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📷 Instagram</div>
-            {editing ? (
-              <input value={form.instagram} onChange={e => setForm(p => ({ ...p, instagram: e.target.value }))}
-                placeholder="@ton_pseudo (optionnel)"
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
-            ) : profile?.instagram ? (
-              <a href={'https://instagram.com/' + profile.instagram.replace('@', '')} target="_blank" rel="noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: '#FFF0F8', border: '2px solid #E1306C', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#E1306C', textDecoration: 'none' }}>
-                📷 {profile.instagram}
-              </a>
-            ) : (
-              <div style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>Non renseigne</div>
-            )}
-          </div>
+          {(profile?.instagram || editing) && (
+            <div>
+              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📷 Instagram</div>
+              {editing ? (
+                <input value={form.instagram} onChange={e => setForm(p => ({ ...p, instagram: e.target.value }))}
+                  placeholder="@ton_pseudo (optionnel)"
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
+              ) : profile?.instagram ? (
+                <a href={'https://instagram.com/' + profile.instagram.replace('@', '')} target="_blank" rel="noreferrer"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: '#FFF0F8', border: '2px solid #E1306C', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#E1306C', textDecoration: 'none' }}>
+                  📷 {profile.instagram}
+                </a>
+              ) : null}
+            </div>
+          )}
         </div>
 
         {/* Vehicule */}
-        <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>🚗 Mon vehicule</div>
-          <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Marque</div>
-              {editing ? (
-                <input value={form.vehicle_brand} onChange={e => setForm(p => ({ ...p, vehicle_brand: e.target.value }))}
-                  placeholder="Ex: Toyota"
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
-              ) : (
-                <div style={{ fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_brand || '-'}</div>
-              )}
+        {(profile?.vehicle_brand || profile?.vehicle_model || editing) && (
+          <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>🚗 Vehicule</div>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Marque</div>
+                {editing ? (
+                  <input value={form.vehicle_brand} onChange={e => setForm(p => ({ ...p, vehicle_brand: e.target.value }))}
+                    placeholder="Ex: Toyota"
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
+                ) : (
+                  <div style={{ fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_brand || '-'}</div>
+                )}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Modele</div>
+                {editing ? (
+                  <input value={form.vehicle_model} onChange={e => setForm(p => ({ ...p, vehicle_model: e.target.value }))}
+                    placeholder="Ex: HiAce"
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
+                ) : (
+                  <div style={{ fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_model || '-'}</div>
+                )}
+              </div>
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Modele</div>
+            <div>
+              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Couleur</div>
               {editing ? (
-                <input value={form.vehicle_model} onChange={e => setForm(p => ({ ...p, vehicle_model: e.target.value }))}
-                  placeholder="Ex: HiAce"
+                <input value={form.vehicle_color} onChange={e => setForm(p => ({ ...p, vehicle_color: e.target.value }))}
+                  placeholder="Ex: Blanc"
                   style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
               ) : (
-                <div style={{ fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_model || '-'}</div>
+                <div style={{ fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_color || '-'}</div>
               )}
             </div>
           </div>
-          <div>
-            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Couleur</div>
-            {editing ? (
-              <input value={form.vehicle_color} onChange={e => setForm(p => ({ ...p, vehicle_color: e.target.value }))}
-                placeholder="Ex: Blanc"
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
-            ) : (
-              <div style={{ fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_color || '-'}</div>
-            )}
-          </div>
-        </div>
+        )}
 
         {/* Stats */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
-          {[['🚐', rides.length, 'Trajets'], ['⭐', '0', 'Avis'], [profile?.verified ? '✅' : '❌', profile?.verified ? 'Oui' : 'Non', 'Verifie']].map(([icon, val, label]) => (
+          {[['🚐', rides.length, 'Trajets'], ['⭐', avgRating, 'Avis'], [profile?.verified ? '✅' : '❌', profile?.verified ? 'Oui' : 'Non', 'Verifie']].map(([icon, val, label]) => (
             <div key={label} style={{ flex: 1, background: '#fff', borderRadius: 16, padding: '14px 10px', border: '3px solid #3D2B1F', boxShadow: '3px 3px 0 #3D2B1F', textAlign: 'center' }}>
               <div style={{ fontSize: 22 }}>{icon}</div>
               <div style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{val}</div>
@@ -251,24 +294,81 @@ export default function Profile({ user, onBack }) {
           ))}
         </div>
 
-        {/* Mes trajets */}
-        <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
-          <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>Mes trajets 🚐</div>
-          {rides.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '20px 0', fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>Aucun trajet poste 🌊</div>
-          ) : rides.map(ride => (
-            <div key={ride.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1.5px solid #EDE0CC' }}>
-              <div>
-                <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.from_city} → {ride.to_city}</div>
-                <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.date} · {ride.seats} place(s)</div>
-              </div>
-              <button onClick={() => deleteRide(ride.id)}
-                style={{ background: '#FFF0EE', border: '2px solid #E8572A', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>
-                🗑️
+        {/* Bouton laisser un avis */}
+        {!isOwnProfile && (
+          <div style={{ marginBottom: 14 }}>
+            {!showReviewForm ? (
+              <button onClick={() => setShowReviewForm(true)}
+                style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#F5A623', color: '#3D2B1F', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
+                ⭐ Laisser un avis
               </button>
-            </div>
-          ))}
-        </div>
+            ) : (
+              <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
+                <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>⭐ Ton avis</div>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12, justifyContent: 'center' }}>
+                  {[1,2,3,4,5].map(star => (
+                    <button key={star} onClick={() => setRating(star)}
+                      style={{ fontSize: 28, background: 'none', border: 'none', cursor: 'pointer', opacity: star <= rating ? 1 : 0.3 }}>
+                      ⭐
+                    </button>
+                  ))}
+                </div>
+                <textarea value={comment} onChange={e => setComment(e.target.value)}
+                  placeholder="Ton commentaire (optionnel)..."
+                  rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6, marginBottom: 10 }} />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => setShowReviewForm(false)}
+                    style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', cursor: 'pointer' }}>
+                    Annuler
+                  </button>
+                  <button onClick={submitReview} disabled={submittingReview}
+                    style={{ flex: 2, padding: '10px', borderRadius: 12, border: '3px solid #3D2B1F', background: '#4CAF7D', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff', cursor: 'pointer', boxShadow: '3px 3px 0 #3D2B1F' }}>
+                    {submittingReview ? 'Envoi...' : 'Envoyer ✓'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Avis recus */}
+        {reviews.length > 0 && (
+          <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>⭐ Avis ({reviews.length})</div>
+            {reviews.map(review => (
+              <div key={review.id} style={{ paddingBottom: 12, marginBottom: 12, borderBottom: '1.5px solid #EDE0CC' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <div style={{ fontFamily: "'Fredoka One'", fontSize: 14, color: '#3D2B1F' }}>{review.reviewer?.name || 'Anonyme'}</div>
+                  <div style={{ fontSize: 13 }}>{'⭐'.repeat(review.rating)}</div>
+                </div>
+                {review.comment && (
+                  <div style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.5 }}>{review.comment}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Mes trajets */}
+        {isOwnProfile && (
+          <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
+            <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>Mes trajets 🚐</div>
+            {rides.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '20px 0', fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>Aucun trajet poste 🌊</div>
+            ) : rides.map(ride => (
+              <div key={ride.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1.5px solid #EDE0CC' }}>
+                <div>
+                  <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.from_city} → {ride.to_city}</div>
+                  <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.date} · {ride.seats} place(s)</div>
+                </div>
+                <button onClick={() => deleteRide(ride.id)}
+                  style={{ background: '#FFF0EE', border: '2px solid #E8572A', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>
+                  🗑️
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

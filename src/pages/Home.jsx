@@ -27,6 +27,8 @@ export default function Home({ user, onSignOut }) {
   const [showPost, setShowPost] = useState(false)
   const [showMessages, setShowMessages] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
+  const [showOtherProfile, setShowOtherProfile] = useState(false)
+  const [otherUserId, setOtherUserId] = useState(null)
   const [contactId, setContactId] = useState(null)
 
   useEffect(() => { fetchRides() }, [filterCat, filterType])
@@ -44,6 +46,7 @@ export default function Home({ user, onSignOut }) {
   if (showPost) return <PostRide user={user} onBack={() => setShowPost(false)} onSuccess={() => { setShowPost(false); fetchRides() }} />
   if (showMessages) return <Messages user={user} contactId={contactId} onBack={() => { setShowMessages(false); setContactId(null) }} />
   if (showProfile) return <Profile user={user} onBack={() => setShowProfile(false)} />
+  if (showOtherProfile) return <Profile user={user} viewedUserId={otherUserId} onBack={() => { setShowOtherProfile(false); setOtherUserId(null) }} />
 
   const getTypeStyle = (id) => ({
     flex: 1, padding: '8px', borderRadius: 20,
@@ -72,12 +75,12 @@ export default function Home({ user, onSignOut }) {
             <div style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: 'rgba(255,255,255,0.😎' }}>g'day mate 🦘</div>
           </div>
           <button onClick={onSignOut} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-            Déco 👋
+            Deco 👋
           </button>
         </div>
         <div style={{ background: '#fff', borderRadius: 16, padding: '12px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18 }}>📍</span>
-          <span style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>Où tu vas ?</span>
+          <span style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>Ou tu vas ?</span>
         </div>
       </div>
 
@@ -103,7 +106,7 @@ export default function Home({ user, onSignOut }) {
           <div style={{ textAlign: 'center', padding: 40 }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>🚐</div>
             <div style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#3D2B1F', marginBottom: 6 }}>Aucun trajet</div>
-            <div style={{ fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>Sois le premier à poster ! 🤙</div>
+            <div style={{ fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>Sois le premier a poster ! 🤙</div>
           </div>
         ) : rides.map(ride => {
           const cat = CATEGORIES.find(c => c.id === ride.category)
@@ -123,14 +126,17 @@ export default function Home({ user, onSignOut }) {
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   <div style={{ width: 44, height: 44, borderRadius: 14, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: '2.5px solid #3D2B1F' }}>🤙</div>
                   <div>
-                    <div style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#3D2B1F' }}>{ride.profiles?.name || 'Anonyme'}</div>
+                    <div onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
+                      style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#E8572A', cursor: 'pointer', textDecoration: 'underline' }}>
+                      {ride.profiles?.name || 'Anonyme'}
+                    </div>
                     <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.profiles?.nationality || ''}</div>
                   </div>
                 </div>
                 {ride.price && (
                   <div style={{ background: '#F5A623', borderRadius: 14, padding: '6px 12px', border: '2.5px solid #3D2B1F', boxShadow: '3px 3px 0 #3D2B1F', textAlign: 'center' }}>
                     <div style={{ fontSize: 18, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.price}$</div>
-                    <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>/siège</div>
+                    <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>/siege</div>
                   </div>
                 )}
               </div>
@@ -142,7 +148,7 @@ export default function Home({ user, onSignOut }) {
                 </div>
                 <span style={{ fontSize: 18 }}>→</span>
                 <div style={{ flex: 1, background: '#F5EDD9', borderRadius: 12, padding: '8px 12px', border: '2px solid #EDE0CC' }}>
-                  <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1 }}>À</div>
+                  <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1 }}>A</div>
                   <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.to_city}</div>
                 </div>
               </div>
@@ -167,7 +173,6 @@ export default function Home({ user, onSignOut }) {
         })}
       </div>
 
-      {/* Bottom Nav */}
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, background: '#fff', borderTop: '3px solid #3D2B1F', padding: '12px 0 20px', display: 'flex', justifyContent: 'space-around' }}>
         <button style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
           <span style={{ fontSize: 22 }}>🏠</span>
