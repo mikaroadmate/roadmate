@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabase'
 
 const VISAS = ['WHV', 'Student', 'Tourist', 'Work', 'Resident', 'Other']
@@ -7,11 +7,13 @@ const FLAGS = { 'French': '🇫🇷', 'Australian': '🇦🇺', 'British': '🇬
 export default function Profile({ user, onBack }) {
   const [profile, setProfile] = useState(null)
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ name: '', nationality: 'French', visa: 'WHV', bio: '' })
+  const [form, setForm] = useState({ name: '', nationality: 'French', visa: 'WHV', bio: '', whatsapp: '', instagram: '' })
   const [rides, setRides] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const fileInputRef = useRef(null)
 
   useEffect(() => { fetchProfile() }, [])
 
@@ -19,13 +21,30 @@ export default function Profile({ user, onBack }) {
     setLoading(true)
     const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single()
     const { data: ridesData } = await supabase.from('rides').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
-    
     if (profileData) {
       setProfile(profileData)
-      setForm({ name: profileData.name || '', nationality: profileData.nationality || 'French', visa: profileData.visa || 'WHV', bio: profileData.bio || '' })
+      setForm({ name: profileData.name || '', nationality: profileData.nationality || 'French', visa: profileData.visa || 'WHV', bio: profileData.bio || '', whatsapp: profileData.whatsapp || '', instagram: profileData.instagram || '' })
     }
     setRides(ridesData || [])
     setLoading(false)
+  }
+
+  const uploadAvatar = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploadingPhoto(true)
+    const ext = file.name.split('.').pop()
+    const fileName = `${user.id}/${user.id}.${ext}`
+const { error } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true })
+    const { data } = supabase.storage.from('avatars').getPublicUrl(fileName)
+    if (!error) {
+      const { data } = supabase.storage.from('avatars').getPublicUrl(fileName)
+      await supabase.from('profiles').upsert({ id: user.id, avatar_url: data.publicUrl })
+      fetchProfile()
+      setMessage('Photo mise à jour ! ✅')
+      setTimeout(() => setMessage(''), 3000)
+    }
+    setUploadingPhoto(false)
   }
 
   const saveProfile = async () => {
@@ -71,7 +90,18 @@ export default function Profile({ user, onBack }) {
 
         {/* Avatar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 72, height: 72, borderRadius: 22, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 rgba(0,0,0,0.2)' }}>🤙</div>
+          <div style={{ position: 'relative' }}>
+            <div style={{ width: 72, height: 72, borderRadius: 22, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 rgba(0,0,0,0.2)', overflow: 'hidden' }}>
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : '🤙'}
+            </div>
+            <button onClick={() => fileInputRef.current.click()} disabled={uploadingPhoto}
+              style={{ position: 'absolute', bottom: -6, right: -6, width: 26, height: 26, borderRadius: 8, background: '#fff', border: '2px solid #3D2B1F', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {uploadingPhoto ? '⏳' : '📷'}
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={uploadAvatar} style={{ display: 'none' }} />
+          </div>
           <div>
             {editing ? (
               <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
@@ -95,6 +125,7 @@ export default function Profile({ user, onBack }) {
         <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
           <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>Infos voyageur</div>
 
+          {/* Nationalité */}
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>🌍 Nationalité</div>
             {editing ? (
@@ -107,6 +138,7 @@ export default function Profile({ user, onBack }) {
             )}
           </div>
 
+          {/* Visa */}
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📋 Visa</div>
             {editing ? (
@@ -123,7 +155,8 @@ export default function Profile({ user, onBack }) {
             )}
           </div>
 
-          <div>
+          {/* Bio */}
+          <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>✍️ Bio</div>
             {editing ? (
               <textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
@@ -131,6 +164,40 @@ export default function Profile({ user, onBack }) {
                 rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6 }} />
             ) : (
               <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6 }}>{profile?.bio || 'Ajoute une bio ✏️'}</div>
+            )}
+          </div>
+
+          {/* WhatsApp */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📱 WhatsApp</div>
+            {editing ? (
+              <input value={form.whatsapp} onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))}
+                placeholder="+61 4XX XXX XXX (optionnel)"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
+            ) : profile?.whatsapp ? (
+              <a href={`https://wa.me/${profile.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: '#E8F8EF', border: '2px solid #4CAF7D', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#4CAF7D', textDecoration: 'none' }}>
+                📱 {profile.whatsapp}
+              </a>
+            ) : (
+              <div style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>Non renseigné</div>
+            )}
+          </div>
+
+          {/* Instagram */}
+          <div>
+            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📷 Instagram</div>
+            {editing ? (
+              <input value={form.instagram} onChange={e => setForm(p => ({ ...p, instagram: e.target.value }))}
+                placeholder="@ton_pseudo (optionnel)"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
+            ) : profile?.instagram ? (
+              <a href={`https://instagram.com/${profile.instagram.replace('@', '')}`} target="_blank" rel="noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: '#FFF0F8', border: '2px solid #E1306C', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#E1306C', textDecoration: 'none' }}>
+                📷 {profile.instagram}
+              </a>
+            ) : (
+              <div style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>Non renseigné</div>
             )}
           </div>
         </div>
