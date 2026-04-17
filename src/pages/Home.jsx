@@ -3,7 +3,9 @@ import { supabase } from '../supabase'
 import PostRide from './PostRide'
 import Messages from './Messages'
 import Profile from './Profile'
+
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
+
 const CATEGORIES = [
   { id: 'all', label: 'Tous', icon: '🛣️' },
   { id: 'travel', label: 'Voyage', icon: '✈️' },
@@ -19,10 +21,22 @@ const CAT_COLORS = {
   roadtrip: { bg: '#F3EFFE', color: '#8B5CF6' },
 }
 
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4)
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
+}
+
 export default function Home({ user, onSignOut }) {
   const [rides, setRides] = useState([])
   const [filterCat, setFilterCat] = useState('all')
   const [filterType, setFilterType] = useState('all')
+  const [filterWomen, setFilterWomen] = useState(false)
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [showPost, setShowPost] = useState(false)
@@ -32,13 +46,14 @@ export default function Home({ user, onSignOut }) {
   const [otherUserId, setOtherUserId] = useState(null)
   const [contactId, setContactId] = useState(null)
 
-  useEffect(() => { fetchRides() }, [filterCat, filterType])
+  useEffect(() => { fetchRides() }, [filterCat, filterType, filterWomen])
 
   const fetchRides = async () => {
     setLoading(true)
     let query = supabase.from('rides').select('*, profiles(name, nationality, verified)').order('created_at', { ascending: false })
     if (filterCat !== 'all') query = query.eq('category', filterCat)
     if (filterType !== 'all') query = query.eq('type', filterType)
+    if (filterWomen) query = query.eq('women_only', true)
     const { data } = await query
     setRides(data || [])
     setLoading(false)
@@ -49,6 +64,34 @@ export default function Home({ user, onSignOut }) {
     const s = search.toLowerCase()
     return ride.from_city?.toLowerCase().includes(s) || ride.to_city?.toLowerCase().includes(s)
   })
+
+  const registerPush = async (userId) => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      alert('Push non supporté')
+      return
+    }
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js')
+      await navigator.serviceWorker.ready
+      const permission = await Notification.requestPermission()
+      if (permission !== 'granted') {
+        alert('Permission refusée')
+        return
+      }
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      })
+      const { error } = await supabase.from('push_subscriptions').upsert({
+        user_id: userId,
+        subscription: JSON.stringify(sub)
+      }, { onConflict: 'user_id' })
+      if (error) alert('Erreur: ' + error.message)
+      else alert('Notifications activées ! ✅')
+    } catch (e) {
+      alert('Erreur: ' + e.message)
+    }
+  }
 
   if (showPost) return <PostRide user={user} onBack={() => setShowPost(false)} onSuccess={() => { setShowPost(false); fetchRides() }} />
   if (showMessages) return <Messages user={user} contactId={contactId} onBack={() => { setShowMessages(false); setContactId(null) }} onViewProfile={(id) => { setShowMessages(false); setOtherUserId(id); setShowOtherProfile(true) }} />
@@ -70,46 +113,6 @@ export default function Home({ user, onSignOut }) {
     color: filterCat === id ? '#fff' : '#B5967A',
     fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer'
   })
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
-
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4)
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-  const rawData = window.atob(base64)
-  const outputArray = new Uint8Array(rawData.length)
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i)
-  }
-  return outputArray
-}
-
-const registerPush = async (userId) => {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    alert('Push non supporté')
-    return
-  }
-  try {
-    const reg = await navigator.serviceWorker.register('/sw.js')
-    await navigator.serviceWorker.ready
-    const permission = await Notification.requestPermission()
-    if (permission !== 'granted') {
-      alert('Permission refusée')
-      return
-    }
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-    })
-    const { error } = await supabase.from('push_subscriptions').upsert({
-      user_id: userId,
-      subscription: JSON.stringify(sub)
-    }, { onConflict: 'user_id' })
-    if (error) alert('Erreur: ' + error.message)
-    else alert('Notifications activées ! ✅')
-  } catch (e) {
-    alert('Erreur: ' + e.message)
-  }
-}
 
   return (
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: 430, margin: '0 auto' }}>
@@ -122,24 +125,24 @@ const registerPush = async (userId) => {
             <div style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: 'rgba(255,255,255,0.😎' }}>g'day mate 🦘</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-  <button onClick={() => registerPush(user.id)} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-    🔔
-  </button>
-  <button onClick={onSignOut} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-    Deco 👋
-  </button>
-</div>
+            <button onClick={() => registerPush(user.id)} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+              🔔
+            </button>
+            <button onClick={onSignOut} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+              Deco 👋
+            </button>
+          </div>
         </div>
         <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18 }}>📍</span>
           <input
-  value={search}
-  onChange={e => setSearch(e.target.value)}
-  placeholder="Ou tu vas ?"
-  type="search"
-  autoComplete="off"
-  style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
-/>
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Ou tu vas ?"
+            type="search"
+            autoComplete="off"
+            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
+          />
           {search && (
             <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
           )}
@@ -158,6 +161,12 @@ const registerPush = async (userId) => {
               {c.icon} {c.label}
             </button>
           ))}
+        </div>
+        <div style={{ marginTop: 8, marginBottom: 4 }}>
+          <button onClick={() => setFilterWomen(!filterWomen)}
+            style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterWomen ? '#E8572A' : '#EDE0CC'), background: filterWomen ? '#FFF0EE' : '#fff', color: filterWomen ? '#E8572A' : '#B5967A', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
+            👩 Femmes uniquement
+          </button>
         </div>
       </div>
 
@@ -189,6 +198,11 @@ const registerPush = async (userId) => {
                 <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: ride.type === 'offer' ? '#E8F8EF' : '#EFF6FF', color: ride.type === 'offer' ? '#4CAF7D' : '#3B82F6', border: '2px solid ' + (ride.type === 'offer' ? '#4CAF7D' : '#3B82F6') }}>
                   {ride.type === 'offer' ? '🚗 Offre' : '🙋 Cherche'}
                 </span>
+                {ride.women_only && (
+                  <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#FFF0EE', color: '#E8572A', border: '2px solid #E8572A' }}>
+                    👩 Femmes
+                  </span>
+                )}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
