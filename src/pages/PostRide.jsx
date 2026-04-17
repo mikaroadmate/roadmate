@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { supabase } from '../supabase'
 
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
+
 const CATEGORIES = [
   { id: 'travel', label: 'Voyage', icon: '✈️', desc: 'Inter-états & longue distance' },
   { id: 'work', label: 'Travail', icon: '💼', desc: 'Fermes, mines & emploi' },
@@ -13,8 +15,23 @@ export default function PostRide({ user, onBack, onSuccess }) {
   const [type, setType] = useState('offer')
   const [category, setCategory] = useState('travel')
   const [form, setForm] = useState({ from_city: '', to_city: '', date: '', time: '', seats: '2', price: '', note: '', womenOnly: false })
+  const [coords, setCoords] = useState({ from_lat: null, from_lng: null })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const geocodeCity = async (city) => {
+    if (!city.trim()) return
+    try {
+      const res = await fetch(https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(city)}.json?country=au&limit=1&access_token=${MAPBOX_TOKEN})
+      const data = await res.json()
+      if (data.features && data.features.length > 0) {
+        const [lng, lat] = data.features[0].center
+        setCoords({ from_lat: lat, from_lng: lng })
+      }
+    } catch (e) {
+      console.log('Geocoding error:', e)
+    }
+  }
 
   const handleSubmit = async () => {
     setLoading(true)
@@ -32,6 +49,8 @@ export default function PostRide({ user, onBack, onSuccess }) {
       price: form.price ? parseFloat(form.price) : null,
       note: form.note,
       women_only: form.womenOnly,
+      from_lat: coords.from_lat,
+      from_lng: coords.from_lng,
     })
 
     if (error) {
@@ -101,8 +120,13 @@ export default function PostRide({ user, onBack, onSuccess }) {
         {step === 2 && (
           <>
             <Section title="📍 Départ">
-              <input placeholder="Ville ou région" value={form.from_city} onChange={e => setForm(p => ({ ...p, from_city: e.target.value }))}
-                style={inputStyle} />
+              <input
+                placeholder="Ville ou région"
+                value={form.from_city}
+                onChange={e => setForm(p => ({ ...p, from_city: e.target.value }))}
+                onBlur={() => geocodeCity(form.from_city)}
+                style={inputStyle}
+              />
             </Section>
             <Section title="🏁 Destination">
               <input placeholder="Ville ou région" value={form.to_city} onChange={e => setForm(p => ({ ...p, to_city: e.target.value }))}
@@ -161,6 +185,7 @@ export default function PostRide({ user, onBack, onSuccess }) {
                 {form.date || 'Date TBC'} · {form.seats} place(s) {form.price ? '· ' + form.price + '$ / siège' : '· partage essence'}
               </div>
               {form.womenOnly && <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#E8572A', marginTop: 6 }}>👩 Femmes uniquement</div>}
+              {coords.from_lat && <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#4CAF7D', marginTop: 4 }}>📍 Position trouvée ✓</div>}
             </div>
 
             {error && <div style={{ padding: '10px 14px', borderRadius: 12, background: '#FFF0EE', border: '2px solid #E8572A', marginBottom: 12, fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#E8572A' }}>{error}</div>}
