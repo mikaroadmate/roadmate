@@ -37,24 +37,32 @@ export default function App() {
     if (user) registerPush(user.id)
   }, [user])
 
-  const registerPush = async (userId) => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
-    try {
-      const reg = await navigator.serviceWorker.register('/sw.js')
-      const permission = await Notification.requestPermission()
-      if (permission !== 'granted') return
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      })
-      await supabase.from('push_subscriptions').upsert({
-  user_id: userId,
-  subscription: JSON.stringify(sub)
-}, { onConflict: 'user_id' })
-    } catch (e) {
-      console.log('Push non supporte:', e)
-    }
+ const registerPush = async (userId) => {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    console.log('Push non supporté')
+    return
   }
+  try {
+    console.log('Enregistrement SW...')
+    const reg = await navigator.serviceWorker.register('/sw.js')
+    console.log('SW enregistré:', reg)
+    const permission = await Notification.requestPermission()
+    console.log('Permission:', permission)
+    if (permission !== 'granted') return
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    })
+    console.log('Subscription:', sub)
+    const { error } = await supabase.from('push_subscriptions').upsert({
+      user_id: userId,
+      subscription: JSON.stringify(sub)
+    }, { onConflict: 'user_id' })
+    console.log('Supabase error:', error)
+  } catch (e) {
+    console.log('Erreur push:', e)
+  }
+}
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
