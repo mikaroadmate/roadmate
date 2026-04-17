@@ -80,9 +80,26 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
       content: newMessage.trim(),
     })
     if (!error) {
-      setNewMessage('')
-      fetchConversations()
-    }
+  setNewMessage('')
+  fetchConversations()
+  // Envoyer notification push
+  const { data: subData } = await supabase
+    .from('push_subscriptions')
+    .select('subscription')
+    .eq('user_id', activeConv)
+    .single()
+  if (subData) {
+    await fetch('/api/send-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subscription: subData.subscription,
+        title: 'Nouveau message RoadMate 🤙',
+        body: newMessage.trim()
+      })
+    })
+  }
+}
   }
 
   const getOtherName = (id) => {
