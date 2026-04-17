@@ -29,23 +29,29 @@ export default function Map({ user, onBack }) {
     if (!map.current || rides.length === 0) return
 
     const geojson = {
-      type: 'FeatureCollection',
-      features: rides
-        .filter(r => r.from_lat && r.from_lng)
-        .map(r => ({
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: [r.from_lng, r.from_lat] },
-          properties: {
-            id: r.id,
-            from_city: r.from_city,
-            to_city: r.to_city,
-            date: r.date,
-            seats: r.seats,
-            price: r.price,
-            type: r.type
-          }
-        }))
-    }
+  type: 'FeatureCollection',
+  features: rides
+    .filter(r => r.from_lat && r.from_lng)
+    .map((r, index) => ({
+      type: 'Feature',
+      geometry: { 
+        type: 'Point', 
+        coordinates: [
+          r.from_lng + (Math.random() - 0.5) * 0.002,
+          r.from_lat + (Math.random() - 0.5) * 0.002
+        ] 
+      },
+      properties: {
+        id: r.id,
+        from_city: r.from_city,
+        to_city: r.to_city,
+        date: r.date,
+        seats: r.seats,
+        price: r.price,
+        type: r.type
+      }
+    }))
+}
 
     const setup = () => {
       if (map.current.getSource('rides')) return
