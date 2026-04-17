@@ -12,7 +12,7 @@ export default function PostRide({ user, onBack, onSuccess }) {
   const [step, setStep] = useState(1)
   const [type, setType] = useState('offer')
   const [category, setCategory] = useState('travel')
-  const [form, setForm] = useState({ from_city: '', to_city: '', date: '', time: '', seats: '2', price: '', note: '' })
+  const [form, setForm] = useState({ from_city: '', to_city: '', date: '', time: '', seats: '2', price: '', note: '', womenOnly: false })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -31,6 +31,7 @@ export default function PostRide({ user, onBack, onSuccess }) {
       seats: parseInt(form.seats),
       price: form.price ? parseFloat(form.price) : null,
       note: form.note,
+      women_only: form.womenOnly,
     })
 
     if (error) {
@@ -48,7 +49,6 @@ export default function PostRide({ user, onBack, onSuccess }) {
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: 430, margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
 
-      {/* Header */}
       <div style={{ background: headerColors[step], padding: '48px 22px 24px', flexShrink: 0 }}>
         <button onClick={() => step > 1 ? setStep(s => s - 1) : onBack()}
           style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer', marginBottom: 16 }}>
@@ -65,10 +65,8 @@ export default function PostRide({ user, onBack, onSuccess }) {
         </div>
       </div>
 
-      {/* Content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '20px 22px' }}>
 
-        {/* Step 1 */}
         {step === 1 && (
           <>
             <Section title="Je suis...">
@@ -100,7 +98,6 @@ export default function PostRide({ user, onBack, onSuccess }) {
           </>
         )}
 
-        {/* Step 2 */}
         {step === 2 && (
           <>
             <Section title="📍 Départ">
@@ -124,7 +121,6 @@ export default function PostRide({ user, onBack, onSuccess }) {
           </>
         )}
 
-        {/* Step 3 */}
         {step === 3 && (
           <>
             <div style={{ display: 'flex', gap: 10 }}>
@@ -151,13 +147,20 @@ export default function PostRide({ user, onBack, onSuccess }) {
                 style={{ ...inputStyle, fontFamily: "'Kalam', cursive", resize: 'none', lineHeight: 1.6 }} />
             </Section>
 
-            {/* Preview */}
+            <Section title="👩 Réservé aux femmes ?">
+              <button onClick={() => setForm(p => ({ ...p, womenOnly: !p.womenOnly }))}
+                style={{ width: '100%', padding: '14px 18px', borderRadius: 16, border: '3px solid ' + (form.womenOnly ? '#E8572A' : '#EDE0CC'), background: form.womenOnly ? '#FFF0EE' : '#fff', color: form.womenOnly ? '#E8572A' : '#7B5C42', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer', textAlign: 'left', boxShadow: form.womenOnly ? '4px 4px 0 #3D2B1F' : 'none' }}>
+                {form.womenOnly ? '👩 Oui, femmes uniquement ✓' : '👥 Non, tout le monde'}
+              </button>
+            </Section>
+
             <div style={{ background: '#FFF8EE', borderRadius: 20, padding: 16, border: '3px dashed #F5A623', marginBottom: 8 }}>
               <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Aperçu</div>
               <div style={{ fontSize: 18, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{form.from_city || '?'} → {form.to_city || '?'}</div>
               <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A', marginTop: 4 }}>
                 {form.date || 'Date TBC'} · {form.seats} place(s) {form.price ? '· ' + form.price + '$ / siège' : '· partage essence'}
               </div>
+              {form.womenOnly && <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#E8572A', marginTop: 6 }}>👩 Femmes uniquement</div>}
             </div>
 
             {error && <div style={{ padding: '10px 14px', borderRadius: 12, background: '#FFF0EE', border: '2px solid #E8572A', marginBottom: 12, fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#E8572A' }}>{error}</div>}
@@ -165,7 +168,6 @@ export default function PostRide({ user, onBack, onSuccess }) {
         )}
       </div>
 
-      {/* CTA */}
       <div style={{ padding: '12px 22px 32px', flexShrink: 0 }}>
         <button onClick={() => step < 3 ? setStep(s => s + 1) : handleSubmit()} disabled={loading}
           style={{ width: '100%', padding: '16px', borderRadius: 18, border: '3px solid #3D2B1F', cursor: 'pointer', background: step === 3 ? '#4CAF7D' : '#E8572A', color: '#fff', fontSize: 18, fontFamily: "'Fredoka One'", boxShadow: '5px 5px 0 #3D2B1F', transition: 'all 0.15s' }}>
