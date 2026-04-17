@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
-export default function Map({ user, onBack, onContact }) {
+export default function Map({ user, onBack }) {
   const mapContainer = useRef(null)
   const map = useRef(null)
   const [rides, setRides] = useState([])
@@ -25,39 +25,114 @@ export default function Map({ user, onBack, onContact }) {
     }
   }, [])
 
- useEffect(() => {
-  if (!map.current || rides.length === 0) return
-  
-  const addMarkers = () => {
-    rides.forEach(ride => {
-      if (!ride.from_lng || !ride.from_lat) return
-      const el = document.createElement('div')
-      el.style.cssText = `
-        width: 36px; height: 36px; border-radius: 50%;
-        background: #E8572A; border: 3px solid #3D2B1F;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 16px; cursor: pointer; box-shadow: 2px 2px 0 #3D2B1F;
-      `
-      el.innerHTML = ride.type === 'offer' ? '🚗' : '🙋'
-      new mapboxgl.Marker(el)
-        .setLngLat([ride.from_lng, ride.from_lat])
-        .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(
-          '<div style="font-family: Nunito, sans-serif; padding: 8px;">' +
-          '<div style="font-weight: 800; font-size: 15px;">' + ride.from_city + ' → ' + ride.to_city + '</div>' +
-          '<div style="color: #B5967A; font-size: 12px;">' + ride.date + ' · ' + ride.seats + ' place(s)</div>' +
-          (ride.price ? '<div style="color: #E8572A; font-weight: 800;">' + ride.price + '$ / siège</div>' : '') +
-          '</div>'
-        ))
-        .addTo(map.current)
-    })
-  }
+  useEffect(() => {
+    if (!map.current || rides.length === 0) return
 
-  if (map.current.loaded()) {
-    addMarkers()
-  } else {
-    map.current.on('load', addMarkers)
-  }
-}, [rides])
+    const geojson = {
+      type: 'FeatureCollection',
+      features: rides
+        .filter(r => r.from_lat && r.from_lng)
+        .map(r => ({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [r.from_lng, r.from_lat] },
+          properties: {
+            id: r.id,
+            from_city: r.from_city,
+            to_city: r.to_city,
+            date: r.date,
+            seats: r.seats,
+            price: r.price,
+            type: r.type
+          }
+        }))
+    }
+
+    const setup = () => {
+      if (map.current.getSource('rides')) return
+
+      map.current.addSource('rides', {
+        type: 'geojson',
+        data: geojson,
+        cluster: true,
+        clusterMaxZoom: 12,
+        clusterRadius: 50
+      })
+
+      map.current.addLayer({
+        id: 'clusters',
+        type: 'circle',
+        source: 'rides',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': '#E8572A',
+          'circle-radius': ['step', ['get', 'point_count'], 20, 5, 30, 10, 40],
+          'circle-stroke-width': 3,
+          'circle-stroke-color': '#3D2B1F'
+        }
+      })
+
+      map.current.addLayer({
+        id: 'cluster-count',
+        type: 'symbol',
+        source: 'rides',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': '{point_count_abbreviated}',
+          'text-size': 14,
+          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold']
+        },
+        paint: { 'text-color': '#fff' }
+      })
+
+      map.current.addLayer({
+        id: 'unclustered-point',
+        type: 'circle',
+        source: 'rides',
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': '#E8572A',
+          'circle-radius': 18,
+          'circle-stroke-width': 3,
+          'circle-stroke-color': '#3D2B1F'
+        }
+      })
+
+      map.current.on('click', 'clusters', (e) => {
+        const features = map.current.queryRenderedFeatures(e.point, { layers: ['clusters'] })
+        const clusterId = features[0].properties.cluster_id
+        map.current.getSource('rides').getClusterExpansionZoom(clusterId, (err, zoom) => {
+          if (err) return
+          map.current.easeTo({ center: features[0].geometry.coordinates, zoom })
+        })
+      })
+
+      map.current.on('click', 'unclustered-point', (e) => {
+        const props = e.features[0].properties
+        const coords = e.features[0].geometry.coordinates
+        new mapboxgl.Popup({ offset: 25 })
+          .setLngLat(coords)
+          .setHTML(
+            '<div style="font-family: Nunito, sans-serif; padding: 8px;">' +
+            '<div style="font-weight: 800; font-size: 15px;">' + props.from_city + ' → ' + props.to_city + '</div>' +
+            '<div style="color: #B5967A; font-size: 12px;">' + props.date + ' · ' + props.seats + ' place(s)</div>' +
+            (props.price ? '<div style="color: #E8572A; font-weight: 800;">' + props.price + '$ / siège</div>' : '') +
+            '</div>'
+          )
+          .addTo(map.current)
+      })
+
+      map.current.on('mouseenter', 'clusters', () => { map.current.getCanvas().style.cursor = 'pointer' })
+      map.current.on('mouseleave', 'clusters', () => { map.current.getCanvas().style.cursor = '' })
+      map.current.on('mouseenter', 'unclustered-point', () => { map.current.getCanvas().style.cursor = 'pointer' })
+      map.current.on('mouseleave', 'unclustered-point', () => { map.current.getCanvas().style.cursor = '' })
+    }
+
+    if (map.current.loaded()) {
+      setup()
+    } else {
+      map.current.on('load', setup)
+    }
+  }, [rides])
 
   const fetchRides = async () => {
     const { data } = await supabase
@@ -80,7 +155,7 @@ export default function Map({ user, onBack, onContact }) {
         </div>
       </div>
 
-      <div ref={mapContainer} style={{ flex: 1, minHeight: '80vh' }} />
+      <div ref={mapContainer} style={{ flex: 1, minHeight: '80vh', width: '100%' }} />
     </div>
   )
 }
