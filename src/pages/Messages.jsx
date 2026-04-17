@@ -84,10 +84,10 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
   fetchConversations()
   // Envoyer notification push
   const { data: subData } = await supabase
-    .from('push_subscriptions')
-    .select('subscription')
-    .eq('user_id', activeConv)
-    .single()
+  .from('push_subscriptions')
+  .select('subscription')
+  .eq('user_id', activeConv)
+  .maybeSingle()
   if (subData) {
     await fetch('/api/send-notification', {
       method: 'POST',
