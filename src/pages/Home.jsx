@@ -3,7 +3,7 @@ import { supabase } from '../supabase'
 import PostRide from './PostRide'
 import Messages from './Messages'
 import Profile from './Profile'
-
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
 const CATEGORIES = [
   { id: 'all', label: 'Tous', icon: '🛣️' },
   { id: 'travel', label: 'Voyage', icon: '✈️' },
