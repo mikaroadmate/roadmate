@@ -45,7 +45,8 @@ export default function App() {
   try {
     console.log('Enregistrement SW...')
     const reg = await navigator.serviceWorker.register('/sw.js')
-    console.log('SW enregistré:', reg)
+    await navigator.serviceWorker.ready
+    console.log('SW prêt:', reg)
     const permission = await Notification.requestPermission()
     console.log('Permission:', permission)
     if (permission !== 'granted') return
