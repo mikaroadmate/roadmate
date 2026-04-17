@@ -111,7 +111,7 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
 
   if (activeConv) {
     return (
-      <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: 430, margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%', display: 'flex', flexDirection: 'column' }}>
         <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
 
         <div style={{ background: '#5BC8D4', padding: '48px 22px 18px', flexShrink: 0 }}>
@@ -174,7 +174,7 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
   }
 
   return (
-    <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: 430, margin: '0 auto' }}>
+    <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
 
       <div style={{ background: '#3D2B1F', padding: '48px 22px 22px' }}>

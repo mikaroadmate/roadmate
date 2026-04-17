@@ -68,7 +68,7 @@ export default function PostRide({ user, onBack, onSuccess }) {
   const headerTitles = ['', 'Type & catégorie', 'Trajet & date', 'Détails & publication']
 
   return (
-    <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: 430, margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%', display: 'flex', flexDirection: 'column' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
 
       <div style={{ background: headerColors[step], padding: '48px 22px 24px', flexShrink: 0 }}>
