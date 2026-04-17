@@ -19,20 +19,22 @@ export default function PostRide({ user, onBack, onSuccess }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const geocodeCity = async (city) => {
-    if (!city.trim()) return
-    try {
-  const url = https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(city)}.json?country=au&limit=1&access_token=${MAPBOX_TOKEN}
-  const res = await fetch(url)
-  const data = await res.json()
-      if (data.features && data.features.length > 0) {
-        const [lng, lat] = data.features[0].center
-        setCoords({ from_lat: lat, from_lng: lng })
-      }
-    } catch (e) {
-      console.log('Geocoding error:', e)
+ const geocodeCity = async (city) => {
+  if (!city.trim()) return
+  try {
+    const base = 'https://api.mapbox.com/geocoding/v5/mapbox.places/'
+    const query = encodeURIComponent(city) + '.json'
+    const params = '?country=au&limit=1&access_token=' + MAPBOX_TOKEN
+    const res = await fetch(base + query + params)
+    const data = await res.json()
+    if (data.features && data.features.length > 0) {
+      const [lng, lat] = data.features[0].center
+      setCoords({ from_lat: lat, from_lng: lng })
     }
+  } catch (e) {
+    console.log('Geocoding error:', e)
   }
+} 
 
   const handleSubmit = async () => {
     setLoading(true)
