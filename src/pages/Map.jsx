@@ -25,32 +25,39 @@ export default function Map({ user, onBack, onContact }) {
     }
   }, [])
 
-  useEffect(() => {
-    if (!map.current || rides.length === 0) return
-    map.current.on('load', () => {
-      rides.forEach(ride => {
-        if (!ride.from_lng || !ride.from_lat) return
-        const el = document.createElement('div')
-        el.style.cssText = `
-          width: 36px; height: 36px; border-radius: 50%;
-          background: #E8572A; border: 3px solid #3D2B1F;
-          display: flex; align-items: center; justify-content: center;
-          font-size: 16px; cursor: pointer; box-shadow: 2px 2px 0 #3D2B1F;
-        `
-        el.innerHTML = ride.type === 'offer' ? '🚗' : '🙋'
-        new mapboxgl.Marker(el)
-          .setLngLat([ride.from_lng, ride.from_lat])
-          .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(`
-            <div style="font-family: 'Nunito', sans-serif; padding: 8px;">
-              <div style="font-weight: 800; font-size: 15px;">${ride.from_city} → ${ride.to_city}</div>
-              <div style="color: #B5967A; font-size: 12px;">${ride.date} · ${ride.seats} place(s)</div>
-              ${ride.price ? <div style="color: #E8572A; font-weight: 800;">${ride.price}$ / siège</div> : ''}
-            </div>
-          `))
-          .addTo(map.current)
-      })
+ useEffect(() => {
+  if (!map.current || rides.length === 0) return
+  
+  const addMarkers = () => {
+    rides.forEach(ride => {
+      if (!ride.from_lng || !ride.from_lat) return
+      const el = document.createElement('div')
+      el.style.cssText = `
+        width: 36px; height: 36px; border-radius: 50%;
+        background: #E8572A; border: 3px solid #3D2B1F;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 16px; cursor: pointer; box-shadow: 2px 2px 0 #3D2B1F;
+      `
+      el.innerHTML = ride.type === 'offer' ? '🚗' : '🙋'
+      new mapboxgl.Marker(el)
+        .setLngLat([ride.from_lng, ride.from_lat])
+        .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(
+          '<div style="font-family: Nunito, sans-serif; padding: 8px;">' +
+          '<div style="font-weight: 800; font-size: 15px;">' + ride.from_city + ' → ' + ride.to_city + '</div>' +
+          '<div style="color: #B5967A; font-size: 12px;">' + ride.date + ' · ' + ride.seats + ' place(s)</div>' +
+          (ride.price ? '<div style="color: #E8572A; font-weight: 800;">' + ride.price + '$ / siège</div>' : '') +
+          '</div>'
+        ))
+        .addTo(map.current)
     })
-  }, [rides])
+  }
+
+  if (map.current.loaded()) {
+    addMarkers()
+  } else {
+    map.current.on('load', addMarkers)
+  }
+}, [rides])
 
   const fetchRides = async () => {
     const { data } = await supabase
