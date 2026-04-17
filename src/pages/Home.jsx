@@ -99,8 +99,7 @@ export default function Home({ user, onSignOut }) {
   if (showMessages) return <Messages user={user} contactId={contactId} onBack={() => { setShowMessages(false); setContactId(null) }} onViewProfile={(id) => { setShowMessages(false); setOtherUserId(id); setShowOtherProfile(true) }} />
   if (showProfile) return <Profile user={user} onBack={() => setShowProfile(false)} />
   if (showOtherProfile) return <Profile user={user} viewedUserId={otherUserId} onBack={() => { setShowOtherProfile(false); setOtherUserId(null) }} />
-  if (showMap) return <Map user={user} onBack={() => setShowMap(false)} />
-
+  if (showMap) return <Map user={user} onBack={() => setShowMap(false)} onContact={(userId) => { setShowMap(false); setContactId(userId); setShowMessages(true) }} />
   const getTypeStyle = (id) => ({
     flex: 1, padding: '8px', borderRadius: 20,
     border: '2.5px solid ' + (filterType === id ? '#3D2B1F' : '#EDE0CC'),

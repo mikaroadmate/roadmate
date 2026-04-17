@@ -5,7 +5,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
-export default function Map({ user, onBack }) {
+export default function Map({ user, onBack, onContact }) {
   const mapContainer = useRef(null)
   const map = useRef(null)
   const [rides, setRides] = useState([])
@@ -29,29 +29,30 @@ export default function Map({ user, onBack }) {
     if (!map.current || rides.length === 0) return
 
     const geojson = {
-  type: 'FeatureCollection',
-  features: rides
-    .filter(r => r.from_lat && r.from_lng)
-    .map((r, index) => ({
-      type: 'Feature',
-      geometry: { 
-        type: 'Point', 
-        coordinates: [
-          r.from_lng + (Math.random() - 0.5) * 0.002,
-          r.from_lat + (Math.random() - 0.5) * 0.002
-        ] 
-      },
-      properties: {
-        id: r.id,
-        from_city: r.from_city,
-        to_city: r.to_city,
-        date: r.date,
-        seats: r.seats,
-        price: r.price,
-        type: r.type
-      }
-    }))
-}
+      type: 'FeatureCollection',
+      features: rides
+        .filter(r => r.from_lat && r.from_lng)
+        .map((r) => ({
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [
+              r.from_lng + (Math.random() - 0.5) * 0.002,
+              r.from_lat + (Math.random() - 0.5) * 0.002
+            ]
+          },
+          properties: {
+            id: r.id,
+            user_id: r.user_id,
+            from_city: r.from_city,
+            to_city: r.to_city,
+            date: r.date,
+            seats: r.seats,
+            price: r.price,
+            type: r.type
+          }
+        }))
+    }
 
     const setup = () => {
       if (map.current.getSource('rides')) return
@@ -115,16 +116,29 @@ export default function Map({ user, onBack }) {
       map.current.on('click', 'unclustered-point', (e) => {
         const props = e.features[0].properties
         const coords = e.features[0].geometry.coordinates
-        new mapboxgl.Popup({ offset: 25 })
+
+        const popupEl = document.createElement('div')
+        popupEl.style.cssText = 'font-family: Nunito, sans-serif; padding: 8px;'
+        popupEl.innerHTML =
+          '<div style="font-weight: 800; font-size: 15px; color: #3D2B1F;">' + props.from_city + ' → ' + props.to_city + '</div>' +
+          '<div style="color: #B5967A; font-size: 12px; margin: 4px 0;">' + props.date + ' · ' + props.seats + ' place(s)</div>' +
+          (props.price ? '<div style="color: #E8572A; font-weight: 800; font-size: 13px;">' + props.price + '$ / siège</div>' : '') +
+          '<button id="contact-btn-' + props.id + '" style="margin-top: 8px; width: 100%; padding: 8px; border-radius: 10px; border: 2px solid #3D2B1F; background: #E8572A; color: #fff; font-weight: 800; cursor: pointer; font-size: 13px;">Contacter 🤙</button>'
+
+        const popup = new mapboxgl.Popup({ offset: 25 })
           .setLngLat(coords)
-          .setHTML(
-            '<div style="font-family: Nunito, sans-serif; padding: 8px;">' +
-            '<div style="font-weight: 800; font-size: 15px;">' + props.from_city + ' → ' + props.to_city + '</div>' +
-            '<div style="color: #B5967A; font-size: 12px;">' + props.date + ' · ' + props.seats + ' place(s)</div>' +
-            (props.price ? '<div style="color: #E8572A; font-weight: 800;">' + props.price + '$ / siège</div>' : '') +
-            '</div>'
-          )
+          .setDOMContent(popupEl)
           .addTo(map.current)
+
+        setTimeout(() => {
+          const btn = document.getElementById('contact-btn-' + props.id)
+          if (btn) {
+            btn.addEventListener('click', () => {
+              popup.remove()
+              onContact(props.user_id)
+            })
+          }
+        }, 100)
       })
 
       map.current.on('mouseenter', 'clusters', () => { map.current.getCanvas().style.cursor = 'pointer' })
@@ -151,7 +165,7 @@ export default function Map({ user, onBack }) {
   return (
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: 430, margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
-      
+
       <div style={{ background: '#3D2B1F', padding: '48px 22px 18px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
