@@ -3,6 +3,7 @@ import { supabase } from '../supabase'
 import PostRide from './PostRide'
 import Messages from './Messages'
 import Profile from './Profile'
+import Map from './Map'
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
 
@@ -42,6 +43,7 @@ export default function Home({ user, onSignOut }) {
   const [showPost, setShowPost] = useState(false)
   const [showMessages, setShowMessages] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
+  const [showMap, setShowMap] = useState(false)
   const [showOtherProfile, setShowOtherProfile] = useState(false)
   const [otherUserId, setOtherUserId] = useState(null)
   const [contactId, setContactId] = useState(null)
@@ -97,6 +99,7 @@ export default function Home({ user, onSignOut }) {
   if (showMessages) return <Messages user={user} contactId={contactId} onBack={() => { setShowMessages(false); setContactId(null) }} onViewProfile={(id) => { setShowMessages(false); setOtherUserId(id); setShowOtherProfile(true) }} />
   if (showProfile) return <Profile user={user} onBack={() => setShowProfile(false)} />
   if (showOtherProfile) return <Profile user={user} viewedUserId={otherUserId} onBack={() => { setShowOtherProfile(false); setOtherUserId(null) }} />
+  if (showMap) return <Map user={user} onBack={() => setShowMap(false)} />
 
   const getTypeStyle = (id) => ({
     flex: 1, padding: '8px', borderRadius: 20,
@@ -260,6 +263,10 @@ export default function Home({ user, onSignOut }) {
         <button style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
           <span style={{ fontSize: 22 }}>🏠</span>
           <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#E8572A', textTransform:'uppercase' }}>Home</span>
+        </button>
+        <button onClick={() => setShowMap(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
+          <span style={{ fontSize: 22 }}>🗺️</span>
+          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>Carte</span>
         </button>
         <button onClick={() => setShowMessages(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
           <span style={{ fontSize: 22 }}>💬</span>
