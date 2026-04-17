@@ -34,8 +34,8 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (user) registerPush(user.id)
-  }, [user])
+  if (user) registerPush(user.id)
+}, [user?.id])
 
  const registerPush = async (userId) => {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
