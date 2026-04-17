@@ -70,6 +70,46 @@ export default function Home({ user, onSignOut }) {
     color: filterCat === id ? '#fff' : '#B5967A',
     fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer'
   })
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4)
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
+}
+
+const registerPush = async (userId) => {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    alert('Push non supporté')
+    return
+  }
+  try {
+    const reg = await navigator.serviceWorker.register('/sw.js')
+    await navigator.serviceWorker.ready
+    const permission = await Notification.requestPermission()
+    if (permission !== 'granted') {
+      alert('Permission refusée')
+      return
+    }
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    })
+    const { error } = await supabase.from('push_subscriptions').upsert({
+      user_id: userId,
+      subscription: JSON.stringify(sub)
+    }, { onConflict: 'user_id' })
+    if (error) alert('Erreur: ' + error.message)
+    else alert('Notifications activées ! ✅')
+  } catch (e) {
+    alert('Erreur: ' + e.message)
+  }
+}
 
   return (
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: 430, margin: '0 auto' }}>
