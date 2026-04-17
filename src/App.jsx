@@ -48,9 +48,9 @@ export default function App() {
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
       })
       await supabase.from('push_subscriptions').upsert({
-        user_id: userId,
-        subscription: JSON.stringify(sub)
-      })
+  user_id: userId,
+  subscription: JSON.stringify(sub)
+}, { onConflict: 'user_id' })
     } catch (e) {
       console.log('Push non supporte:', e)
     }
