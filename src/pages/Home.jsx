@@ -88,11 +88,13 @@ export default function Home({ user, onSignOut }) {
         <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18 }}>📍</span>
           <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Ou tu vas ?"
-            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent' }}
-          />
+  value={search}
+  onChange={e => setSearch(e.target.value)}
+  placeholder="Ou tu vas ?"
+  type="search"
+  autoComplete="off"
+  style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
+/>
           {search && (
             <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
           )}
