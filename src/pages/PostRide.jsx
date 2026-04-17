@@ -22,8 +22,9 @@ export default function PostRide({ user, onBack, onSuccess }) {
   const geocodeCity = async (city) => {
     if (!city.trim()) return
     try {
-      const res = await fetch(https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(city)}.json?country=au&limit=1&access_token=${MAPBOX_TOKEN})
-      const data = await res.json()
+  const url = https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(city)}.json?country=au&limit=1&access_token=${MAPBOX_TOKEN}
+  const res = await fetch(url)
+  const data = await res.json()
       if (data.features && data.features.length > 0) {
         const [lng, lat] = data.features[0].center
         setCoords({ from_lat: lat, from_lng: lng })
