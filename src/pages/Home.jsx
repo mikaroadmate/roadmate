@@ -201,7 +201,7 @@ export default function Home({ user, onSignOut }) {
       <div style={{ background: '#E8572A', padding: '48px 22px 22px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div>
-            <div style={{ fontSize: 28, fontFamily: "'Fredoka One'", color: '#fff' }}>Road<span style={{ color: '#F5A623' }}>Maaate</span></div>
+            <div style={{ fontSize: 28, fontFamily: "'Fredoka One'", color: '#fff' }}>Road<span style={{ color: '#F5A623' }}>Mate</span></div>
             <div style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: 'rgba(255,255,255,0.😎' }}>{t('tagline')}</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
