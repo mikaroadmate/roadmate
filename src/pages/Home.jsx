@@ -67,8 +67,8 @@ const cleanPastRides = async () => {
 
 const shareRide = async (ride, lang) => {
   const text = lang === 'fr'
-    ? '🚗 Trajet RoadMate\n' + ride.from_city + ' → ' + ride.to_city + '\n📅 ' + ride.date + (ride.price ? '\n💰 ' + ride.price + '$' : '') + '\n\nRejoins RoadMate pour voir ce trajet !'
-    : '🚗 RoadMate Ride\n' + ride.from_city + ' → ' + ride.to_city + '\n📅 ' + ride.date + (ride.price ? '\n💰 ' + ride.price + '$' : '') + '\n\nJoin RoadMate to see this ride!'
+    ? '🚗 Trajet RoadMate\n' + ride.from_city + ' → ' + ride.to_city + '\n📅 ' + ride.date + (ride.price ? '\n💰 ' + ride.price + '$' : '') + '\n\nRejoins RoadMate 🤙\nhttps://www.roadmateoz.app'
+    : '🚗 RoadMate Ride\n' + ride.from_city + ' → ' + ride.to_city + '\n📅 ' + ride.date + (ride.price ? '\n💰 ' + ride.price + '$' : '') + '\n\nJoin RoadMate 🤙\nhttps://www.roadmateoz.app'
   if (navigator.share) {
     try { await navigator.share({ title: 'RoadMate', text }) } catch (e) {}
   } else {
