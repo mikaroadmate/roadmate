@@ -131,11 +131,7 @@ export default function Home({ user, onSignOut }) {
       ride.from_city?.toLowerCase().includes(search.toLowerCase()) ||
       ride.to_city?.toLowerCase().includes(search.toLowerCase())
     let matchDate = true
-    if (filterDate) {
-      const [y, m, d] = filterDate.split('-')
-      const formatted = d + '/' + m + '/' + y
-      matchDate = ride.date === formatted
-    }
+    
     return matchSearch && matchDate
   })
 
@@ -349,7 +345,7 @@ export default function Home({ user, onSignOut }) {
               </div>
 
               <div style={{ display: 'flex', gap: 6, marginBottom: ride.note ? 10 : 0, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>📅 {ride.date}</span>
+                <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>📅{ride.date ? ride.date.split('-').reverse().join('/') : ''} </span>
                 <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>💺 {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</span>
               </div>
 
