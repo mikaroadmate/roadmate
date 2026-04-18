@@ -61,7 +61,11 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
       const { data: profileData } = await supabase.from('profiles').select('id, name, nationality').eq('id', contactId).single()
       if (profileData) setProfiles(p => ({ ...p, [contactId]: profileData }))
     }
-
+await supabase
+  .from('messages')
+  .update({ read: true })
+  .eq('receiver_id', user.id)
+  .eq('read', false)
     setLoading(false)
   }
 
