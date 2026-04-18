@@ -42,6 +42,40 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray
 }
 
+const cleanPastRides = async () => {
+  const { data: rides } = await supabase.from('rides').select('id, date, time')
+  if (!rides) return
+  const now = new Date()
+  const toDelete = []
+  rides.forEach(ride => {
+    try {
+      const parts = ride.date?.split('/')
+      if (!parts || parts.length !== 3) return
+      const [day, month, year] = parts
+      const timeParts = (ride.time || '00:00').split(':')
+      const hours = parseInt(timeParts[0]) || 0
+      const minutes = parseInt(timeParts[1]) || 0
+      const departure = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hours, minutes)
+      const deleteAfter = new Date(departure.getTime() + 8 * 60 * 60 * 1000)
+      if (now > deleteAfter) toDelete.push(ride.id)
+    } catch (e) {}
+  })
+  if (toDelete.length > 0) {
+    await supabase.from('rides').delete().in('id', toDelete)
+  }
+}
+
+const shareRide = async (ride, lang) => {
+  const text = lang === 'fr'
+    ? '🚗 Trajet RoadMate\n' + ride.from_city + ' → ' + ride.to_city + '\n📅 ' + ride.date + (ride.price ? '\n💰 ' + ride.price + '$' : '') + '\n\nRejoins RoadMate pour voir ce trajet !'
+    : '🚗 RoadMate Ride\n' + ride.from_city + ' → ' + ride.to_city + '\n📅 ' + ride.date + (ride.price ? '\n💰 ' + ride.price + '$' : '') + '\n\nJoin RoadMate to see this ride!'
+  if (navigator.share) {
+    try { await navigator.share({ title: 'RoadMate', text }) } catch (e) {}
+  } else {
+    await navigator.clipboard.writeText(text)
+  }
+}
+
 export default function Home({ user, onSignOut }) {
   const { t, lang, toggleLanguage } = useLanguage()
   const CATEGORIES = lang === 'fr' ? CATEGORIES_FR : CATEGORIES_EN
@@ -50,6 +84,7 @@ export default function Home({ user, onSignOut }) {
   const [filterCat, setFilterCat] = useState('all')
   const [filterType, setFilterType] = useState('all')
   const [filterWomen, setFilterWomen] = useState(false)
+  const [filterDate, setFilterDate] = useState('')
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [showPost, setShowPost] = useState(false)
@@ -60,17 +95,17 @@ export default function Home({ user, onSignOut }) {
   const [otherUserId, setOtherUserId] = useState(null)
   const [contactId, setContactId] = useState(null)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [shareToast, setShareToast] = useState(false)
 
   useEffect(() => { fetchRides() }, [filterCat, filterType, filterWomen])
   useEffect(() => { fetchUnread() }, [])
-
+  useEffect(() => { if (!showMessages) fetchUnread() }, [showMessages])
+  useEffect(() => { cleanPastRides() }, [])
   useEffect(() => {
-    if (!showMessages) fetchUnread()
-  }, [showMessages])
-useEffect(() => {
-  const interval = setInterval(fetchUnread, 5000)
-  return () => clearInterval(interval)
-}, [])
+    const interval = setInterval(fetchUnread, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
   const fetchUnread = async () => {
     const { count } = await supabase
       .from('messages')
@@ -92,10 +127,23 @@ useEffect(() => {
   }
 
   const filteredRides = rides.filter(ride => {
-    if (!search.trim()) return true
-    const s = search.toLowerCase()
-    return ride.from_city?.toLowerCase().includes(s) || ride.to_city?.toLowerCase().includes(s)
+    const matchSearch = !search.trim() ||
+      ride.from_city?.toLowerCase().includes(search.toLowerCase()) ||
+      ride.to_city?.toLowerCase().includes(search.toLowerCase())
+    let matchDate = true
+    if (filterDate) {
+      const [y, m, d] = filterDate.split('-')
+      const formatted = d + '/' + m + '/' + y
+      matchDate = ride.date === formatted
+    }
+    return matchSearch && matchDate
   })
+
+  const handleShare = async (ride) => {
+    await shareRide(ride, lang)
+    setShareToast(true)
+    setTimeout(() => setShareToast(false), 2500)
+  }
 
   const registerPush = async (userId) => {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
@@ -106,10 +154,7 @@ useEffect(() => {
       const reg = await navigator.serviceWorker.register('/sw.js')
       await navigator.serviceWorker.ready
       const permission = await Notification.requestPermission()
-      if (permission !== 'granted') {
-        alert('Permission refusée')
-        return
-      }
+      if (permission !== 'granted') { alert('Permission refusée'); return }
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
@@ -150,6 +195,12 @@ useEffect(() => {
   return (
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
+
+      {shareToast && (
+        <div style={{ position: 'fixed', top: 60, left: '50%', transform: 'translateX(-50%)', background: '#3D2B1F', color: '#fff', padding: '10px 20px', borderRadius: 14, fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, zIndex: 9999, boxShadow: '3px 3px 0 #B5967A' }}>
+          {lang === 'fr' ? '✅ Trajet partagé !' : '✅ Ride shared!'}
+        </div>
+      )}
 
       <div style={{ background: '#E8572A', padding: '48px 22px 22px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -198,18 +249,34 @@ useEffect(() => {
             </button>
           ))}
         </div>
-        <div style={{ marginTop: 8, marginBottom: 4 }}>
+        <div style={{ marginTop: 8, marginBottom: 4, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <button onClick={() => setFilterWomen(!filterWomen)}
             style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterWomen ? '#E8572A' : '#EDE0CC'), background: filterWomen ? '#FFF0EE' : '#fff', color: filterWomen ? '#E8572A' : '#B5967A', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
             {t('women_only_filter')}
           </button>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <input
+              type="date"
+              value={filterDate}
+              onChange={e => setFilterDate(e.target.value)}
+              style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterDate ? '#E8572A' : '#EDE0CC'), background: filterDate ? '#FFF0EE' : '#fff', color: filterDate ? '#E8572A' : '#B5967A', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer', outline: 'none' }}
+            />
+            {filterDate && (
+              <button onClick={() => setFilterDate('')}
+                style={{ position: 'absolute', right: 10, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#E8572A', fontWeight: 900 }}>
+                ✕
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       <div style={{ padding: '12px 22px 100px' }}>
-        {search.trim() && (
+        {(search.trim() || filterDate) && (
           <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: '#B5967A', marginBottom: 10 }}>
-            {filteredRides.length} {lang === 'fr' ? 'trajet(s) pour' : 'ride(s) for'} "{search}"
+            {filteredRides.length} {lang === 'fr' ? 'trajet(s) trouvé(s)' : 'ride(s) found'}
+            {search ? ' — "' + search + '"' : ''}
+            {filterDate ? ' — 📅 ' + filterDate.split('-').reverse().join('/') : ''}
           </div>
         )}
         {loading ? (
@@ -219,7 +286,7 @@ useEffect(() => {
             <div style={{ fontSize: 48, marginBottom: 12 }}>🚐</div>
             <div style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#3D2B1F', marginBottom: 6 }}>{t('no_rides')}</div>
             <div style={{ fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>
-              {search ? t('no_rides_search') : t('no_rides_sub')}
+              {search || filterDate ? t('no_rides_search') : t('no_rides_sub')}
             </div>
           </div>
         ) : filteredRides.map(ride => {
@@ -227,7 +294,7 @@ useEffect(() => {
           const colors = CAT_COLORS[ride.category] || { bg: '#F5EDD9', color: '#EDE0CC' }
           return (
             <div key={ride.id} style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 12 }}>
-              <div style={{ display: 'flex', gap: 7, marginBottom: 12 }}>
+              <div style={{ display: 'flex', gap: 7, marginBottom: 12, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: colors.bg, color: '#3D2B1F', border: '2px solid ' + colors.color }}>
                   {cat?.icon} {cat?.label}
                 </span>
@@ -239,6 +306,10 @@ useEffect(() => {
                     👩 {lang === 'fr' ? 'Femmes' : 'Women'}
                   </span>
                 )}
+                <button onClick={() => handleShare(ride)}
+                  style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '2px solid #EDE0CC', cursor: 'pointer' }}>
+                  {lang === 'fr' ? '↗ Partager' : '↗ Share'}
+                </button>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -295,30 +366,30 @@ useEffect(() => {
       </div>
 
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, background: '#fff', borderTop: '3px solid #3D2B1F', padding: '12px 0 20px', display: 'flex', justifyContent: 'space-around' }}>
-        <button style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
+        <button style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
           <span style={{ fontSize: 22 }}>🏠</span>
-          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#E8572A', textTransform:'uppercase' }}>Home</span>
+          <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#E8572A', textTransform: 'uppercase' }}>Home</span>
         </button>
-        <button onClick={() => setShowMap(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
+        <button onClick={() => setShowMap(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
           <span style={{ fontSize: 22 }}>🗺️</span>
-          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>{lang === 'fr' ? 'Carte' : 'Map'}</span>
+          <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>{lang === 'fr' ? 'Carte' : 'Map'}</span>
         </button>
-        <button onClick={() => setShowMessages(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3, position: 'relative' }}>
+        <button onClick={() => setShowMessages(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, position: 'relative' }}>
           <span style={{ fontSize: 22 }}>💬</span>
           {unreadCount > 0 && (
             <div style={{ position: 'absolute', top: -4, right: -4, background: '#E8572A', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
               <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff' }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
             </div>
           )}
-          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>Messages</span>
+          <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>Messages</span>
         </button>
-        <button onClick={() => setShowPost(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
+        <button onClick={() => setShowPost(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
           <span style={{ fontSize: 22 }}>➕</span>
-          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>{lang === 'fr' ? 'Poster' : 'Post'}</span>
+          <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>{lang === 'fr' ? 'Poster' : 'Post'}</span>
         </button>
-        <button onClick={() => setShowProfile(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
+        <button onClick={() => setShowProfile(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
           <span style={{ fontSize: 22 }}>🤠</span>
-          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>{lang === 'fr' ? 'Profil' : 'Profile'}</span>
+          <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>{lang === 'fr' ? 'Profil' : 'Profile'}</span>
         </button>
       </div>
     </div>
