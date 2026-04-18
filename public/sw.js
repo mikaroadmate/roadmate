@@ -1,4 +1,4 @@
-const CACHE_NAME = 'roadmate-v1'
+const CACHE_NAME = 'roadmate-v2'
 const ASSETS = [
   '/',
   '/index.html',
@@ -47,4 +47,7 @@ self.addEventListener('push', function(event) {
 self.addEventListener('notificationclick', function(event) {
   event.notification.close()
   event.waitUntil(clients.openWindow(event.notification.data))
+})
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting()
 })
