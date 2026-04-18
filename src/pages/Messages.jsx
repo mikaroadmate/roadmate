@@ -41,7 +41,7 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
     setLoading(true)
     const { data } = await supabase
       .from('messages')
-      .select('*, sender:profiles!messages_sender_id_fkey(id, name, nationality), receiver:profiles!messages_receiver_id_fkey(id, name, nationality)')
+     .select('*, sender:profiles!messages_sender_id_fkey(id, name, nationality, avatar_url), receiver:profiles!messages_receiver_id_fkey(id, name, nationality, avatar_url)')
       .or('sender_id.eq.' + user.id + ',receiver_id.eq.' + user.id)
       .order('created_at', { ascending: false })
 
