@@ -10,9 +10,11 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [profiles, setProfiles] = useState({})
+  const [unreadMap, setUnreadMap] = useState({})
   const bottomRef = useRef(null)
 
   useEffect(() => { fetchConversations() }, [])
+
   useEffect(() => {
     if (activeConv) {
       fetchMessages(activeConv)
@@ -28,6 +30,7 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
             (msg.sender_id === activeConv && msg.receiver_id === user.id)
           ) {
             setMessages(prev => [...prev, msg])
+            fetchConversations()
           }
         })
         .subscribe()
@@ -41,31 +44,32 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
     setLoading(true)
     const { data } = await supabase
       .from('messages')
-     .select('*, sender:profiles!messages_sender_id_fkey(id, name, nationality, avatar_url), receiver:profiles!messages_receiver_id_fkey(id, name, nationality, avatar_url)')
+      .select('*, sender:profiles!messages_sender_id_fkey(id, name, nationality, avatar_url), receiver:profiles!messages_receiver_id_fkey(id, name, nationality, avatar_url)')
       .or('sender_id.eq.' + user.id + ',receiver_id.eq.' + user.id)
       .order('created_at', { ascending: false })
 
     if (data) {
       const convMap = {}
+      const unread = {}
       data.forEach(msg => {
         const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id
         const otherProfile = msg.sender_id === user.id ? msg.receiver : msg.sender
         if (!convMap[otherId]) {
           convMap[otherId] = { otherId, otherProfile, lastMsg: msg }
         }
+        if (msg.receiver_id === user.id && !msg.read) {
+          unread[otherId] = (unread[otherId] || 0) + 1
+        }
       })
       setConversations(Object.values(convMap))
+      setUnreadMap(unread)
     }
 
     if (contactId) {
-      const { data: profileData } = await supabase.from('profiles').select('id, name, nationality').eq('id', contactId).single()
+      const { data: profileData } = await supabase.from('profiles').select('id, name, nationality, avatar_url').eq('id', contactId).single()
       if (profileData) setProfiles(p => ({ ...p, [contactId]: profileData }))
     }
-await supabase
-  .from('messages')
-  .update({ read: true })
-  .eq('receiver_id', user.id)
-  .eq('read', false)
+
     setLoading(false)
   }
 
@@ -77,11 +81,17 @@ await supabase
       .order('created_at', { ascending: true })
     setMessages(data || [])
     await supabase
-  .from('messages')
-  .update({ read: true })
-  .eq('receiver_id', user.id)
-  .eq('sender_id', otherId)
-  .eq('read', false)
+      .from('messages')
+      .update({ read: true })
+      .eq('receiver_id', user.id)
+      .eq('sender_id', otherId)
+      .eq('read', false)
+    setUnreadMap(prev => ({ ...prev, [otherId]: 0 }))
+  }
+
+  const handleOpenConv = (otherId) => {
+    setActiveConv(otherId)
+    setUnreadMap(prev => ({ ...prev, [otherId]: 0 }))
   }
 
   const sendMessage = async () => {
@@ -120,6 +130,12 @@ await supabase
     return lang === 'fr' ? 'Utilisateur' : 'User'
   }
 
+  const getOtherAvatar = (id) => {
+    return profiles[id]?.avatar_url ||
+      conversations.find(c => c.otherId === id)?.otherProfile?.avatar_url ||
+      null
+  }
+
   const quickReplies = lang === 'fr'
     ? ["Je suis in ! 🤙", "C'est quand ? ⏰", "Quel prix ? 💰", "OK parfait ✓"]
     : ["I'm in! 🤙", "When is it? ⏰", "What's the price? 💰", "OK perfect ✓"]
@@ -136,9 +152,10 @@ await supabase
               {t('post_back')}
             </button>
             <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, border: '2.5px solid #3D2B1F', overflow: 'hidden' }}>
-  {profiles[activeConv]?.avatar_url || conversations.find(c => c.otherId === activeConv)?.otherProfile?.avatar_url ? 
-    <img src={profiles[activeConv]?.avatar_url || conversations.find(c => c.otherId === activeConv)?.otherProfile?.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
-</div>
+              {getOtherAvatar(activeConv)
+                ? <img src={getOtherAvatar(activeConv)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                : '🤙'}
+            </div>
             <div>
               <button onClick={() => onViewProfile && onViewProfile(activeConv)}
                 style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
@@ -166,6 +183,13 @@ await supabase
             </div>
           ))}
           <div ref={bottomRef} />
+
+          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8 }}>
+            <button onClick={() => setActiveConv(null)}
+              style={{ background: '#3D2B1F', border: '2.5px solid #3D2B1F', borderRadius: 14, padding: '10px 22px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer', boxShadow: '3px 3px 0 #B5967A' }}>
+              {t('post_back')}
+            </button>
+          </div>
         </div>
 
         <div style={{ padding: '8px 18px 0', display: 'flex', gap: 7, overflowX: 'auto', flexShrink: 0 }}>
@@ -217,21 +241,40 @@ await supabase
             <div style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#3D2B1F', marginBottom: 6 }}>{t('messages_empty')}</div>
             <div style={{ fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>{t('messages_empty_sub')}</div>
           </div>
-        ) : conversations.map(conv => (
-          <div key={conv.otherId} onClick={() => setActiveConv(conv.otherId)}
-            style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 22px', cursor: 'pointer', borderBottom: '1.5px solid #EDE0CC' }}>
-            <div style={{ width: 54, height: 54, borderRadius: 18, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, border: '3px solid #3D2B1F', flexShrink: 0, overflow: 'hidden' }}>
-  {conv.otherProfile?.avatar_url ? <img src={conv.otherProfile.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
-</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#3D2B1F', marginBottom: 3 }}>{conv.otherProfile?.name || (lang === 'fr' ? 'Utilisateur' : 'User')}</div>
-              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#B5967A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{conv.lastMsg.content}</div>
+        ) : conversations.map(conv => {
+          const unreadCount = unreadMap[conv.otherId] || 0
+          return (
+            <div key={conv.otherId} onClick={() => handleOpenConv(conv.otherId)}
+              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 22px', cursor: 'pointer', borderBottom: '1.5px solid #EDE0CC', background: unreadCount > 0 ? 'rgba(232,87,42,0.06)' : 'transparent' }}>
+
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                <div style={{ width: 54, height: 54, borderRadius: 18, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, border: '3px solid ' + (unreadCount > 0 ? '#E8572A' : '#3D2B1F'), overflow: 'hidden' }}>
+                  {conv.otherProfile?.avatar_url
+                    ? <img src={conv.otherProfile.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                    : '🤙'}
+                </div>
+                {unreadCount > 0 && (
+                  <div style={{ position: 'absolute', top: -5, right: -5, minWidth: 20, height: 20, borderRadius: 10, background: '#E8572A', border: '2px solid #F5EDD9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontFamily: "'Nunito'", fontWeight: 900, color: '#fff', padding: '0 4px' }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#3D2B1F', marginBottom: 3 }}>
+                  {conv.otherProfile?.name || (lang === 'fr' ? 'Utilisateur' : 'User')}
+                </div>
+                <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: unreadCount > 0 ? 800 : 600, color: unreadCount > 0 ? '#3D2B1F' : '#B5967A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {conv.lastMsg.content}
+                </div>
+              </div>
+
+              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: unreadCount > 0 ? '#E8572A' : '#B5967A', flexShrink: 0 }}>
+                {new Date(conv.lastMsg.created_at).toLocaleTimeString(lang === 'fr' ? 'fr-FR' : 'en-AU', { hour: '2-digit', minute: '2-digit' })}
+              </div>
             </div>
-            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A', flexShrink: 0 }}>
-              {new Date(conv.lastMsg.created_at).toLocaleTimeString(lang === 'fr' ? 'fr-FR' : 'en-AU', { hour: '2-digit', minute: '2-digit' })}
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
