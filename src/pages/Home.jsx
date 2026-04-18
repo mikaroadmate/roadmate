@@ -255,19 +255,22 @@ export default function Home({ user, onSignOut }) {
             {t('women_only_filter')}
           </button>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <input
-              type="date"
-              value={filterDate}
-              onChange={e => setFilterDate(e.target.value)}
-              style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterDate ? '#E8572A' : '#EDE0CC'), background: filterDate ? '#FFF0EE' : '#fff', color: filterDate ? '#E8572A' : '#B5967A', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer', outline: 'none' }}
-            />
-            {filterDate && (
-              <button onClick={() => setFilterDate('')}
-                style={{ position: 'absolute', right: 10, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#E8572A', fontWeight: 900 }}>
-                ✕
-              </button>
-            )}
-          </div>
+  <input
+    type="date"
+    value={filterDate}
+    onChange={e => setFilterDate(e.target.value)}
+    style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 2 }}
+  />
+  <div style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterDate ? '#E8572A' : '#EDE0CC'), background: filterDate ? '#FFF0EE' : '#fff', color: filterDate ? '#E8572A' : '#B5967A', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+    {filterDate ? '📅 ' + filterDate.split('-').reverse().join('/') : '📅 ' + (lang === 'fr' ? 'Date' : 'Date')}
+  </div>
+  {filterDate && (
+    <button onClick={() => setFilterDate('')}
+      style={{ marginLeft: 4, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#E8572A', fontWeight: 900, zIndex: 3, position: 'relative' }}>
+      ✕
+    </button>
+  )}
+</div>
         </div>
       </div>
 
