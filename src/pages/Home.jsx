@@ -59,8 +59,23 @@ export default function Home({ user, onSignOut }) {
   const [showOtherProfile, setShowOtherProfile] = useState(false)
   const [otherUserId, setOtherUserId] = useState(null)
   const [contactId, setContactId] = useState(null)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => { fetchRides() }, [filterCat, filterType, filterWomen])
+  useEffect(() => { fetchUnread() }, [])
+
+  useEffect(() => {
+    if (!showMessages) fetchUnread()
+  }, [showMessages])
+
+  const fetchUnread = async () => {
+    const { count } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('receiver_id', user.id)
+      .eq('read', false)
+    setUnreadCount(count || 0)
+  }
 
   const fetchRides = async () => {
     setLoading(true)
@@ -226,8 +241,8 @@ export default function Home({ user, onSignOut }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   <div style={{ width: 44, height: 44, borderRadius: 14, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: '2.5px solid #3D2B1F', overflow: 'hidden' }}>
-  {ride.profiles?.avatar_url ? <img src={ride.profiles.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
-</div>
+                    {ride.profiles?.avatar_url ? <img src={ride.profiles.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
+                  </div>
                   <div>
                     <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
                       style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#E8572A', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
@@ -285,8 +300,13 @@ export default function Home({ user, onSignOut }) {
           <span style={{ fontSize: 22 }}>🗺️</span>
           <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>{lang === 'fr' ? 'Carte' : 'Map'}</span>
         </button>
-        <button onClick={() => setShowMessages(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
+        <button onClick={() => setShowMessages(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3, position: 'relative' }}>
           <span style={{ fontSize: 22 }}>💬</span>
+          {unreadCount > 0 && (
+            <div style={{ position: 'absolute', top: -4, right: -4, background: '#E8572A', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
+              <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff' }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+            </div>
+          )}
           <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>Messages</span>
         </button>
         <button onClick={() => setShowPost(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
