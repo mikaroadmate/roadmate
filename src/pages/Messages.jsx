@@ -72,6 +72,12 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
       .or('and(sender_id.eq.' + user.id + ',receiver_id.eq.' + otherId + '),and(sender_id.eq.' + otherId + ',receiver_id.eq.' + user.id + ')')
       .order('created_at', { ascending: true })
     setMessages(data || [])
+    await supabase
+  .from('messages')
+  .update({ read: true })
+  .eq('receiver_id', user.id)
+  .eq('sender_id', otherId)
+  .eq('read', false)
   }
 
   const sendMessage = async () => {
