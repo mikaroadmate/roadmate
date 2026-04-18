@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabase'
+import { useLanguage } from '../LanguageContext'
 
 const VISAS = ['WHV', 'Student', 'Tourist', 'Work', 'Resident', 'Other']
 const FLAGS = { 'French': '🇫🇷', 'Australian': '🇦🇺', 'British': '🇬🇧', 'German': '🇩🇪', 'Spanish': '🇪🇸', 'Italian': '🇮🇹', 'American': '🇺🇸', 'Canadian': '🇨🇦', 'Brazilian': '🇧🇷', 'Japanese': '🇯🇵', 'Other': '🌍' }
 
 export default function Profile({ user, viewedUserId, onBack }) {
+  const { t, lang } = useLanguage()
   const isOwnProfile = !viewedUserId || viewedUserId === user.id
   const targetId = isOwnProfile ? user.id : viewedUserId
 
@@ -61,7 +63,7 @@ export default function Profile({ user, viewedUserId, onBack }) {
       const { data } = supabase.storage.from('avatars').getPublicUrl(fileName)
       await supabase.from('profiles').upsert({ id: user.id, avatar_url: data.publicUrl })
       fetchProfile()
-      setMessage('Photo mise a jour ! ✅')
+      setMessage(lang === 'fr' ? 'Photo mise a jour ! ✅' : 'Photo updated! ✅')
       setTimeout(() => setMessage(''), 3000)
     }
     setUploadingPhoto(false)
@@ -71,11 +73,11 @@ export default function Profile({ user, viewedUserId, onBack }) {
     setSaving(true)
     const { error } = await supabase.from('profiles').upsert({ id: user.id, ...form })
     if (!error) {
-      setMessage('Profil sauvegarde ! ✅')
+      setMessage(lang === 'fr' ? 'Profil sauvegarde ! ✅' : 'Profile saved! ✅')
       setEditing(false)
       fetchProfile()
     } else {
-      setMessage('Erreur lors de la sauvegarde')
+      setMessage(lang === 'fr' ? 'Erreur lors de la sauvegarde' : 'Error saving profile')
     }
     setSaving(false)
     setTimeout(() => setMessage(''), 3000)
@@ -95,7 +97,7 @@ export default function Profile({ user, viewedUserId, onBack }) {
       comment
     })
     if (!error) {
-      setMessage('Avis envoye ! ✅')
+      setMessage(lang === 'fr' ? 'Avis envoye ! ✅' : 'Review sent! ✅')
       setShowReviewForm(false)
       setComment('')
       setRating(5)
@@ -109,7 +111,7 @@ export default function Profile({ user, viewedUserId, onBack }) {
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#F5EDD9', fontFamily: "'Kalam', cursive", fontSize: 20, color: '#B5967A' }}>
-      Chargement... 🤙
+      {lang === 'fr' ? 'Chargement... 🤙' : 'Loading... 🤙'}
     </div>
   )
 
@@ -120,12 +122,12 @@ export default function Profile({ user, viewedUserId, onBack }) {
       <div style={{ background: isOwnProfile ? '#8B5CF6' : '#5BC8D4', padding: '48px 22px 24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-            Retour
+            {t('post_back')}
           </button>
           {isOwnProfile && (
             <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
               style={{ background: editing ? '#4CAF7D' : 'rgba(255,255,255,0.2)', border: '2px solid ' + (editing ? '#3D2B1F' : 'rgba(255,255,255,0.4)'), borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer', boxShadow: editing ? '3px 3px 0 #3D2B1F' : 'none' }}>
-              {saving ? 'Sauvegarde...' : editing ? 'Sauvegarder' : 'Modifier'}
+              {saving ? (lang === 'fr' ? 'Sauvegarde...' : 'Saving...') : editing ? t('profile_save') : t('profile_edit')}
             </button>
           )}
         </div>
@@ -150,7 +152,7 @@ export default function Profile({ user, viewedUserId, onBack }) {
           <div>
             {editing ? (
               <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                placeholder="Ton prenom"
+                placeholder={lang === 'fr' ? 'Ton prenom' : 'Your name'}
                 style={{ fontSize: 24, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px', width: '100%' }} />
             ) : (
               <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>{profile?.name || 'Anonyme'}</div>
@@ -168,24 +170,23 @@ export default function Profile({ user, viewedUserId, onBack }) {
 
       <div style={{ padding: '16px 22px 100px' }}>
 
-        {/* Infos voyageur */}
         <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>Infos voyageur</div>
+          <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>{t('profile_traveler')}</div>
 
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>🌍 Nationalite</div>
+            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>🌍 {t('profile_nationality')}</div>
             {editing ? (
               <select value={form.nationality} onChange={e => setForm(p => ({ ...p, nationality: e.target.value }))}
                 style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>
                 {Object.keys(FLAGS).map(f => <option key={f} value={f}>{FLAGS[f]} {f}</option>)}
               </select>
             ) : (
-              <div style={{ fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{FLAGS[profile?.nationality] || '🌍'} {profile?.nationality || 'Non renseigne'}</div>
+              <div style={{ fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{FLAGS[profile?.nationality] || '🌍'} {profile?.nationality || (lang === 'fr' ? 'Non renseigne' : 'Not specified')}</div>
             )}
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📋 Visa</div>
+            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📋 {t('profile_visa')}</div>
             {editing ? (
               <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
                 {VISAS.map(v => (
@@ -196,27 +197,27 @@ export default function Profile({ user, viewedUserId, onBack }) {
                 ))}
               </div>
             ) : (
-              <div style={{ display: 'inline-block', padding: '6px 14px', borderRadius: 20, background: '#F3EFFE', border: '2px solid #8B5CF6', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#8B5CF6' }}>{profile?.visa || 'Non renseigne'}</div>
+              <div style={{ display: 'inline-block', padding: '6px 14px', borderRadius: 20, background: '#F3EFFE', border: '2px solid #8B5CF6', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#8B5CF6' }}>{profile?.visa || (lang === 'fr' ? 'Non renseigne' : 'Not specified')}</div>
             )}
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Bio</div>
+            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{t('profile_bio')}</div>
             {editing ? (
               <textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
-                placeholder="Parle de toi, tes projets en Australie..."
+                placeholder={lang === 'fr' ? 'Parle de toi, tes projets en Australie...' : 'Tell us about yourself, your plans in Australia...'}
                 rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6 }} />
             ) : (
-              <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6 }}>{profile?.bio || 'Aucune bio'}</div>
+              <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6 }}>{profile?.bio || (lang === 'fr' ? 'Aucune bio' : 'No bio')}</div>
             )}
           </div>
 
           {(profile?.whatsapp || editing) && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📱 WhatsApp</div>
+              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📱 {t('profile_whatsapp')}</div>
               {editing ? (
                 <input value={form.whatsapp} onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))}
-                  placeholder="+61 4XX XXX XXX (optionnel)"
+                  placeholder="+61 4XX XXX XXX (optional)"
                   style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
               ) : profile?.whatsapp ? (
                 <a href={'https://wa.me/' + profile.whatsapp.replace(/\D/g, '')} target="_blank" rel="noreferrer"
@@ -229,10 +230,10 @@ export default function Profile({ user, viewedUserId, onBack }) {
 
           {(profile?.instagram || editing) && (
             <div>
-              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📷 Instagram</div>
+              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📷 {t('profile_instagram')}</div>
               {editing ? (
                 <input value={form.instagram} onChange={e => setForm(p => ({ ...p, instagram: e.target.value }))}
-                  placeholder="@ton_pseudo (optionnel)"
+                  placeholder="@your_handle (optional)"
                   style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
               ) : profile?.instagram ? (
                 <a href={'https://instagram.com/' + profile.instagram.replace('@', '')} target="_blank" rel="noreferrer"
@@ -244,13 +245,12 @@ export default function Profile({ user, viewedUserId, onBack }) {
           )}
         </div>
 
-        {/* Vehicule */}
         {(profile?.vehicle_brand || profile?.vehicle_model || editing) && (
           <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
-            <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>🚗 Vehicule</div>
+            <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>🚗 {t('profile_vehicle')}</div>
             <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Marque</div>
+                <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{t('profile_brand')}</div>
                 {editing ? (
                   <input value={form.vehicle_brand} onChange={e => setForm(p => ({ ...p, vehicle_brand: e.target.value }))}
                     placeholder="Ex: Toyota"
@@ -260,7 +260,7 @@ export default function Profile({ user, viewedUserId, onBack }) {
                 )}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Modele</div>
+                <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{t('profile_model')}</div>
                 {editing ? (
                   <input value={form.vehicle_model} onChange={e => setForm(p => ({ ...p, vehicle_model: e.target.value }))}
                     placeholder="Ex: HiAce"
@@ -271,10 +271,10 @@ export default function Profile({ user, viewedUserId, onBack }) {
               </div>
             </div>
             <div>
-              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Couleur</div>
+              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{t('profile_color')}</div>
               {editing ? (
                 <input value={form.vehicle_color} onChange={e => setForm(p => ({ ...p, vehicle_color: e.target.value }))}
-                  placeholder="Ex: Blanc"
+                  placeholder={lang === 'fr' ? 'Ex: Blanc' : 'Ex: White'}
                   style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
               ) : (
                 <div style={{ fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_color || '-'}</div>
@@ -283,9 +283,8 @@ export default function Profile({ user, viewedUserId, onBack }) {
           </div>
         )}
 
-        {/* Stats */}
         <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
-          {[['🚐', rides.length, 'Trajets'], ['⭐', avgRating, 'Avis'], [profile?.verified ? '✅' : '❌', profile?.verified ? 'Oui' : 'Non', 'Verifie']].map(([icon, val, label]) => (
+          {[['🚐', rides.length, lang === 'fr' ? 'Trajets' : 'Rides'], ['⭐', avgRating, lang === 'fr' ? 'Avis' : 'Reviews'], [profile?.verified ? '✅' : '❌', profile?.verified ? (lang === 'fr' ? 'Oui' : 'Yes') : (lang === 'fr' ? 'Non' : 'No'), lang === 'fr' ? 'Verifie' : 'Verified']].map(([icon, val, label]) => (
             <div key={label} style={{ flex: 1, background: '#fff', borderRadius: 16, padding: '14px 10px', border: '3px solid #3D2B1F', boxShadow: '3px 3px 0 #3D2B1F', textAlign: 'center' }}>
               <div style={{ fontSize: 22 }}>{icon}</div>
               <div style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{val}</div>
@@ -294,17 +293,16 @@ export default function Profile({ user, viewedUserId, onBack }) {
           ))}
         </div>
 
-        {/* Bouton laisser un avis */}
         {!isOwnProfile && (
           <div style={{ marginBottom: 14 }}>
             {!showReviewForm ? (
               <button onClick={() => setShowReviewForm(true)}
                 style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#F5A623', color: '#3D2B1F', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
-                ⭐ Laisser un avis
+                ⭐ {lang === 'fr' ? 'Laisser un avis' : 'Leave a review'}
               </button>
             ) : (
               <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
-                <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>⭐ Ton avis</div>
+                <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>⭐ {lang === 'fr' ? 'Ton avis' : 'Your review'}</div>
                 <div style={{ display: 'flex', gap: 8, marginBottom: 12, justifyContent: 'center' }}>
                   {[1,2,3,4,5].map(star => (
                     <button key={star} onClick={() => setRating(star)}
@@ -314,16 +312,16 @@ export default function Profile({ user, viewedUserId, onBack }) {
                   ))}
                 </div>
                 <textarea value={comment} onChange={e => setComment(e.target.value)}
-                  placeholder="Ton commentaire (optionnel)..."
+                  placeholder={lang === 'fr' ? 'Ton commentaire (optionnel)...' : 'Your comment (optional)...'}
                   rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6, marginBottom: 10 }} />
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button onClick={() => setShowReviewForm(false)}
                     style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', cursor: 'pointer' }}>
-                    Annuler
+                    {lang === 'fr' ? 'Annuler' : 'Cancel'}
                   </button>
                   <button onClick={submitReview} disabled={submittingReview}
                     style={{ flex: 2, padding: '10px', borderRadius: 12, border: '3px solid #3D2B1F', background: '#4CAF7D', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff', cursor: 'pointer', boxShadow: '3px 3px 0 #3D2B1F' }}>
-                    {submittingReview ? 'Envoi...' : 'Envoyer ✓'}
+                    {submittingReview ? (lang === 'fr' ? 'Envoi...' : 'Sending...') : (lang === 'fr' ? 'Envoyer ✓' : 'Send ✓')}
                   </button>
                 </div>
               </div>
@@ -331,10 +329,9 @@ export default function Profile({ user, viewedUserId, onBack }) {
           </div>
         )}
 
-        {/* Avis recus */}
         {reviews.length > 0 && (
           <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
-            <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>⭐ Avis ({reviews.length})</div>
+            <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>⭐ {lang === 'fr' ? 'Avis' : 'Reviews'} ({reviews.length})</div>
             {reviews.map(review => (
               <div key={review.id} style={{ paddingBottom: 12, marginBottom: 12, borderBottom: '1.5px solid #EDE0CC' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
@@ -349,17 +346,16 @@ export default function Profile({ user, viewedUserId, onBack }) {
           </div>
         )}
 
-        {/* Mes trajets */}
         {isOwnProfile && (
           <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
-            <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>Mes trajets 🚐</div>
+            <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>{lang === 'fr' ? 'Mes trajets 🚐' : 'My rides 🚐'}</div>
             {rides.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '20px 0', fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>Aucun trajet poste 🌊</div>
+              <div style={{ textAlign: 'center', padding: '20px 0', fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>{lang === 'fr' ? 'Aucun trajet poste 🌊' : 'No rides posted 🌊'}</div>
             ) : rides.map(ride => (
               <div key={ride.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1.5px solid #EDE0CC' }}>
                 <div>
                   <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.from_city} → {ride.to_city}</div>
-                  <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.date} · {ride.seats} place(s)</div>
+                  <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.date} · {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</div>
                 </div>
                 <button onClick={() => deleteRide(ride.id)}
                   style={{ background: '#FFF0EE', border: '2px solid #E8572A', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>

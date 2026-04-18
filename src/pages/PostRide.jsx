@@ -1,16 +1,11 @@
 import { useState } from 'react'
 import { supabase } from '../supabase'
+import { useLanguage } from '../LanguageContext'
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
-const CATEGORIES = [
-  { id: 'travel', label: 'Voyage', icon: '✈️', desc: 'Inter-états & longue distance' },
-  { id: 'work', label: 'Travail', icon: '💼', desc: 'Fermes, mines & emploi' },
-  { id: 'daytrip', label: 'Excursion', icon: '🌊', desc: 'Plages, randos & tourisme' },
-  { id: 'roadtrip', label: 'Road Trip', icon: '🚐', desc: 'Aventures multi-jours' },
-]
-
 export default function PostRide({ user, onBack, onSuccess }) {
+  const { t, lang } = useLanguage()
   const [step, setStep] = useState(1)
   const [type, setType] = useState('offer')
   const [category, setCategory] = useState('travel')
@@ -19,27 +14,42 @@ export default function PostRide({ user, onBack, onSuccess }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
- const geocodeCity = async (city) => {
-  if (!city.trim()) return
-  try {
-    const base = 'https://api.mapbox.com/geocoding/v5/mapbox.places/'
-    const query = encodeURIComponent(city) + '.json'
-    const params = '?country=au&limit=1&access_token=' + MAPBOX_TOKEN
-    const res = await fetch(base + query + params)
-    const data = await res.json()
-    if (data.features && data.features.length > 0) {
-      const [lng, lat] = data.features[0].center
-      setCoords({ from_lat: lat, from_lng: lng })
+  const CATEGORIES = lang === 'fr' ? [
+    { id: 'travel', label: 'Voyage', icon: '✈️', desc: 'Inter-états & longue distance' },
+    { id: 'work', label: 'Travail', icon: '💼', desc: 'Fermes, mines & emploi' },
+    { id: 'daytrip', label: 'Excursion', icon: '🌊', desc: 'Plages, randos & tourisme' },
+    { id: 'roadtrip', label: 'Road Trip', icon: '🚐', desc: 'Aventures multi-jours' },
+  ] : [
+    { id: 'travel', label: 'Travel', icon: '✈️', desc: 'Interstate & long distance' },
+    { id: 'work', label: 'Work', icon: '💼', desc: 'Farms, mines & employment' },
+    { id: 'daytrip', label: 'Day Trip', icon: '🌊', desc: 'Beaches, hikes & tourism' },
+    { id: 'roadtrip', label: 'Road Trip', icon: '🚐', desc: 'Multi-day adventures' },
+  ]
+
+  const headerTitles = lang === 'fr'
+    ? ['', 'Type & catégorie', 'Trajet & date', 'Détails & publication']
+    : ['', 'Type & category', 'Route & date', 'Details & publish']
+
+  const geocodeCity = async (city) => {
+    if (!city.trim()) return
+    try {
+      const base = 'https://api.mapbox.com/geocoding/v5/mapbox.places/'
+      const query = encodeURIComponent(city) + '.json'
+      const params = '?country=au&limit=1&access_token=' + MAPBOX_TOKEN
+      const res = await fetch(base + query + params)
+      const data = await res.json()
+      if (data.features && data.features.length > 0) {
+        const [lng, lat] = data.features[0].center
+        setCoords({ from_lat: lat, from_lng: lng })
+      }
+    } catch (e) {
+      console.log('Geocoding error:', e)
     }
-  } catch (e) {
-    console.log('Geocoding error:', e)
   }
-} 
 
   const handleSubmit = async () => {
     setLoading(true)
     setError('')
-
     const { error } = await supabase.from('rides').insert({
       user_id: user.id,
       type,
@@ -55,9 +65,8 @@ export default function PostRide({ user, onBack, onSuccess }) {
       from_lat: coords.from_lat,
       from_lng: coords.from_lng,
     })
-
     if (error) {
-      setError('Erreur lors de la publication. Réessaie !')
+      setError(t('post_error'))
     } else {
       onSuccess()
     }
@@ -65,7 +74,6 @@ export default function PostRide({ user, onBack, onSuccess }) {
   }
 
   const headerColors = ['', '#3D2B1F', '#E8572A', '#4CAF7D']
-  const headerTitles = ['', 'Type & catégorie', 'Trajet & date', 'Détails & publication']
 
   return (
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -74,7 +82,7 @@ export default function PostRide({ user, onBack, onSuccess }) {
       <div style={{ background: headerColors[step], padding: '48px 22px 24px', flexShrink: 0 }}>
         <button onClick={() => step > 1 ? setStep(s => s - 1) : onBack()}
           style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer', marginBottom: 16 }}>
-          ← Retour
+          {t('post_back')}
         </button>
         <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>{headerTitles[step]}</div>
         <div style={{ display: 'flex', gap: 6, marginTop: 14 }}>
@@ -83,7 +91,7 @@ export default function PostRide({ user, onBack, onSuccess }) {
           ))}
         </div>
         <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: 'rgba(255,255,255,0.65)', marginTop: 4, textTransform: 'uppercase', letterSpacing: 1 }}>
-          Étape {step} sur 3
+          {t('post_step')} {step} {t('post_of')} 3
         </div>
       </div>
 
@@ -91,9 +99,9 @@ export default function PostRide({ user, onBack, onSuccess }) {
 
         {step === 1 && (
           <>
-            <Section title="Je suis...">
+            <Section title={t('post_type')}>
               <div style={{ display: 'flex', gap: 10 }}>
-                {[['offer','🚗 J\'offre un trajet'],['seek','🙋 Je cherche un trajet']].map(([id, label]) => (
+                {[['offer', t('post_offer')], ['seek', t('post_seek')]].map(([id, label]) => (
                   <button key={id} onClick={() => setType(id)}
                     style={{ flex: 1, padding: '16px 8px', borderRadius: 16, border: '3px solid ' + (type === id ? '#3D2B1F' : '#EDE0CC'), background: type === id ? '#E8572A' : '#fff', color: type === id ? '#fff' : '#7B5C42', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer', boxShadow: type === id ? '4px 4px 0 #3D2B1F' : 'none', transition: 'all 0.15s', lineHeight: 1.4 }}>
                     {label}
@@ -102,7 +110,7 @@ export default function PostRide({ user, onBack, onSuccess }) {
               </div>
             </Section>
 
-            <Section title="Catégorie">
+            <Section title={t('post_category')}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {CATEGORIES.map(c => (
                   <button key={c.id} onClick={() => setCategory(c.id)}
@@ -122,25 +130,25 @@ export default function PostRide({ user, onBack, onSuccess }) {
 
         {step === 2 && (
           <>
-            <Section title="📍 Départ">
+            <Section title={t('post_from')}>
               <input
-                placeholder="Ville ou région"
+                placeholder={t('post_city_placeholder')}
                 value={form.from_city}
                 onChange={e => setForm(p => ({ ...p, from_city: e.target.value }))}
                 onBlur={() => geocodeCity(form.from_city)}
                 style={inputStyle}
               />
             </Section>
-            <Section title="🏁 Destination">
-              <input placeholder="Ville ou région" value={form.to_city} onChange={e => setForm(p => ({ ...p, to_city: e.target.value }))}
+            <Section title={t('post_to')}>
+              <input placeholder={t('post_city_placeholder')} value={form.to_city} onChange={e => setForm(p => ({ ...p, to_city: e.target.value }))}
                 style={inputStyle} />
             </Section>
             <div style={{ display: 'flex', gap: 10 }}>
-              <Section title="📅 Date" style={{ flex: 1 }}>
+              <Section title={t('post_date')} style={{ flex: 1 }}>
                 <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
                   style={{ ...inputStyle }} />
               </Section>
-              <Section title="⏰ Heure" style={{ flex: 1 }}>
+              <Section title={t('post_time')} style={{ flex: 1 }}>
                 <input type="time" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))}
                   style={{ ...inputStyle }} />
               </Section>
@@ -151,7 +159,7 @@ export default function PostRide({ user, onBack, onSuccess }) {
         {step === 3 && (
           <>
             <div style={{ display: 'flex', gap: 10 }}>
-              <Section title="💺 Places" style={{ flex: 1 }}>
+              <Section title={t('post_seats')} style={{ flex: 1 }}>
                 <div style={{ display: 'flex', gap: 6 }}>
                   {['1','2','3','4'].map(n => (
                     <button key={n} onClick={() => setForm(p => ({ ...p, seats: n }))}
@@ -162,33 +170,33 @@ export default function PostRide({ user, onBack, onSuccess }) {
                 </div>
               </Section>
               {type === 'offer' && (
-                <Section title="💰 Prix $ / siège" style={{ flex: 1 }}>
+                <Section title={t('post_price')} style={{ flex: 1 }}>
                   <input type="number" placeholder="0" value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))}
                     style={{ ...inputStyle }} />
                 </Section>
               )}
             </div>
 
-            <Section title="📝 Note (optionnel)">
-              <textarea placeholder="Bonne musique, chien ok, no smoke... 🎵" value={form.note} onChange={e => setForm(p => ({ ...p, note: e.target.value }))} rows={3}
+            <Section title={t('post_note')}>
+              <textarea placeholder={t('post_note_placeholder')} value={form.note} onChange={e => setForm(p => ({ ...p, note: e.target.value }))} rows={3}
                 style={{ ...inputStyle, fontFamily: "'Kalam', cursive", resize: 'none', lineHeight: 1.6 }} />
             </Section>
 
-            <Section title="👩 Réservé aux femmes ?">
+            <Section title={t('post_women')}>
               <button onClick={() => setForm(p => ({ ...p, womenOnly: !p.womenOnly }))}
                 style={{ width: '100%', padding: '14px 18px', borderRadius: 16, border: '3px solid ' + (form.womenOnly ? '#E8572A' : '#EDE0CC'), background: form.womenOnly ? '#FFF0EE' : '#fff', color: form.womenOnly ? '#E8572A' : '#7B5C42', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer', textAlign: 'left', boxShadow: form.womenOnly ? '4px 4px 0 #3D2B1F' : 'none' }}>
-                {form.womenOnly ? '👩 Oui, femmes uniquement ✓' : '👥 Non, tout le monde'}
+                {form.womenOnly ? t('post_women_yes') : t('post_women_no')}
               </button>
             </Section>
 
             <div style={{ background: '#FFF8EE', borderRadius: 20, padding: 16, border: '3px dashed #F5A623', marginBottom: 8 }}>
-              <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Aperçu</div>
+              <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>{t('post_preview')}</div>
               <div style={{ fontSize: 18, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{form.from_city || '?'} → {form.to_city || '?'}</div>
               <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A', marginTop: 4 }}>
-                {form.date || 'Date TBC'} · {form.seats} place(s) {form.price ? '· ' + form.price + '$ / siège' : '· partage essence'}
+                {form.date || 'Date TBC'} · {form.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'} {form.price ? '· ' + form.price + '$ / ' + (lang === 'fr' ? 'siège' : 'seat') : '· ' + (lang === 'fr' ? 'partage essence' : 'fuel share')}
               </div>
-              {form.womenOnly && <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#E8572A', marginTop: 6 }}>👩 Femmes uniquement</div>}
-              {coords.from_lat && <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#4CAF7D', marginTop: 4 }}>📍 Position trouvée ✓</div>}
+              {form.womenOnly && <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#E8572A', marginTop: 6 }}>{t('post_women_yes')}</div>}
+              {coords.from_lat && <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#4CAF7D', marginTop: 4 }}>{t('post_found')}</div>}
             </div>
 
             {error && <div style={{ padding: '10px 14px', borderRadius: 12, background: '#FFF0EE', border: '2px solid #E8572A', marginBottom: 12, fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#E8572A' }}>{error}</div>}
@@ -199,7 +207,7 @@ export default function PostRide({ user, onBack, onSuccess }) {
       <div style={{ padding: '12px 22px 32px', flexShrink: 0 }}>
         <button onClick={() => step < 3 ? setStep(s => s + 1) : handleSubmit()} disabled={loading}
           style={{ width: '100%', padding: '16px', borderRadius: 18, border: '3px solid #3D2B1F', cursor: 'pointer', background: step === 3 ? '#4CAF7D' : '#E8572A', color: '#fff', fontSize: 18, fontFamily: "'Fredoka One'", boxShadow: '5px 5px 0 #3D2B1F', transition: 'all 0.15s' }}>
-          {loading ? 'Publication...' : step === 3 ? 'Publier 🚀' : 'Suivant →'}
+          {loading ? (lang === 'fr' ? 'Publication...' : 'Publishing...') : step === 3 ? t('post_publish') : t('post_next')}
         </button>
       </div>
     </div>

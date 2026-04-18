@@ -4,14 +4,23 @@ import PostRide from './PostRide'
 import Messages from './Messages'
 import Profile from './Profile'
 import Map from './Map'
+import { useLanguage } from '../LanguageContext'
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
 
-const CATEGORIES = [
+const CATEGORIES_FR = [
   { id: 'all', label: 'Tous', icon: '🛣️' },
   { id: 'travel', label: 'Voyage', icon: '✈️' },
   { id: 'work', label: 'Travail', icon: '💼' },
   { id: 'daytrip', label: 'Excursion', icon: '🌊' },
+  { id: 'roadtrip', label: 'Road Trip', icon: '🚐' },
+]
+
+const CATEGORIES_EN = [
+  { id: 'all', label: 'All', icon: '🛣️' },
+  { id: 'travel', label: 'Travel', icon: '✈️' },
+  { id: 'work', label: 'Work', icon: '💼' },
+  { id: 'daytrip', label: 'Day Trip', icon: '🌊' },
   { id: 'roadtrip', label: 'Road Trip', icon: '🚐' },
 ]
 
@@ -34,6 +43,9 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export default function Home({ user, onSignOut }) {
+  const { t, lang, toggleLanguage } = useLanguage()
+  const CATEGORIES = lang === 'fr' ? CATEGORIES_FR : CATEGORIES_EN
+
   const [rides, setRides] = useState([])
   const [filterCat, setFilterCat] = useState('all')
   const [filterType, setFilterType] = useState('all')
@@ -100,6 +112,7 @@ export default function Home({ user, onSignOut }) {
   if (showProfile) return <Profile user={user} onBack={() => setShowProfile(false)} />
   if (showOtherProfile) return <Profile user={user} viewedUserId={otherUserId} onBack={() => { setShowOtherProfile(false); setOtherUserId(null) }} />
   if (showMap) return <Map user={user} onBack={() => setShowMap(false)} onContact={(userId) => { setShowMap(false); setContactId(userId); setShowMessages(true) }} />
+
   const getTypeStyle = (id) => ({
     flex: 1, padding: '8px', borderRadius: 20,
     border: '2.5px solid ' + (filterType === id ? '#3D2B1F' : '#EDE0CC'),
@@ -124,14 +137,17 @@ export default function Home({ user, onSignOut }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div>
             <div style={{ fontSize: 28, fontFamily: "'Fredoka One'", color: '#fff' }}>Road<span style={{ color: '#F5A623' }}>Mate</span></div>
-            <div style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: 'rgba(255,255,255,0.😎' }}>g'day mate 🦘</div>
+            <div style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: 'rgba(255,255,255,0.😎' }}>{t('tagline')}</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={toggleLanguage} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+              {lang === 'fr' ? '🇬🇧' : '🇫🇷'}
+            </button>
             <button onClick={() => registerPush(user.id)} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
               🔔
             </button>
             <button onClick={onSignOut} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-              Deco 👋
+              {t('logout')}
             </button>
           </div>
         </div>
@@ -140,7 +156,7 @@ export default function Home({ user, onSignOut }) {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Ou tu vas ?"
+            placeholder={t('search_placeholder')}
             type="search"
             autoComplete="off"
             style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
@@ -153,7 +169,7 @@ export default function Home({ user, onSignOut }) {
 
       <div style={{ padding: '14px 22px 0' }}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-          {[['all','Tous'],['offer','🚗 Offre'],['seek','🙋 Cherche']].map(([id,label]) => (
+          {[['all', t('filter_all')], ['offer', t('filter_offer')], ['seek', t('filter_seek')]].map(([id, label]) => (
             <button key={id} onClick={() => setFilterType(id)} style={getTypeStyle(id)}>{label}</button>
           ))}
         </div>
@@ -167,7 +183,7 @@ export default function Home({ user, onSignOut }) {
         <div style={{ marginTop: 8, marginBottom: 4 }}>
           <button onClick={() => setFilterWomen(!filterWomen)}
             style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterWomen ? '#E8572A' : '#EDE0CC'), background: filterWomen ? '#FFF0EE' : '#fff', color: filterWomen ? '#E8572A' : '#B5967A', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
-            👩 Femmes uniquement
+            {t('women_only_filter')}
           </button>
         </div>
       </div>
@@ -175,17 +191,17 @@ export default function Home({ user, onSignOut }) {
       <div style={{ padding: '12px 22px 100px' }}>
         {search.trim() && (
           <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: '#B5967A', marginBottom: 10 }}>
-            {filteredRides.length} trajet(s) pour "{search}"
+            {filteredRides.length} {lang === 'fr' ? 'trajet(s) pour' : 'ride(s) for'} "{search}"
           </div>
         )}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 18 }}>Chargement... 🚐</div>
+          <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 18 }}>{t('loading')}</div>
         ) : filteredRides.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40 }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>🚐</div>
-            <div style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#3D2B1F', marginBottom: 6 }}>Aucun trajet</div>
+            <div style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#3D2B1F', marginBottom: 6 }}>{t('no_rides')}</div>
             <div style={{ fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>
-              {search ? 'Essaie une autre ville !' : 'Sois le premier a poster ! 🤙'}
+              {search ? t('no_rides_search') : t('no_rides_sub')}
             </div>
           </div>
         ) : filteredRides.map(ride => {
@@ -198,11 +214,11 @@ export default function Home({ user, onSignOut }) {
                   {cat?.icon} {cat?.label}
                 </span>
                 <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: ride.type === 'offer' ? '#E8F8EF' : '#EFF6FF', color: ride.type === 'offer' ? '#4CAF7D' : '#3B82F6', border: '2px solid ' + (ride.type === 'offer' ? '#4CAF7D' : '#3B82F6') }}>
-                  {ride.type === 'offer' ? '🚗 Offre' : '🙋 Cherche'}
+                  {ride.type === 'offer' ? t('filter_offer') : t('filter_seek')}
                 </span>
                 {ride.women_only && (
                   <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#FFF0EE', color: '#E8572A', border: '2px solid #E8572A' }}>
-                    👩 Femmes
+                    👩 {lang === 'fr' ? 'Femmes' : 'Women'}
                   </span>
                 )}
               </div>
@@ -221,26 +237,26 @@ export default function Home({ user, onSignOut }) {
                 {ride.price && (
                   <div style={{ background: '#F5A623', borderRadius: 14, padding: '6px 12px', border: '2.5px solid #3D2B1F', boxShadow: '3px 3px 0 #3D2B1F', textAlign: 'center' }}>
                     <div style={{ fontSize: 18, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.price}$</div>
-                    <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>/siege</div>
+                    <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>{lang === 'fr' ? '/siege' : '/seat'}</div>
                   </div>
                 )}
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                 <div style={{ flex: 1, background: '#F5EDD9', borderRadius: 12, padding: '8px 12px', border: '2px solid #EDE0CC' }}>
-                  <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1 }}>De</div>
+                  <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1 }}>{lang === 'fr' ? 'De' : 'From'}</div>
                   <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.from_city}</div>
                 </div>
                 <span style={{ fontSize: 18 }}>→</span>
                 <div style={{ flex: 1, background: '#F5EDD9', borderRadius: 12, padding: '8px 12px', border: '2px solid #EDE0CC' }}>
-                  <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1 }}>A</div>
+                  <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1 }}>{lang === 'fr' ? 'A' : 'To'}</div>
                   <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.to_city}</div>
                 </div>
               </div>
 
               <div style={{ display: 'flex', gap: 6, marginBottom: ride.note ? 10 : 0, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>📅 {ride.date}</span>
-                <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>💺 {ride.seats} place(s)</span>
+                <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>💺 {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</span>
               </div>
 
               {ride.note && (
@@ -251,7 +267,7 @@ export default function Home({ user, onSignOut }) {
 
               <button onClick={() => { setContactId(ride.user_id); setShowMessages(true) }}
                 style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
-                Contacter 🤙
+                {t('contact')}
               </button>
             </div>
           )
@@ -265,7 +281,7 @@ export default function Home({ user, onSignOut }) {
         </button>
         <button onClick={() => setShowMap(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
           <span style={{ fontSize: 22 }}>🗺️</span>
-          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>Carte</span>
+          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>{lang === 'fr' ? 'Carte' : 'Map'}</span>
         </button>
         <button onClick={() => setShowMessages(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
           <span style={{ fontSize: 22 }}>💬</span>
@@ -273,11 +289,11 @@ export default function Home({ user, onSignOut }) {
         </button>
         <button onClick={() => setShowPost(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
           <span style={{ fontSize: 22 }}>➕</span>
-          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>Poster</span>
+          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>{lang === 'fr' ? 'Poster' : 'Post'}</span>
         </button>
         <button onClick={() => setShowProfile(true)} style={{ background:'none', border:'none', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
           <span style={{ fontSize: 22 }}>🤠</span>
-          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>Profil</span>
+          <span style={{ fontSize: 10, fontFamily:"'Nunito'", fontWeight: 800, color: '#B5967A', textTransform:'uppercase' }}>{lang === 'fr' ? 'Profil' : 'Profile'}</span>
         </button>
       </div>
     </div>
