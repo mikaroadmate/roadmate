@@ -125,7 +125,10 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
               style={{ background: 'rgba(255,255,255,0.25)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#3D2B1F', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
               {t('post_back')}
             </button>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, border: '2.5px solid #3D2B1F' }}>🤙</div>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, border: '2.5px solid #3D2B1F', overflow: 'hidden' }}>
+  {profiles[activeConv]?.avatar_url || conversations.find(c => c.otherId === activeConv)?.otherProfile?.avatar_url ? 
+    <img src={profiles[activeConv]?.avatar_url || conversations.find(c => c.otherId === activeConv)?.otherProfile?.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
+</div>
             <div>
               <button onClick={() => onViewProfile && onViewProfile(activeConv)}
                 style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
@@ -207,7 +210,9 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
         ) : conversations.map(conv => (
           <div key={conv.otherId} onClick={() => setActiveConv(conv.otherId)}
             style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 22px', cursor: 'pointer', borderBottom: '1.5px solid #EDE0CC' }}>
-            <div style={{ width: 54, height: 54, borderRadius: 18, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, border: '3px solid #3D2B1F', flexShrink: 0 }}>🤙</div>
+            <div style={{ width: 54, height: 54, borderRadius: 18, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, border: '3px solid #3D2B1F', flexShrink: 0, overflow: 'hidden' }}>
+  {conv.otherProfile?.avatar_url ? <img src={conv.otherProfile.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
+</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#3D2B1F', marginBottom: 3 }}>{conv.otherProfile?.name || (lang === 'fr' ? 'Utilisateur' : 'User')}</div>
               <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#B5967A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{conv.lastMsg.content}</div>

@@ -64,7 +64,7 @@ export default function Home({ user, onSignOut }) {
 
   const fetchRides = async () => {
     setLoading(true)
-    let query = supabase.from('rides').select('*, profiles(name, nationality, verified)').order('created_at', { ascending: false })
+    let query = supabase.from('rides').select('*, profiles(name, nationality, verified, avatar_url)').order('created_at', { ascending: false })
     if (filterCat !== 'all') query = query.eq('category', filterCat)
     if (filterType !== 'all') query = query.eq('type', filterType)
     if (filterWomen) query = query.eq('women_only', true)
@@ -225,7 +225,9 @@ export default function Home({ user, onSignOut }) {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 14, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: '2.5px solid #3D2B1F' }}>🤙</div>
+                  <div style={{ width: 44, height: 44, borderRadius: 14, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: '2.5px solid #3D2B1F', overflow: 'hidden' }}>
+  {ride.profiles?.avatar_url ? <img src={ride.profiles.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
+</div>
                   <div>
                     <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
                       style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#E8572A', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
