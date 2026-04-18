@@ -67,7 +67,10 @@ export default function Home({ user, onSignOut }) {
   useEffect(() => {
     if (!showMessages) fetchUnread()
   }, [showMessages])
-
+useEffect(() => {
+  const interval = setInterval(fetchUnread, 5000)
+  return () => clearInterval(interval)
+}, [])
   const fetchUnread = async () => {
     const { count } = await supabase
       .from('messages')
