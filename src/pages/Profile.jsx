@@ -108,7 +108,7 @@ export default function Profile({ user, viewedUserId, onBack }) {
   }
 
   const avgRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : '0'
-
+const isVerified = !!(profile?.whatsapp || profile?.instagram)
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#F5EDD9', fontFamily: "'Kalam', cursive", fontSize: 20, color: '#B5967A' }}>
       {lang === 'fr' ? 'Chargement... 🤙' : 'Loading... 🤙'}
@@ -284,7 +284,7 @@ export default function Profile({ user, viewedUserId, onBack }) {
         )}
 
         <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
-          {[['🚐', rides.length, lang === 'fr' ? 'Trajets' : 'Rides'], ['⭐', avgRating, lang === 'fr' ? 'Avis' : 'Reviews'], [profile?.verified ? '✅' : '❌', profile?.verified ? (lang === 'fr' ? 'Oui' : 'Yes') : (lang === 'fr' ? 'Non' : 'No'), lang === 'fr' ? 'Verifie' : 'Verified']].map(([icon, val, label]) => (
+          {[['🚐', rides.length, lang === 'fr' ? 'Trajets' : 'Rides'], ['⭐', avgRating, lang === 'fr' ? 'Avis' : 'Reviews'], [isVerified ? '✅' : '🔒', isVerified ? (lang === 'fr' ? 'Oui' : 'Yes') : (lang === 'fr' ? 'Non' : 'No'), lang === 'fr' ? 'Verifie' : 'Verified']].map(([icon, val, label]) => (
             <div key={label} style={{ flex: 1, background: '#fff', borderRadius: 16, padding: '14px 10px', border: '3px solid #3D2B1F', boxShadow: '3px 3px 0 #3D2B1F', textAlign: 'center' }}>
               <div style={{ fontSize: 22 }}>{icon}</div>
               <div style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{val}</div>
