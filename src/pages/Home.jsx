@@ -97,7 +97,7 @@ export default function Home({ user, onSignOut }) {
   const [unreadCount, setUnreadCount] = useState(0)
   const [shareToast, setShareToast] = useState(false)
 
-  useEffect(() => { fetchRides() }, [filterCat, filterType, filterWomen])
+  useEffect(() => { fetchRides() }, [filterCat, filterType, filterWomen, filterDate])
   useEffect(() => { fetchUnread() }, [])
   useEffect(() => { if (!showMessages) fetchUnread() }, [showMessages])
   useEffect(() => { cleanPastRides() }, [])
@@ -121,6 +121,7 @@ export default function Home({ user, onSignOut }) {
     if (filterCat !== 'all') query = query.eq('category', filterCat)
     if (filterType !== 'all') query = query.eq('type', filterType)
     if (filterWomen) query = query.eq('women_only', true)
+if (filterDate) query = query.eq('date', filterDate)
     const { data } = await query
     setRides(data || [])
     setLoading(false)
