@@ -299,23 +299,24 @@ if (filterDate) query = query.eq('date', filterDate)
           const colors = CAT_COLORS[ride.category] || { bg: '#F5EDD9', color: '#EDE0CC' }
           return (
             <div key={ride.id} style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 12 }}>
-              <div style={{ display: 'flex', gap: 7, marginBottom: 12, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: colors.bg, color: '#3D2B1F', border: '2px solid ' + colors.color }}>
-                  {cat?.icon} {cat?.label}
-                </span>
-                <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: ride.type === 'offer' ? '#E8F8EF' : '#EFF6FF', color: ride.type === 'offer' ? '#4CAF7D' : '#3B82F6', border: '2px solid ' + (ride.type === 'offer' ? '#4CAF7D' : '#3B82F6') }}>
-                  {ride.type === 'offer' ? t('filter_offer') : t('filter_seek')}
-                </span>
-                {ride.women_only && (
-                  <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#FFF0EE', color: '#E8572A', border: '2px solid #E8572A' }}>
-                    👩 {lang === 'fr' ? 'Femmes' : 'Women'}
-                  </span>
-                )}
-                <button onClick={() => handleShare(ride)}
-                  style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '2px solid #EDE0CC', cursor: 'pointer' }}>
-                  {lang === 'fr' ? '↗ Partager' : '↗ Share'}
-                </button>
-              </div>
+             
+<div style={{ display: 'flex', gap: 7, marginBottom: 12, flexWrap: 'wrap' }}>
+  <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: colors.bg, color: '#3D2B1F', border: '2px solid ' + colors.color }}>
+    {cat?.icon} {cat?.label}
+  </span>
+  <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: ride.type === 'offer' ? '#E8F8EF' : '#EFF6FF', color: ride.type === 'offer' ? '#4CAF7D' : '#3B82F6', border: '2px solid ' + (ride.type === 'offer' ? '#4CAF7D' : '#3B82F6') }}>
+    {ride.type === 'offer' ? t('filter_offer') : t('filter_seek')}
+  </span>
+  {ride.women_only && (
+    <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#FFF0EE', color: '#E8572A', border: '2px solid #E8572A' }}>
+      👩 {lang === 'fr' ? 'Femmes' : 'Women'}
+    </span>
+  )}
+  <button onClick={() => handleShare(ride)}
+    style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '2px solid #EDE0CC', cursor: 'pointer' }}>
+    {lang === 'fr' ? '↗ Partager' : '↗ Share'}
+  </button>
+</div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -355,7 +356,7 @@ if (filterDate) query = query.eq('date', filterDate)
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 6, marginBottom: ride.note ? 10 : 0, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 6, marginBottom: ride.note ? 10 : 12, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>📅{ride.date ? ride.date.split('-').reverse().join('/') : ''} </span>
                 <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>💺 {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</span>
               </div>
