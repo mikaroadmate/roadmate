@@ -50,8 +50,8 @@ const cleanPastRides = async () => {
   rides.forEach(ride => {
     try {
       const parts = ride.date?.split('-')
-if (!parts || parts.length !== 3) return
-const [year, month, day] = parts
+      if (!parts || parts.length !== 3) return
+      const [year, month, day] = parts
       const timeParts = (ride.time || '00:00').split(':')
       const hours = parseInt(timeParts[0]) || 0
       const minutes = parseInt(timeParts[1]) || 0
@@ -60,10 +60,11 @@ const [year, month, day] = parts
       if (now > deleteAfter) toDelete.push(ride.id)
     } catch (e) {}
   })
-if (toDelete.length > 0) {
+  if (toDelete.length > 0) {
     await supabase.from('rides').delete().in('id', toDelete)
     fetchRides()
   }
+}
 
 const shareRide = async (ride, lang) => {
   const text = lang === 'fr'
