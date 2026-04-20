@@ -122,7 +122,7 @@ export default function Home({ user, onSignOut }) {
 
   const fetchRides = async () => {
     setLoading(true)
-    let query = supabase.from('rides').select('*, profiles(name, nationality, verified, avatar_url)').order('created_at', { ascending: false })
+    let query = supabase.from('rides').select('*, profiles(name, nationality, verified, avatar_url, whatsapp, instagram)').order('created_at', { ascending: false })
     if (filterCat !== 'all') query = query.eq('category', filterCat)
     if (filterType !== 'all') query = query.eq('type', filterType)
     if (filterWomen) query = query.eq('women_only', true)
@@ -324,9 +324,9 @@ if (filterDate) query = query.eq('date', filterDate)
                   </div>
                   <div>
                     <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
-                      style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#E8572A', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
-                      {ride.profiles?.name || 'Anonyme'}
-                    </button>
+  style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#E8572A', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
+  {ride.profiles?.name || 'Anonyme'} {(ride.profiles?.whatsapp || ride.profiles?.instagram) ? '✅' : ''}
+</button>
                     <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.profiles?.nationality || ''}</div>
                   </div>
                 </div>
