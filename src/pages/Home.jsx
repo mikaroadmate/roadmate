@@ -323,10 +323,15 @@ if (filterDate) query = query.eq('date', filterDate)
                     {ride.profiles?.avatar_url ? <img src={ride.profiles.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
                   </div>
                   <div>
-                    <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
-  style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#E8572A', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
-  {ride.profiles?.name || 'Anonyme'} {(ride.profiles?.whatsapp || ride.profiles?.instagram) ? '    ✅' : ''}
-</button>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+  <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
+    style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#E8572A', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
+    {ride.profiles?.name || 'Anonyme'}
+  </button>
+  {(ride.profiles?.whatsapp || ride.profiles?.instagram) && (
+    <span style={{ fontSize: 13 }}>✅</span>
+  )}
+</div>
                     <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.profiles?.nationality || ''}</div>
                   </div>
                 </div>
