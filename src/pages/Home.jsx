@@ -324,8 +324,8 @@ if (filterDate) query = query.eq('date', filterDate)
                   </div>
                   <div>
                     <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
-  style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#E8572A', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
-  {ride.profiles?.name || 'Anonyme'} {(ride.profiles?.whatsapp || ride.profiles?.instagram) ? '✅' : ''}
+  style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#E8572A', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
+  {ride.profiles?.name || 'Anonyme'} {(ride.profiles?.whatsapp || ride.profiles?.instagram) ? '    ✅' : ''}
 </button>
                     <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.profiles?.nationality || ''}</div>
                   </div>
