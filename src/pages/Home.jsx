@@ -62,14 +62,13 @@ const cleanPastRides = async () => {
   })
   if (toDelete.length > 0) {
     await supabase.from('rides').delete().in('id', toDelete)
-    fetchRides()
   }
 }
 
 const shareRide = async (ride, lang) => {
   const text = lang === 'fr'
-    ? '🚗 Trajet RoadMate\n' + ride.from_city + ' → ' + ride.to_city + '\n📅 ' + ride.date + (ride.price ? '\n💰 ' + ride.price + '$' : '') + '\n\nRejoins RoadMate 🤙\nhttps://www.roadmateoz.app'
-    : '🚗 RoadMate Ride\n' + ride.from_city + ' → ' + ride.to_city + '\n📅 ' + ride.date + (ride.price ? '\n💰 ' + ride.price + '$' : '') + '\n\nJoin RoadMate 🤙\nhttps://www.roadmateoz.app'
+    ? '🚗 Trajet RoadMate\n' + ride.from_city + ' → ' + ride.to_city + '\n📅 ' + (ride.date ? ride.date.split('-').reverse().join('/') : '') + (ride.price ? '\n💰 ' + ride.price + '$' : '') + '\n\nRejoins RoadMate 🤙\nhttps://www.roadmateoz.app'
+    : '🚗 RoadMate Ride\n' + ride.from_city + ' → ' + ride.to_city + '\n📅 ' + (ride.date ? ride.date.split('-').reverse().join('/') : '') + (ride.price ? '\n💰 ' + ride.price + '$' : '') + '\n\nJoin RoadMate 🤙\nhttps://www.roadmateoz.app'
   if (navigator.share) {
     try { await navigator.share({ title: 'RoadMate', text }) } catch (e) {}
   } else {
@@ -102,10 +101,10 @@ export default function Home({ user, onSignOut }) {
   useEffect(() => { fetchUnread() }, [])
   useEffect(() => { if (!showMessages) fetchUnread() }, [showMessages])
   useEffect(() => {
-  cleanPastRides()
-  const interval = setInterval(cleanPastRides, 60 * 60 * 1000)
-  return () => clearInterval(interval)
-}, [])
+    cleanPastRides()
+    const interval = setInterval(cleanPastRides, 60 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
   useEffect(() => {
     const interval = setInterval(fetchUnread, 5000)
     return () => clearInterval(interval)
@@ -126,19 +125,16 @@ export default function Home({ user, onSignOut }) {
     if (filterCat !== 'all') query = query.eq('category', filterCat)
     if (filterType !== 'all') query = query.eq('type', filterType)
     if (filterWomen) query = query.eq('women_only', true)
-if (filterDate) query = query.eq('date', filterDate)
+    if (filterDate) query = query.eq('date', filterDate)
     const { data } = await query
     setRides(data || [])
     setLoading(false)
   }
 
   const filteredRides = rides.filter(ride => {
-    const matchSearch = !search.trim() ||
+    return !search.trim() ||
       ride.from_city?.toLowerCase().includes(search.toLowerCase()) ||
       ride.to_city?.toLowerCase().includes(search.toLowerCase())
-    let matchDate = true
-    
-    return matchSearch && matchDate
   })
 
   const handleShare = async (ride) => {
@@ -257,22 +253,22 @@ if (filterDate) query = query.eq('date', filterDate)
             {t('women_only_filter')}
           </button>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-  <input
-    type="date"
-    value={filterDate}
-    onChange={e => setFilterDate(e.target.value)}
-    style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 2 }}
-  />
-  <div style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterDate ? '#E8572A' : '#EDE0CC'), background: filterDate ? '#FFF0EE' : '#fff', color: filterDate ? '#E8572A' : '#B5967A', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
-    {filterDate ? '📅 ' + filterDate.split('-').reverse().join('/') : '📅 ' + (lang === 'fr' ? 'Date' : 'Date')}
-  </div>
-  {filterDate && (
-    <button onClick={() => setFilterDate('')}
-      style={{ marginLeft: 4, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#E8572A', fontWeight: 900, zIndex: 3, position: 'relative' }}>
-      ✕
-    </button>
-  )}
-</div>
+            <input
+              type="date"
+              value={filterDate}
+              onChange={e => setFilterDate(e.target.value)}
+              style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 2 }}
+            />
+            <div style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterDate ? '#E8572A' : '#EDE0CC'), background: filterDate ? '#FFF0EE' : '#fff', color: filterDate ? '#E8572A' : '#B5967A', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+              {filterDate ? '📅 ' + filterDate.split('-').reverse().join('/') : '📅 Date'}
+            </div>
+            {filterDate && (
+              <button onClick={() => setFilterDate('')}
+                style={{ marginLeft: 4, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#E8572A', fontWeight: 900, zIndex: 3, position: 'relative' }}>
+                ✕
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -299,24 +295,28 @@ if (filterDate) query = query.eq('date', filterDate)
           const colors = CAT_COLORS[ride.category] || { bg: '#F5EDD9', color: '#EDE0CC' }
           return (
             <div key={ride.id} style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 12 }}>
-             
-<div style={{ display: 'flex', gap: 7, marginBottom: 12, flexWrap: 'wrap' }}>
-  <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: colors.bg, color: '#3D2B1F', border: '2px solid ' + colors.color }}>
-    {cat?.icon} {cat?.label}
-  </span>
-  <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: ride.type === 'offer' ? '#E8F8EF' : '#EFF6FF', color: ride.type === 'offer' ? '#4CAF7D' : '#3B82F6', border: '2px solid ' + (ride.type === 'offer' ? '#4CAF7D' : '#3B82F6') }}>
-    {ride.type === 'offer' ? t('filter_offer') : t('filter_seek')}
-  </span>
-  {ride.women_only && (
-    <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#FFF0EE', color: '#E8572A', border: '2px solid #E8572A' }}>
-      👩 {lang === 'fr' ? 'Femmes' : 'Women'}
-    </span>
-  )}
-  <button onClick={() => handleShare(ride)}
-    style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '2px solid #EDE0CC', cursor: 'pointer' }}>
-    {lang === 'fr' ? '↗ Partager' : '↗ Share'}
-  </button>
-</div>
+
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: colors.bg, color: '#3D2B1F', border: '2px solid ' + colors.color }}>
+                    {cat?.icon} {cat?.label}
+                  </span>
+                  <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: ride.type === 'offer' ? '#E8F8EF' : '#EFF6FF', color: ride.type === 'offer' ? '#4CAF7D' : '#3B82F6', border: '2px solid ' + (ride.type === 'offer' ? '#4CAF7D' : '#3B82F6') }}>
+                    {ride.type === 'offer' ? t('filter_offer') : t('filter_seek')}
+                  </span>
+                  <button onClick={() => handleShare(ride)}
+                    style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '2px solid #EDE0CC', cursor: 'pointer' }}>
+                    {lang === 'fr' ? '↗ Partager' : '↗ Share'}
+                  </button>
+                </div>
+                {ride.women_only && (
+                  <div style={{ marginTop: 6 }}>
+                    <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#FFF0EE', color: '#E8572A', border: '2px solid #E8572A' }}>
+                      👩 {lang === 'fr' ? 'Femmes' : 'Women'}
+                    </span>
+                  </div>
+                )}
+              </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -324,15 +324,15 @@ if (filterDate) query = query.eq('date', filterDate)
                     {ride.profiles?.avatar_url ? <img src={ride.profiles.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
                   </div>
                   <div>
-                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-  <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
-    style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#E8572A', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
-    {ride.profiles?.name || 'Anonyme'}
-  </button>
-  {(ride.profiles?.whatsapp || ride.profiles?.instagram) && (
-    <span style={{ fontSize: 13 }}>✅</span>
-  )}
-</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
+                        style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#E8572A', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
+                        {ride.profiles?.name || 'Anonyme'}
+                      </button>
+                      {(ride.profiles?.whatsapp || ride.profiles?.instagram) && (
+                        <span style={{ fontSize: 13 }}>✅</span>
+                      )}
+                    </div>
                     <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.profiles?.nationality || ''}</div>
                   </div>
                 </div>
@@ -357,7 +357,7 @@ if (filterDate) query = query.eq('date', filterDate)
               </div>
 
               <div style={{ display: 'flex', gap: 6, marginBottom: ride.note ? 10 : 12, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>📅{ride.date ? ride.date.split('-').reverse().join('/') : ''} </span>
+                <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>📅 {ride.date ? ride.date.split('-').reverse().join('/') : ''}</span>
                 <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>💺 {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</span>
               </div>
 
