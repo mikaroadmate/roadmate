@@ -49,9 +49,9 @@ const cleanPastRides = async () => {
   const toDelete = []
   rides.forEach(ride => {
     try {
-      const parts = ride.date?.split('/')
-      if (!parts || parts.length !== 3) return
-      const [day, month, year] = parts
+      const parts = ride.date?.split('-')
+if (!parts || parts.length !== 3) return
+const [year, month, day] = parts
       const timeParts = (ride.time || '00:00').split(':')
       const hours = parseInt(timeParts[0]) || 0
       const minutes = parseInt(timeParts[1]) || 0
@@ -60,10 +60,10 @@ const cleanPastRides = async () => {
       if (now > deleteAfter) toDelete.push(ride.id)
     } catch (e) {}
   })
-  if (toDelete.length > 0) {
+if (toDelete.length > 0) {
     await supabase.from('rides').delete().in('id', toDelete)
+    fetchRides()
   }
-}
 
 const shareRide = async (ride, lang) => {
   const text = lang === 'fr'
@@ -100,7 +100,11 @@ export default function Home({ user, onSignOut }) {
   useEffect(() => { fetchRides() }, [filterCat, filterType, filterWomen, filterDate])
   useEffect(() => { fetchUnread() }, [])
   useEffect(() => { if (!showMessages) fetchUnread() }, [showMessages])
-  useEffect(() => { cleanPastRides() }, [])
+  useEffect(() => {
+  cleanPastRides()
+  const interval = setInterval(cleanPastRides, 60 * 60 * 1000)
+  return () => clearInterval(interval)
+}, [])
   useEffect(() => {
     const interval = setInterval(fetchUnread, 5000)
     return () => clearInterval(interval)
