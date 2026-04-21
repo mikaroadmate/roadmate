@@ -86,6 +86,7 @@ function ResetPassword() {
 }
 
 function Onboarding({ user, onDone }) {
+  const lang = navigator.language?.startsWith('fr') ? 'fr' : 'en'
   const [name, setName] = useState('')
   const [nationality, setNationality] = useState('French')
   const [saving, setSaving] = useState(false)
@@ -107,20 +108,24 @@ function Onboarding({ user, onDone }) {
         Road<span style={{ color: '#F5A623' }}>Mate</span>
       </div>
       <div style={{ fontSize: 16, fontFamily: "'Kalam', cursive", color: 'rgba(255,255,255,0.85)', marginBottom: 40 }}>
-        Avant de commencer... 🤙
+        {lang === 'fr' ? 'Avant de commencer... 🤙' : 'Before we start... 🤙'}
       </div>
       <div style={{ background: '#F5EDD9', borderRadius: 24, padding: 28, width: '100%', maxWidth: 400, border: '3px solid #3D2B1F', boxShadow: '6px 6px 0 #3D2B1F' }}>
         <div style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F', marginBottom: 20, textAlign: 'center' }}>
-          Comment tu t'appelles ? 👋
+          {lang === 'fr' ? 'Comment tu t\'appelles ? 👋' : 'What\'s your name? 👋'}
         </div>
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>📝 Prénom</div>
+          <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>
+            📝 {lang === 'fr' ? 'Prénom' : 'First name'}
+          </div>
           <input value={name} onChange={e => setName(e.target.value)}
-            placeholder="Ton prénom"
+            placeholder={lang === 'fr' ? 'Ton prénom' : 'Your name'}
             style={{ width: '100%', padding: '13px 16px', borderRadius: 14, border: '3px solid #EDE0CC', background: '#fff', fontSize: 15, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', boxSizing: 'border-box' }} />
         </div>
         <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>🌍 Nationalité</div>
+          <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>
+            🌍 {lang === 'fr' ? 'Nationalité' : 'Nationality'}
+          </div>
           <select value={nationality} onChange={e => setNationality(e.target.value)}
             style={{ width: '100%', padding: '13px 16px', borderRadius: 14, border: '3px solid #EDE0CC', background: '#fff', fontSize: 15, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', boxSizing: 'border-box' }}>
             {Object.keys(FLAGS).map(f => <option key={f} value={f}>{FLAGS[f]} {f}</option>)}
@@ -128,7 +133,7 @@ function Onboarding({ user, onDone }) {
         </div>
         <button onClick={handleSave} disabled={saving || !name.trim()}
           style={{ width: '100%', padding: '16px', borderRadius: 16, border: '3px solid #3D2B1F', cursor: name.trim() ? 'pointer' : 'not-allowed', background: name.trim() ? '#E8572A' : '#EDE0CC', color: '#fff', fontSize: 18, fontFamily: "'Fredoka One'", boxShadow: name.trim() ? '5px 5px 0 #3D2B1F' : 'none' }}>
-          {saving ? 'Sauvegarde...' : "C'est parti 🦘"}
+          {saving ? (lang === 'fr' ? 'Sauvegarde...' : 'Saving...') : (lang === 'fr' ? "C'est parti 🦘" : "Let's go 🦘")}
         </button>
       </div>
     </div>
