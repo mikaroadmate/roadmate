@@ -315,7 +315,7 @@ export default function Home({ user, onSignOut, showCGU }) {
               {filterFavorites ? (lang === 'fr' ? 'Aucun favori' : 'No favorites yet') : t('no_rides')}
             </div>
             <div style={{ fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>
-              {filterFavorites ? (lang === 'fr' ? 'Appuie sur ⭐ pour sauvegarder un trajet' : 'Tap ⭐ to save a ride') : search || filterDate ? t('no_rides_search') : t('no_rides_sub')}
+              {filterFavorites ? (lang === 'fr' ? 'Appuie sur ☆ Save pour sauvegarder un trajet' : 'Tap ☆ Save to save a ride') : search || filterDate ? t('no_rides_search') : t('no_rides_sub')}
             </div>
           </div>
         ) : filteredRides.map(ride => {
@@ -333,7 +333,6 @@ export default function Home({ user, onSignOut, showCGU }) {
                   <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: ride.type === 'offer' ? '#E8F8EF' : '#EFF6FF', color: ride.type === 'offer' ? '#4CAF7D' : '#3B82F6', border: '2px solid ' + (ride.type === 'offer' ? '#4CAF7D' : '#3B82F6') }}>
                     {ride.type === 'offer' ? t('filter_offer') : t('filter_seek')}
                   </span>
-                  
                   <button onClick={() => handleShare(ride)}
                     style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '2px solid #EDE0CC', cursor: 'pointer' }}>
                     {lang === 'fr' ? '↗ Partager' : '↗ Share'}
@@ -387,13 +386,13 @@ export default function Home({ user, onSignOut, showCGU }) {
               </div>
 
               <div style={{ display: 'flex', gap: 6, marginBottom: ride.note ? 10 : 12, flexWrap: 'wrap', alignItems: 'center' }}>
-  <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>📅 {ride.date ? ride.date.split('-').reverse().join('/') : ''}</span>
-  <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>💺 {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</span>
-  <button onClick={() => toggleFavorite(ride.id)}
-    style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, border: '1.5px solid ' + (isFav ? '#F5A623' : '#EDE0CC'), background: isFav ? '#FFF8EE' : '#F5EDD9', color: isFav ? '#F5A623' : '#7B5C42', cursor: 'pointer', lineHeight: '1.4' }}>
-    {isFav ? '⭐ Favori' : '🧡 Save'}
-  </button>
-</div>
+                <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>📅 {ride.date ? ride.date.split('-').reverse().join('/') : ''}</span>
+                <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>💺 {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</span>
+                <button onClick={() => toggleFavorite(ride.id)}
+                  style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, border: '1.5px solid ' + (isFav ? '#F5A623' : '#EDE0CC'), background: isFav ? '#FFF8EE' : '#F5EDD9', color: isFav ? '#F5A623' : '#7B5C42', cursor: 'pointer' }}>
+                  {isFav ? '⭐ Favori' : '☆ Save'}
+                </button>
+              </div>
 
               {ride.note && (
                 <div style={{ background: '#FFF8EE', borderRadius: 12, padding: '8px 12px', border: '2px dashed #F5A623', marginBottom: 12 }}>
