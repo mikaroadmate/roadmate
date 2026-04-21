@@ -119,7 +119,7 @@ const isVerified = !!(profile?.whatsapp || profile?.instagram)
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
 
-      <div style={{ background: isOwnProfile ? '#8B5CF6' : '#5BC8D4', padding: '48px 22px 24px' }}>
+      <div style={{ background: isOwnProfile ? '#8B5CF6' : '#5BC8D4', padding: 'env(safe-area-inset-top, 48px) 22px 24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
             {t('post_back')}
