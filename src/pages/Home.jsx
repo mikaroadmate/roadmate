@@ -334,9 +334,9 @@ export default function Home({ user, onSignOut, showCGU }) {
                     {ride.type === 'offer' ? t('filter_offer') : t('filter_seek')}
                   </span>
                   <button onClick={() => toggleFavorite(ride.id)}
-                    style={{ fontSize: 16, background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>
-                    {isFav ? '⭐' : '☆'}
-                  </button>
+  style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, border: '2px solid ' + (isFav ? '#F5A623' : '#EDE0CC'), background: isFav ? '#FFF8EE' : '#fff', color: isFav ? '#F5A623' : '#B5967A', cursor: 'pointer' }}>
+  {isFav ? '⭐ Favori' : '☆ Save'}
+</button>
                   <button onClick={() => handleShare(ride)}
                     style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '2px solid #EDE0CC', cursor: 'pointer' }}>
                     {lang === 'fr' ? '↗ Partager' : '↗ Share'}
