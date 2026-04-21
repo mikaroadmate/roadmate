@@ -23,7 +23,7 @@ function CGU({ onBack, lang }) {
       <div style={{ background: '#3D2B1F', padding: 'calc(env(safe-area-inset-top) + 16px) 22px 22px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-            ← {lang === 'fr' ? 'Retour' : 'Back'}
+            {lang === 'fr' ? '← Retour' : '← Back'}
           </button>
           <div style={{ fontSize: 22, fontFamily: "'Fredoka One'", color: '#fff' }}>
             {lang === 'fr' ? 'Conditions d\'utilisation 📋' : 'Terms of Service 📋'}
@@ -42,7 +42,7 @@ function CGU({ onBack, lang }) {
             <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
               <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 8 }}>2. Responsabilités</div>
               <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', lineHeight: 1.6 }}>
-                RoadMate agit uniquement comme intermédiaire. Nous ne sommes pas responsables des accidents, retards, annulations ou tout incident survenant lors d'un trajet organisé via l'application. Les utilisateurs sont seuls responsables de leurs actions.
+                RoadMate agit uniquement comme intermédiaire. Nous ne sommes pas responsables des accidents, retards, annulations ou tout incident survenant lors d'un trajet organisé via l'application. Les utilisateurs sont seuls responsables de leurs actions. RoadMate n'intervient pas dans les paiements — ceux-ci sont des arrangements directs entre conducteur et passager. Nous recommandons fortement le paiement en mains propres lors de la rencontre plutôt qu'un transfert d'argent afin d'éviter toute escroquerie.
               </div>
             </div>
             <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
@@ -60,7 +60,7 @@ function CGU({ onBack, lang }) {
             <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
               <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 8 }}>5. Contact</div>
               <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', lineHeight: 1.6 }}>
-                Pour toute question : roadmateoz@gmail.com
+                Pour toute question : beaudeau_mickael@live.fr — Instagram : @all_in_mika
               </div>
             </div>
             <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A', textAlign: 'center', marginTop: 8 }}>
@@ -78,7 +78,7 @@ function CGU({ onBack, lang }) {
             <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
               <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 8 }}>2. Liability</div>
               <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', lineHeight: 1.6 }}>
-                RoadMate acts only as an intermediary. We are not responsible for accidents, delays, cancellations or any incident occurring during a trip organised via the app. Users are solely responsible for their actions.
+                RoadMate acts only as an intermediary. We are not responsible for accidents, delays, cancellations or any incident occurring during a trip organised via the app. Users are solely responsible for their actions. RoadMate is not involved in any payments — these are direct arrangements between driver and passenger. We strongly recommend paying in cash upon meeting rather than transferring money in advance to avoid any scams.
               </div>
             </div>
             <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
@@ -96,7 +96,7 @@ function CGU({ onBack, lang }) {
             <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
               <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 8 }}>5. Contact</div>
               <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', lineHeight: 1.6 }}>
-                For any questions: roadmateoz@gmail.com
+                For any questions: beaudeau_mickael@live.fr — Instagram: @all_in_mika
               </div>
             </div>
             <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A', textAlign: 'center', marginTop: 8 }}>
