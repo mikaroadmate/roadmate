@@ -5,7 +5,7 @@ import { useLanguage } from '../LanguageContext'
 const VISAS = ['WHV', 'Student', 'Tourist', 'Work', 'Resident', 'Other']
 const FLAGS = { 'French': '🇫🇷', 'Australian': '🇦🇺', 'British': '🇬🇧', 'German': '🇩🇪', 'Spanish': '🇪🇸', 'Italian': '🇮🇹', 'American': '🇺🇸', 'Canadian': '🇨🇦', 'Brazilian': '🇧🇷', 'Japanese': '🇯🇵', 'Other': '🌍' }
 
-export default function Profile({ user, viewedUserId, onBack }) {
+export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
   const { t, lang } = useLanguage()
   const isOwnProfile = !viewedUserId || viewedUserId === user.id
   const targetId = isOwnProfile ? user.id : viewedUserId
@@ -366,13 +366,17 @@ const isVerified = !!(profile?.whatsapp || profile?.instagram)
           </div>
         )}
       {isOwnProfile && (
-          <div style={{ marginTop: 16, marginBottom: 16 }}>
-            <button onClick={() => supabase.auth.signOut()}
-              style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#fff', color: '#E8572A', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
-              {lang === 'fr' ? 'Se déconnecter 👋' : 'Sign out 👋'}
-            </button>
-          </div>
-        )}
+  <div style={{ marginTop: 16, marginBottom: 16 }}>
+    <button onClick={() => onShowCGU && onShowCGU()}
+      style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #EDE0CC', cursor: 'pointer', background: '#fff', color: '#7B5C42', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #EDE0CC', marginBottom: 10 }}>
+      {lang === 'fr' ? 'Conditions d\'utilisation 📋' : 'Terms of Service 📋'}
+    </button>
+    <button onClick={() => supabase.auth.signOut()}
+      style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#fff', color: '#E8572A', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
+      {lang === 'fr' ? 'Se déconnecter 👋' : 'Sign out 👋'}
+    </button>
+  </div>
+)}
       </div>
     </div>
   )

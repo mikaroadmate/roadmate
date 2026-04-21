@@ -16,6 +16,99 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray
 }
 
+function CGU({ onBack, lang }) {
+  return (
+    <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%' }}>
+      <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
+      <div style={{ background: '#3D2B1F', padding: 'calc(env(safe-area-inset-top) + 16px) 22px 22px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+            ← {lang === 'fr' ? 'Retour' : 'Back'}
+          </button>
+          <div style={{ fontSize: 22, fontFamily: "'Fredoka One'", color: '#fff' }}>
+            {lang === 'fr' ? 'Conditions d\'utilisation 📋' : 'Terms of Service 📋'}
+          </div>
+        </div>
+      </div>
+      <div style={{ padding: '20px 22px 60px' }}>
+        {lang === 'fr' ? (
+          <>
+            <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
+              <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 8 }}>1. Objet</div>
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', lineHeight: 1.6 }}>
+                RoadMate est une plateforme de mise en relation entre conducteurs et passagers pour des trajets en Australie. L'application est fournie à titre gratuit et sans garantie de disponibilité continue.
+              </div>
+            </div>
+            <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
+              <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 8 }}>2. Responsabilités</div>
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', lineHeight: 1.6 }}>
+                RoadMate agit uniquement comme intermédiaire. Nous ne sommes pas responsables des accidents, retards, annulations ou tout incident survenant lors d'un trajet organisé via l'application. Les utilisateurs sont seuls responsables de leurs actions.
+              </div>
+            </div>
+            <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
+              <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 8 }}>3. Données personnelles (RGPD)</div>
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', lineHeight: 1.6 }}>
+                Nous collectons uniquement les données nécessaires au fonctionnement de l'app : email, prénom, nationalité, photo de profil et messages. Ces données sont stockées de manière sécurisée via Supabase. Vous pouvez demander la suppression de votre compte à tout moment en nous contactant.
+              </div>
+            </div>
+            <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
+              <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 8 }}>4. Comportement</div>
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', lineHeight: 1.6 }}>
+                Les utilisateurs s'engagent à adopter un comportement respectueux. Tout contenu inapproprié, harcèlement ou escroquerie entraînera la suppression immédiate du compte.
+              </div>
+            </div>
+            <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
+              <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 8 }}>5. Contact</div>
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', lineHeight: 1.6 }}>
+                Pour toute question : roadmateoz@gmail.com
+              </div>
+            </div>
+            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A', textAlign: 'center', marginTop: 8 }}>
+              Dernière mise à jour : Avril 2026
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
+              <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 8 }}>1. Purpose</div>
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', lineHeight: 1.6 }}>
+                RoadMate is a platform connecting drivers and passengers for rides across Australia. The app is provided free of charge and without guarantee of continuous availability.
+              </div>
+            </div>
+            <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
+              <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 8 }}>2. Liability</div>
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', lineHeight: 1.6 }}>
+                RoadMate acts only as an intermediary. We are not responsible for accidents, delays, cancellations or any incident occurring during a trip organised via the app. Users are solely responsible for their actions.
+              </div>
+            </div>
+            <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
+              <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 8 }}>3. Personal Data</div>
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', lineHeight: 1.6 }}>
+                We only collect data necessary for the app to function: email, first name, nationality, profile photo and messages. This data is stored securely via Supabase. You can request account deletion at any time by contacting us.
+              </div>
+            </div>
+            <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
+              <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 8 }}>4. Behaviour</div>
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', lineHeight: 1.6 }}>
+                Users agree to behave respectfully. Any inappropriate content, harassment or fraud will result in immediate account deletion.
+              </div>
+            </div>
+            <div style={{ background: '#fff', borderRadius: 20, padding: 18, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
+              <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 8 }}>5. Contact</div>
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', lineHeight: 1.6 }}>
+                For any questions: roadmateoz@gmail.com
+              </div>
+            </div>
+            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A', textAlign: 'center', marginTop: 8 }}>
+              Last updated: April 2026
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function ResetPassword() {
   const [newPassword, setNewPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -33,9 +126,7 @@ function ResetPassword() {
     if (!error) {
       setDone(true)
       setMessage('Mot de passe mis à jour ! ✅')
-      setTimeout(() => {
-        window.location.href = '/'
-      }, 2000)
+      setTimeout(() => { window.location.href = '/' }, 2000)
     } else {
       setMessage(error.message)
     }
@@ -90,6 +181,7 @@ function Onboarding({ user, onDone }) {
   const [name, setName] = useState('')
   const [nationality, setNationality] = useState('French')
   const [saving, setSaving] = useState(false)
+  const [showCGU, setShowCGU] = useState(false)
 
   const FLAGS = { 'French': '🇫🇷', 'Australian': '🇦🇺', 'British': '🇬🇧', 'German': '🇩🇪', 'Spanish': '🇪🇸', 'Italian': '🇮🇹', 'American': '🇺🇸', 'Canadian': '🇨🇦', 'Brazilian': '🇧🇷', 'Japanese': '🇯🇵', 'Other': '🌍' }
 
@@ -100,6 +192,8 @@ function Onboarding({ user, onDone }) {
     setSaving(false)
     onDone()
   }
+
+  if (showCGU) return <CGU onBack={() => setShowCGU(false)} lang={lang} />
 
   return (
     <div style={{ fontFamily: "'Fredoka One', cursive", background: 'linear-gradient(170deg, #E8572A 0%, #C4622D 50%, #8B3A0F 100%)', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
@@ -122,7 +216,7 @@ function Onboarding({ user, onDone }) {
             placeholder={lang === 'fr' ? 'Ton prénom' : 'Your name'}
             style={{ width: '100%', padding: '13px 16px', borderRadius: 14, border: '3px solid #EDE0CC', background: '#fff', fontSize: 15, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', boxSizing: 'border-box' }} />
         </div>
-        <div style={{ marginBottom: 24 }}>
+        <div style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>
             🌍 {lang === 'fr' ? 'Nationalité' : 'Nationality'}
           </div>
@@ -130,6 +224,12 @@ function Onboarding({ user, onDone }) {
             style={{ width: '100%', padding: '13px 16px', borderRadius: 14, border: '3px solid #EDE0CC', background: '#fff', fontSize: 15, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', boxSizing: 'border-box' }}>
             {Object.keys(FLAGS).map(f => <option key={f} value={f}>{FLAGS[f]} {f}</option>)}
           </select>
+        </div>
+        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+          <button onClick={() => setShowCGU(true)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#E8572A', textDecoration: 'underline' }}>
+            {lang === 'fr' ? 'Lire les conditions d\'utilisation' : 'Read terms of service'}
+          </button>
         </div>
         <button onClick={handleSave} disabled={saving || !name.trim()}
           style={{ width: '100%', padding: '16px', borderRadius: 16, border: '3px solid #3D2B1F', cursor: name.trim() ? 'pointer' : 'not-allowed', background: name.trim() ? '#E8572A' : '#EDE0CC', color: '#fff', fontSize: 18, fontFamily: "'Fredoka One'", boxShadow: name.trim() ? '5px 5px 0 #3D2B1F' : 'none' }}>
@@ -145,6 +245,9 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [hasProfile, setHasProfile] = useState(true)
   const [isRecovery, setIsRecovery] = useState(false)
+  const [showCGU, setShowCGU] = useState(false)
+
+  const lang = navigator.language?.startsWith('fr') ? 'fr' : 'en'
 
   useEffect(() => {
     const hash = window.location.hash
@@ -212,8 +315,9 @@ export default function App() {
     </div>
   )
 
+  if (showCGU) return <CGU onBack={() => setShowCGU(false)} lang={lang} />
   if (isRecovery) return <ResetPassword />
   if (!user) return <Auth />
   if (!hasProfile) return <Onboarding user={user} onDone={() => setHasProfile(true)} />
-  return <Home user={user} onSignOut={handleSignOut} />
+  return <Home user={user} onSignOut={handleSignOut} showCGU={() => setShowCGU(true)} />
 }
