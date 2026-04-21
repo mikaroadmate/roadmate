@@ -200,7 +200,7 @@ export default function Home({ user, onSignOut }) {
         </div>
       )}
 
-      <div style={{ background: '#E8572A', padding: 'env(safe-area-inset-top, 48px) 22px 22px' }}>
+      <div style={{ background: '#E8572A', padding: 'calc(env(safe-area-inset-top) + 16px) 22px 22px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div>
             <div style={{ fontSize: 28, fontFamily: "'Fredoka One'", color: '#fff' }}>Road<span style={{ color: '#F5A623' }}>Mate</span></div>

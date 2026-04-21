@@ -79,7 +79,7 @@ export default function PostRide({ user, onBack, onSuccess }) {
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%', display: 'flex', flexDirection: 'column' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
 
-      <div style={{ background: headerColors[step], padding: 'env(safe-area-inset-top, 48px) 22px 24px', flexShrink: 0 }}>
+      <div style={{ background: headerColors[step], padding: 'calc(env(safe-area-inset-top) + 16px) 22px 24px', flexShrink: 0 }}>
         <button onClick={() => step > 1 ? setStep(s => s - 1) : onBack()}
           style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer', marginBottom: 16 }}>
           {t('post_back')}
