@@ -16,9 +16,66 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray
 }
 
+function Onboarding({ user, onDone }) {
+  const [name, setName] = useState('')
+  const [nationality, setNationality] = useState('French')
+  const [saving, setSaving] = useState(false)
+
+  const FLAGS = { 'French': '🇫🇷', 'Australian': '🇦🇺', 'British': '🇬🇧', 'German': '🇩🇪', 'Spanish': '🇪🇸', 'Italian': '🇮🇹', 'American': '🇺🇸', 'Canadian': '🇨🇦', 'Brazilian': '🇧🇷', 'Japanese': '🇯🇵', 'Other': '🌍' }
+
+  const handleSave = async () => {
+    if (!name.trim()) return
+    setSaving(true)
+    await supabase.from('profiles').upsert({ id: user.id, name: name.trim(), nationality })
+    setSaving(false)
+    onDone()
+  }
+
+  return (
+    <div style={{ fontFamily: "'Fredoka One', cursive", background: 'linear-gradient(170deg, #E8572A 0%, #C4622D 50%, #8B3A0F 100%)', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
+      <div style={{ fontSize: 48, fontFamily: "'Fredoka One'", color: '#fff', marginBottom: 8 }}>
+        Road<span style={{ color: '#F5A623' }}>Mate</span>
+      </div>
+      <div style={{ fontSize: 16, fontFamily: "'Kalam', cursive", color: 'rgba(255,255,255,0.85)', marginBottom: 40 }}>
+        Avant de commencer... 🤙
+      </div>
+      <div style={{ background: '#F5EDD9', borderRadius: 24, padding: 28, width: '100%', maxWidth: 400, border: '3px solid #3D2B1F', boxShadow: '6px 6px 0 #3D2B1F' }}>
+        <div style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F', marginBottom: 20, textAlign: 'center' }}>
+          Comment tu t'appelles ? 👋
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>📝 Prénom</div>
+          <input
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder="Ton prénom"
+            style={{ width: '100%', padding: '13px 16px', borderRadius: 14, border: '3px solid #EDE0CC', background: '#fff', fontSize: 15, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 }}>🌍 Nationalité</div>
+          <select value={nationality} onChange={e => setNationality(e.target.value)}
+            style={{ width: '100%', padding: '13px 16px', borderRadius: 14, border: '3px solid #EDE0CC', background: '#fff', fontSize: 15, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', boxSizing: 'border-box' }}>
+            {Object.keys(FLAGS).map(f => <option key={f} value={f}>{FLAGS[f]} {f}</option>)}
+          </select>
+        </div>
+
+        <button onClick={handleSave} disabled={saving || !name.trim()}
+          style={{ width: '100%', padding: '16px', borderRadius: 16, border: '3px solid #3D2B1F', cursor: name.trim() ? 'pointer' : 'not-allowed', background: name.trim() ? '#E8572A' : '#EDE0CC', color: '#fff', fontSize: 18, fontFamily: "'Fredoka One'", boxShadow: name.trim() ? '5px 5px 0 #3D2B1F' : 'none' }}>
+          {saving ? 'Sauvegarde...' : "C'est parti 🦘"}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [hasProfile, setHasProfile] = useState(true)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -39,32 +96,32 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (user) registerPush(user.id)
+    if (user) {
+      registerPush(user.id)
+      checkProfile(user.id)
+    }
   }, [user?.id])
 
+  const checkProfile = async (userId) => {
+    const { data } = await supabase.from('profiles').select('name').eq('id', userId).single()
+    setHasProfile(!!(data?.name))
+  }
+
   const registerPush = async (userId) => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.log('Push non supporté')
-      return
-    }
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
     try {
-      console.log('Enregistrement SW...')
       const reg = await navigator.serviceWorker.register('/sw.js')
       await navigator.serviceWorker.ready
-      console.log('SW prêt:', reg)
       const permission = await Notification.requestPermission()
-      console.log('Permission:', permission)
       if (permission !== 'granted') return
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
       })
-      console.log('Subscription:', sub)
-      const { error } = await supabase.from('push_subscriptions').upsert({
+      await supabase.from('push_subscriptions').upsert({
         user_id: userId,
         subscription: JSON.stringify(sub)
       }, { onConflict: 'user_id' })
-      console.log('Supabase error:', error)
     } catch (e) {
       console.log('Erreur push:', e)
     }
@@ -80,5 +137,7 @@ export default function App() {
     </div>
   )
 
-  return user ? <Home user={user} onSignOut={handleSignOut} /> : <Auth />
+  if (!user) return <Auth />
+  if (!hasProfile) return <Onboarding user={user} onDone={() => setHasProfile(true)} />
+  return <Home user={user} onSignOut={handleSignOut} />
 }
