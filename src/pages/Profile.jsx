@@ -367,8 +367,8 @@ const isVerified = !!(profile?.whatsapp || profile?.instagram)
   <div key={ride.id} style={{ padding: '10px 0', borderBottom: '1.5px solid #EDE0CC' }}>
     {editingRide?.id === ride.id ? (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input value={editingRide.from_city} onChange={e => setEditingRide(r => ({ ...r, from_city: e.target.value }))}
+       <div style={{ display: 'flex', gap: 8, overflow: 'hidden' }}>
+  <input value={editingRide.from_city}
             placeholder={lang === 'fr' ? 'De' : 'From'}
             style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
           <input value={editingRide.to_city} onChange={e => setEditingRide(r => ({ ...r, to_city: e.target.value }))}
