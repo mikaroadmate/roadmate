@@ -23,6 +23,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
+  const [editingRide, setEditingRide] = useState(null)
   const fileInputRef = useRef(null)
 
   useEffect(() => { fetchProfile() }, [targetId])
@@ -87,7 +88,18 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
     await supabase.from('rides').delete().eq('id', rideId)
     fetchProfile()
   }
-
+const saveRide = async (ride) => {
+  await supabase.from('rides').update({
+    from_city: ride.from_city,
+    to_city: ride.to_city,
+    date: ride.date,
+    seats: parseInt(ride.seats),
+    price: ride.price || null,
+    note: ride.note || null
+  }).eq('id', ride.id)
+  setEditingRide(null)
+  fetchProfile()
+}
   const submitReview = async () => {
     setSubmittingReview(true)
     const { error } = await supabase.from('reviews').insert({
@@ -349,20 +361,64 @@ const isVerified = !!(profile?.whatsapp || profile?.instagram)
         {isOwnProfile && (
           <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
             <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>{lang === 'fr' ? 'Mes trajets 🚐' : 'My rides 🚐'}</div>
-            {rides.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '20px 0', fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>{lang === 'fr' ? 'Aucun trajet poste 🌊' : 'No rides posted 🌊'}</div>
-            ) : rides.map(ride => (
-              <div key={ride.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1.5px solid #EDE0CC' }}>
-                <div>
-                  <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.from_city} → {ride.to_city}</div>
-                  <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.date} · {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</div>
-                </div>
-                <button onClick={() => deleteRide(ride.id)}
-                  style={{ background: '#FFF0EE', border: '2px solid #E8572A', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>
-                  🗑️
-                </button>
-              </div>
-            ))}
+           {rides.length === 0 ? (
+  <div style={{ textAlign: 'center', padding: '20px 0', fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>{lang === 'fr' ? 'Aucun trajet poste 🌊' : 'No rides posted 🌊'}</div>
+) : rides.map(ride => (
+  <div key={ride.id} style={{ padding: '10px 0', borderBottom: '1.5px solid #EDE0CC' }}>
+    {editingRide?.id === ride.id ? (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input value={editingRide.from_city} onChange={e => setEditingRide(r => ({ ...r, from_city: e.target.value }))}
+            placeholder={lang === 'fr' ? 'De' : 'From'}
+            style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }} />
+          <input value={editingRide.to_city} onChange={e => setEditingRide(r => ({ ...r, to_city: e.target.value }))}
+            placeholder={lang === 'fr' ? 'A' : 'To'}
+            style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }} />
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input type="date" value={editingRide.date} onChange={e => setEditingRide(r => ({ ...r, date: e.target.value }))}
+            style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }} />
+          <input type="number" value={editingRide.seats} onChange={e => setEditingRide(r => ({ ...r, seats: e.target.value }))}
+            placeholder={lang === 'fr' ? 'Places' : 'Seats'}
+            style={{ width: 70, padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }} />
+        </div>
+        <input value={editingRide.price || ''} onChange={e => setEditingRide(r => ({ ...r, price: e.target.value }))}
+          placeholder={lang === 'fr' ? 'Prix ($) optionnel' : 'Price ($) optional'}
+          style={{ padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }} />
+        <textarea value={editingRide.note || ''} onChange={e => setEditingRide(r => ({ ...r, note: e.target.value }))}
+          placeholder={lang === 'fr' ? 'Note (optionnel)' : 'Note (optional)'}
+          rows={2} style={{ padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none' }} />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => setEditingRide(null)}
+            style={{ flex: 1, padding: '8px', borderRadius: 10, border: '2px solid #EDE0CC', background: '#fff', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', cursor: 'pointer' }}>
+            {lang === 'fr' ? 'Annuler' : 'Cancel'}
+          </button>
+          <button onClick={() => saveRide(editingRide)}
+            style={{ flex: 2, padding: '8px', borderRadius: 10, border: '2.5px solid #3D2B1F', background: '#4CAF7D', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff', cursor: 'pointer', boxShadow: '2px 2px 0 #3D2B1F' }}>
+            {lang === 'fr' ? 'Sauvegarder ✓' : 'Save ✓'}
+          </button>
+        </div>
+      </div>
+    ) : (
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.from_city} → {ride.to_city}</div>
+          <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.date ? ride.date.split('-').reverse().join('/') : ''} · {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</div>
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => setEditingRide({ ...ride })}
+            style={{ background: '#EFF6FF', border: '2px solid #3B82F6', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>
+            ✏️
+          </button>
+          <button onClick={() => deleteRide(ride.id)}
+            style={{ background: '#FFF0EE', border: '2px solid #E8572A', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>
+            🗑️
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+))}
           </div>
         )}
       {isOwnProfile && (
