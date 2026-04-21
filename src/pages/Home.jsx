@@ -213,9 +213,7 @@ export default function Home({ user, onSignOut }) {
             <button onClick={() => registerPush(user.id)} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
               🔔
             </button>
-            <button onClick={onSignOut} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-              {t('logout')}
-            </button>
+            
           </div>
         </div>
         <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>

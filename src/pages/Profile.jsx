@@ -365,6 +365,14 @@ const isVerified = !!(profile?.whatsapp || profile?.instagram)
             ))}
           </div>
         )}
+      {isOwnProfile && (
+          <div style={{ marginTop: 16, marginBottom: 16 }}>
+            <button onClick={() => supabase.auth.signOut()}
+              style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#fff', color: '#E8572A', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
+              {lang === 'fr' ? 'Se déconnecter 👋' : 'Sign out 👋'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
