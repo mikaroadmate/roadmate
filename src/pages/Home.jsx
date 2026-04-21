@@ -85,6 +85,8 @@ export default function Home({ user, onSignOut, showCGU }) {
   const [filterType, setFilterType] = useState('all')
   const [filterWomen, setFilterWomen] = useState(false)
   const [filterDate, setFilterDate] = useState('')
+  const [filterFavorites, setFilterFavorites] = useState(false)
+  const [favorites, setFavorites] = useState([])
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [showPost, setShowPost] = useState(false)
@@ -99,6 +101,7 @@ export default function Home({ user, onSignOut, showCGU }) {
 
   useEffect(() => { fetchRides() }, [filterCat, filterType, filterWomen, filterDate])
   useEffect(() => { fetchUnread() }, [])
+  useEffect(() => { fetchFavorites() }, [])
   useEffect(() => { if (!showMessages) fetchUnread() }, [showMessages])
   useEffect(() => {
     cleanPastRides()
@@ -119,6 +122,25 @@ export default function Home({ user, onSignOut, showCGU }) {
     setUnreadCount(count || 0)
   }
 
+  const fetchFavorites = async () => {
+    const { data } = await supabase
+      .from('favorites')
+      .select('ride_id')
+      .eq('user_id', user.id)
+    setFavorites(data?.map(f => f.ride_id) || [])
+  }
+
+  const toggleFavorite = async (rideId) => {
+    const isFav = favorites.includes(rideId)
+    if (isFav) {
+      await supabase.from('favorites').delete().eq('user_id', user.id).eq('ride_id', rideId)
+      setFavorites(prev => prev.filter(id => id !== rideId))
+    } else {
+      await supabase.from('favorites').insert({ user_id: user.id, ride_id: rideId })
+      setFavorites(prev => [...prev, rideId])
+    }
+  }
+
   const fetchRides = async () => {
     setLoading(true)
     let query = supabase.from('rides').select('*, profiles(name, nationality, verified, avatar_url, whatsapp, instagram)').order('created_at', { ascending: false })
@@ -132,9 +154,11 @@ export default function Home({ user, onSignOut, showCGU }) {
   }
 
   const filteredRides = rides.filter(ride => {
-    return !search.trim() ||
+    const matchSearch = !search.trim() ||
       ride.from_city?.toLowerCase().includes(search.toLowerCase()) ||
       ride.to_city?.toLowerCase().includes(search.toLowerCase())
+    const matchFav = !filterFavorites || favorites.includes(ride.id)
+    return matchSearch && matchFav
   })
 
   const handleShare = async (ride) => {
@@ -170,7 +194,7 @@ export default function Home({ user, onSignOut, showCGU }) {
 
   if (showPost) return <PostRide user={user} onBack={() => setShowPost(false)} onSuccess={() => { setShowPost(false); fetchRides() }} />
   if (showMessages) return <Messages user={user} contactId={contactId} onBack={() => { setShowMessages(false); setContactId(null) }} onViewProfile={(id) => { setShowMessages(false); setOtherUserId(id); setShowOtherProfile(true) }} />
- if (showProfile) return <Profile user={user} onBack={() => setShowProfile(false)} onShowCGU={showCGU} />
+  if (showProfile) return <Profile user={user} onBack={() => setShowProfile(false)} onShowCGU={showCGU} />
   if (showOtherProfile) return <Profile user={user} viewedUserId={otherUserId} onBack={() => { setShowOtherProfile(false); setOtherUserId(null) }} onShowCGU={showCGU} />
   if (showMap) return <Map user={user} onBack={() => setShowMap(false)} onContact={(userId) => { setShowMap(false); setContactId(userId); setShowMessages(true) }} />
 
@@ -213,7 +237,6 @@ export default function Home({ user, onSignOut, showCGU }) {
             <button onClick={() => registerPush(user.id)} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
               🔔
             </button>
-            
           </div>
         </div>
         <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -250,6 +273,10 @@ export default function Home({ user, onSignOut, showCGU }) {
             style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterWomen ? '#E8572A' : '#EDE0CC'), background: filterWomen ? '#FFF0EE' : '#fff', color: filterWomen ? '#E8572A' : '#B5967A', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
             {t('women_only_filter')}
           </button>
+          <button onClick={() => setFilterFavorites(!filterFavorites)}
+            style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterFavorites ? '#F5A623' : '#EDE0CC'), background: filterFavorites ? '#FFF8EE' : '#fff', color: filterFavorites ? '#F5A623' : '#B5967A', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
+            {filterFavorites ? '⭐' : '☆'} {lang === 'fr' ? 'Favoris' : 'Favorites'}
+          </button>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <input
               type="date"
@@ -271,26 +298,30 @@ export default function Home({ user, onSignOut, showCGU }) {
       </div>
 
       <div style={{ padding: '12px 22px 100px' }}>
-        {(search.trim() || filterDate) && (
+        {(search.trim() || filterDate || filterFavorites) && (
           <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: '#B5967A', marginBottom: 10 }}>
             {filteredRides.length} {lang === 'fr' ? 'trajet(s) trouvé(s)' : 'ride(s) found'}
             {search ? ' — "' + search + '"' : ''}
             {filterDate ? ' — 📅 ' + filterDate.split('-').reverse().join('/') : ''}
+            {filterFavorites ? ' — ⭐ ' + (lang === 'fr' ? 'Favoris' : 'Favorites') : ''}
           </div>
         )}
         {loading ? (
           <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 18 }}>{t('loading')}</div>
         ) : filteredRides.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🚐</div>
-            <div style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#3D2B1F', marginBottom: 6 }}>{t('no_rides')}</div>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>{filterFavorites ? '⭐' : '🚐'}</div>
+            <div style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#3D2B1F', marginBottom: 6 }}>
+              {filterFavorites ? (lang === 'fr' ? 'Aucun favori' : 'No favorites yet') : t('no_rides')}
+            </div>
             <div style={{ fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>
-              {search || filterDate ? t('no_rides_search') : t('no_rides_sub')}
+              {filterFavorites ? (lang === 'fr' ? 'Appuie sur ⭐ pour sauvegarder un trajet' : 'Tap ⭐ to save a ride') : search || filterDate ? t('no_rides_search') : t('no_rides_sub')}
             </div>
           </div>
         ) : filteredRides.map(ride => {
           const cat = CATEGORIES.find(c => c.id === ride.category)
           const colors = CAT_COLORS[ride.category] || { bg: '#F5EDD9', color: '#EDE0CC' }
+          const isFav = favorites.includes(ride.id)
           return (
             <div key={ride.id} style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 12 }}>
 
@@ -302,6 +333,10 @@ export default function Home({ user, onSignOut, showCGU }) {
                   <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: ride.type === 'offer' ? '#E8F8EF' : '#EFF6FF', color: ride.type === 'offer' ? '#4CAF7D' : '#3B82F6', border: '2px solid ' + (ride.type === 'offer' ? '#4CAF7D' : '#3B82F6') }}>
                     {ride.type === 'offer' ? t('filter_offer') : t('filter_seek')}
                   </span>
+                  <button onClick={() => toggleFavorite(ride.id)}
+                    style={{ fontSize: 16, background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>
+                    {isFav ? '⭐' : '☆'}
+                  </button>
                   <button onClick={() => handleShare(ride)}
                     style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '2px solid #EDE0CC', cursor: 'pointer' }}>
                     {lang === 'fr' ? '↗ Partager' : '↗ Share'}
