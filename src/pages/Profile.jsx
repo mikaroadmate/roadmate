@@ -370,21 +370,21 @@ const isVerified = !!(profile?.whatsapp || profile?.instagram)
         <div style={{ display: 'flex', gap: 8 }}>
           <input value={editingRide.from_city} onChange={e => setEditingRide(r => ({ ...r, from_city: e.target.value }))}
             placeholder={lang === 'fr' ? 'De' : 'From'}
-            style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }} />
+            style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
           <input value={editingRide.to_city} onChange={e => setEditingRide(r => ({ ...r, to_city: e.target.value }))}
             placeholder={lang === 'fr' ? 'A' : 'To'}
-            style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }} />
+            style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <input type="date" value={editingRide.date} onChange={e => setEditingRide(r => ({ ...r, date: e.target.value }))}
-            style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }} />
+            style={{ flex: 1, padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
           <input type="number" value={editingRide.seats} onChange={e => setEditingRide(r => ({ ...r, seats: e.target.value }))}
             placeholder={lang === 'fr' ? 'Places' : 'Seats'}
-            style={{ width: 70, padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }} />
+            style={{ width: 70, padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
         </div>
         <input value={editingRide.price || ''} onChange={e => setEditingRide(r => ({ ...r, price: e.target.value }))}
           placeholder={lang === 'fr' ? 'Prix ($) optionnel' : 'Price ($) optional'}
-          style={{ padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }} />
+          style={{ padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
         <textarea value={editingRide.note || ''} onChange={e => setEditingRide(r => ({ ...r, note: e.target.value }))}
           placeholder={lang === 'fr' ? 'Note (optionnel)' : 'Note (optional)'}
           rows={2} style={{ padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none' }} />
