@@ -224,36 +224,34 @@ export default function Home({ user, onSignOut, showCGU }) {
         </div>
       )}
 
-      <div style={{ background: '#E8572A', padding: 'calc(env(safe-area-inset-top) + 24px) 22px 22px' }}>
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-    <div>
-      <div style={{ fontSize: 36, fontFamily: "'Fredoka One'", color: '#fff' }}>Road<span style={{ color: '#F5A623' }}>Mate</span></div>
-      <div style={{ fontSize: 15, fontFamily: "'Kalam', cursive", color: '#fff', marginTop: 4 }}>{t('tagline')}</div>
-    </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={toggleLanguage} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-              {lang === 'fr' ? '🇬🇧' : '🇫🇷'}
-            </button>
-            <button onClick={() => registerPush(user.id)} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-              🔔
-            </button>
-          </div>
-        </div>
-        <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 18 }}>📍</span>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder={t('search_placeholder')}
-            type="search"
-            autoComplete="off"
-            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
-          />
-          {search && (
-            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
-          )}
-        </div>
-      </div>
+      <div style={{ background: '#E8572A', padding: 'calc(env(safe-area-inset-top) + 30px) 22px 22px' }}>
+  <div style={{ textAlign: 'center', marginBottom: 6 }}>
+    <div style={{ fontSize: 38, fontFamily: "'Fredoka One'", color: '#fff' }}>Road<span style={{ color: '#F5A623' }}>Mate</span></div>
+    <div style={{ fontSize: 15, fontFamily: "'Kalam', cursive", color: '#fff', marginTop: 4 }}>{t('tagline')}</div>
+  </div>
+  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 12 }}>
+    <button onClick={toggleLanguage} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+      {lang === 'fr' ? '🇬🇧' : '🇫🇷'}
+    </button>
+    <button onClick={() => registerPush(user.id)} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+      🔔
+    </button>
+  </div>
+  <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>
+    <span style={{ fontSize: 18 }}>📍</span>
+    <input
+      value={search}
+      onChange={e => setSearch(e.target.value)}
+      placeholder={t('search_placeholder')}
+      type="search"
+      autoComplete="off"
+      style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
+    />
+    {search && (
+      <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
+    )}
+  </div>
+</div>
 
       <div style={{ padding: '14px 22px 0' }}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
