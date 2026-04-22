@@ -294,6 +294,18 @@ export default function Home({ user, onSignOut, showCGU }) {
                 ✕
               </button>
             )}
+            {filterDate && (
+  <button onClick={() => setFilterDate('')}
+    style={{ marginLeft: 4, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#E8572A', fontWeight: 900, zIndex: 3, position: 'relative' }}>
+    ✕
+  </button>
+)}
+{filterDate && (
+  <button onClick={() => setFilterDateMode(filterDateMode === 'exact' ? 'from' : 'exact')}
+    style={{ marginLeft: 4, background: filterDateMode === 'from' ? '#E8572A' : '#fff', border: '2px solid ' + (filterDateMode === 'from' ? '#E8572A' : '#EDE0CC'), borderRadius: 10, cursor: 'pointer', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: filterDateMode === 'from' ? '#fff' : '#B5967A', padding: '3px 8px', zIndex: 3, position: 'relative' }}>
+    {filterDateMode === 'exact' ? '= Exact' : '≥ À partir'}
+  </button>
+)}
           </div>
         </div>
       </div>
