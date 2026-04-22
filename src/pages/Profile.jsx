@@ -3,7 +3,7 @@ import { supabase } from '../supabase'
 import { useLanguage } from '../LanguageContext'
 
 const VISAS = ['WHV', 'Student', 'Tourist', 'Work', 'Resident', 'Other']
-const FLAGS = { 'French': '🇫🇷', 'Australian': '🇦🇺', 'British': '🇬🇧', 'German': '🇩🇪', 'Spanish': '🇪🇸', 'Italian': '🇮🇹', 'American': '🇺🇸', 'Canadian': '🇨🇦', 'Brazilian': '🇧🇷', 'Japanese': '🇯🇵', 'Other': '🌍' }
+
 
 export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
   const { t, lang } = useLanguage()
@@ -211,7 +211,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
   style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
 
             ) : (
-              <div style={{ fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{FLAGS[profile?.nationality] || '🌍'} {profile?.nationality || (lang === 'fr' ? 'Non renseigne' : 'Not specified')}</div>
+              <div style={{ fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.nationality || (lang === 'fr' ? 'Non renseigne' : 'Not specified')}</div>
             )}
           </div>
 
