@@ -373,19 +373,17 @@ export default function Home({ user, onSignOut, showCGU }) {
                 )}
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
-  <div style={{ flex: 1, background: '#F5EDD9', borderRadius: 12, padding: '8px 12px', border: '2px solid #EDE0CC', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-    <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>{lang === 'fr' ? 'De' : 'From'}</div>
-    <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.from_city}</div>
-  </div>
-  <div style={{ display: 'flex', alignItems: 'center' }}>
-    <span style={{ fontSize: 18 }}>→</span>
-  </div>
-  <div style={{ flex: 1, background: '#F5EDD9', borderRadius: 12, padding: '8px 12px', border: '2px solid #EDE0CC', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
-    <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>{lang === 'fr' ? 'À' : 'To'}</div>
-    <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.to_city}</div>
-  </div>
-</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <div style={{ flex: 1, background: '#F5EDD9', borderRadius: 12, padding: '8px 12px', border: '2px solid #EDE0CC' }}>
+                  <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>{lang === 'fr' ? 'De' : 'From'}</div>
+                  <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.from_city}</div>
+                </div>
+                <span style={{ fontSize: 18 }}>→</span>
+                <div style={{ flex: 1, background: '#F5EDD9', borderRadius: 12, padding: '8px 12px', border: '2px solid #EDE0CC' }}>
+                  <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>{lang === 'fr' ? 'À' : 'To'}</div>
+                  <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.to_city}</div>
+                </div>
+              </div>
 
               <div style={{ display: 'flex', gap: 6, marginBottom: ride.note ? 10 : 12, alignItems: 'center' }}>
                 <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>📅 {ride.date ? ride.date.split('-').reverse().join('/') : ''}</span>
