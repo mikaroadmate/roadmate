@@ -228,7 +228,7 @@ export default function Home({ user, onSignOut, showCGU }) {
   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
     <div>
       <div style={{ fontSize: 42, fontFamily: "'Fredoka One'", color: '#fff' }}>Road<span style={{ color: '#F5A623' }}>Mate</span></div>
-      <div style={{ fontSize: 15, fontFamily: "'Kalam', cursive", color: '#fff', marginTop: 2 }}>{t('tagline')}</div>
+      <div style={{ fontSize: 15, fontFamily: "'Kalam', cursive", color: '#fff', marginTop: 8 }}>{t('tagline')}</div>
     </div>
     <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
       <button onClick={toggleLanguage} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 12px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
