@@ -256,9 +256,9 @@ export default function App() {
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+  setUser(session?.user ?? null)
+  setTimeout(() => setLoading(false), 1500)
+})
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
