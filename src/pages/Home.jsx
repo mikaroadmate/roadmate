@@ -153,6 +153,7 @@ export default function Home({ user, onSignOut, showCGU }) {
       .order('date', { ascending: true })
       .order('time', { ascending: true })
       .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1)
+.eq('active', true)
     if (filterCat !== 'all') query = query.eq('category', filterCat)
     if (filterType !== 'all') query = query.eq('type', filterType)
     if (filterWomen) query = query.eq('women_only', true)

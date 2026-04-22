@@ -4,7 +4,6 @@ import { useLanguage } from '../LanguageContext'
 
 const VISAS = ['WHV', 'Student', 'Tourist', 'Work', 'Resident', 'Other']
 
-
 export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
   const { t, lang } = useLanguage()
   const isOwnProfile = !viewedUserId || viewedUserId === user.id
@@ -12,7 +11,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
 
   const [profile, setProfile] = useState(null)
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ name: '', nationality: 'French', visa: 'WHV', bio: '', whatsapp: '', instagram: '', vehicle_brand: '', vehicle_model: '', vehicle_color: '' })
+  const [form, setForm] = useState({ name: '', nationality: '', visa: 'WHV', bio: '', whatsapp: '', instagram: '', vehicle_brand: '', vehicle_model: '', vehicle_color: '' })
   const [rides, setRides] = useState([])
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
@@ -40,7 +39,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
       setProfile(profileData)
       setForm({
         name: profileData.name || '',
-        nationality: profileData.nationality || 'French',
+        nationality: profileData.nationality || '',
         visa: profileData.visa || 'WHV',
         bio: profileData.bio || '',
         whatsapp: profileData.whatsapp || '',
@@ -88,6 +87,11 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
 
   const deleteRide = async (rideId) => {
     await supabase.from('rides').delete().eq('id', rideId)
+    fetchProfile()
+  }
+
+  const toggleRideActive = async (ride) => {
+    await supabase.from('rides').update({ active: !ride.active }).eq('id', ride.id)
     fetchProfile()
   }
 
@@ -207,9 +211,8 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
             <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>🌍 {t('profile_nationality')}</div>
             {editing ? (
               <input value={form.nationality} onChange={e => setForm(p => ({ ...p, nationality: e.target.value }))}
-  placeholder={lang === 'fr' ? 'Ex: Française, Belge...' : 'Ex: Australian, British...'}
-  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
-
+                placeholder={lang === 'fr' ? 'Ex: Française, Belge...' : 'Ex: Australian, British...'}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
             ) : (
               <div style={{ fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.nationality || (lang === 'fr' ? 'Non renseigne' : 'Not specified')}</div>
             )}
@@ -442,21 +445,32 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.from_city} → {ride.to_city}</div>
-                      <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.date ? ride.date.split('-').reverse().join('/') : ''} · {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</div>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: ride.active ? '#3D2B1F' : '#B5967A' }}>{ride.from_city} → {ride.to_city}</div>
+                        <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.date ? ride.date.split('-').reverse().join('/') : ''} · {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                        <button onClick={() => toggleRideActive(ride)}
+                          style={{ background: ride.active ? '#E8F8EF' : '#FFF0EE', border: '2px solid ' + (ride.active ? '#4CAF7D' : '#E8572A'), borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: ride.active ? '#4CAF7D' : '#E8572A' }}>
+                          {ride.active ? (lang === 'fr' ? '✅ Actif' : '✅ Active') : (lang === 'fr' ? '🔴 Complet' : '🔴 Full')}
+                        </button>
+                        <button onClick={() => setEditingRide({ ...ride })}
+                          style={{ background: '#EFF6FF', border: '2px solid #3B82F6', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>
+                          ✏️
+                        </button>
+                        <button onClick={() => deleteRide(ride.id)}
+                          style={{ background: '#FFF0EE', border: '2px solid #E8572A', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>
+                          🗑️
+                        </button>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => setEditingRide({ ...ride })}
-                        style={{ background: '#EFF6FF', border: '2px solid #3B82F6', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>
-                        ✏️
-                      </button>
-                      <button onClick={() => deleteRide(ride.id)}
-                        style={{ background: '#FFF0EE', border: '2px solid #E8572A', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>
-                        🗑️
-                      </button>
-                    </div>
+                    {!ride.active && (
+                      <div style={{ marginTop: 4, fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#E8572A' }}>
+                        {lang === 'fr' ? '🔴 Masqué des résultats' : '🔴 Hidden from results'}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
