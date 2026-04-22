@@ -12,7 +12,7 @@ export const translations = {
     loading: "Chargement... 🚐",
     contact: "Contacter 🤙",
     logout: "Deco 👋",
-    women_only_filter: "👩 Femmes uniquement",
+    women_only_filter: "👩 Femmes only",
 
     // Categories
     cat_all: "Tous",
