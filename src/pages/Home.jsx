@@ -373,7 +373,7 @@ export default function Home({ user, onSignOut, showCGU }) {
                 )}
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'stretch', gap: 8, marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
   <div style={{ flex: 1, background: '#F5EDD9', borderRadius: 12, padding: '8px 12px', border: '2px solid #EDE0CC', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
     <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>{lang === 'fr' ? 'De' : 'From'}</div>
     <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.from_city}</div>
