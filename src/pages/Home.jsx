@@ -229,15 +229,8 @@ export default function Home({ user, onSignOut, showCGU }) {
     <div style={{ fontSize: 38, fontFamily: "'Fredoka One'", color: '#fff' }}>Road<span style={{ color: '#F5A623' }}>Mate</span></div>
     <div style={{ fontSize: 15, fontFamily: "'Kalam', cursive", color: '#fff', marginTop: 4 }}>{t('tagline')}</div>
   </div>
-  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 12 }}>
-    <button onClick={toggleLanguage} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-      {lang === 'fr' ? '🇬🇧' : '🇫🇷'}
-    </button>
-    <button onClick={() => registerPush(user.id)} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-      🔔
-    </button>
-  </div>
-  <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+  <div style={{ flex: 1, background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>
     <span style={{ fontSize: 18 }}>📍</span>
     <input
       value={search}
@@ -251,6 +244,13 @@ export default function Home({ user, onSignOut, showCGU }) {
       <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
     )}
   </div>
+  <button onClick={toggleLanguage} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+    {lang === 'fr' ? '🇬🇧' : '🇫🇷'}
+  </button>
+  <button onClick={() => registerPush(user.id)} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+    🔔
+  </button>
+</div>
 </div>
 
       <div style={{ padding: '14px 22px 0' }}>
