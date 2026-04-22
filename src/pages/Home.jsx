@@ -31,6 +31,8 @@ const CAT_COLORS = {
   roadtrip: { bg: '#F3EFFE', color: '#8B5CF6' },
 }
 
+const PAGE_SIZE = 15
+
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
@@ -90,6 +92,9 @@ export default function Home({ user, onSignOut, showCGU }) {
   const [favorites, setFavorites] = useState([])
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(0)
   const [showPost, setShowPost] = useState(false)
   const [showMessages, setShowMessages] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
@@ -100,7 +105,7 @@ export default function Home({ user, onSignOut, showCGU }) {
   const [unreadCount, setUnreadCount] = useState(0)
   const [shareToast, setShareToast] = useState(false)
 
-  useEffect(() => { fetchRides() }, [filterCat, filterType, filterWomen, filterDate, filterDateMode])
+  useEffect(() => { fetchRides(true) }, [filterCat, filterType, filterWomen, filterDate, filterDateMode])
   useEffect(() => { fetchUnread() }, [])
   useEffect(() => { fetchFavorites() }, [])
   useEffect(() => { if (!showMessages) fetchUnread() }, [showMessages])
@@ -142,16 +147,38 @@ export default function Home({ user, onSignOut, showCGU }) {
     }
   }
 
-  const fetchRides = async () => {
-    setLoading(true)
-    let query = supabase.from('rides').select('*, profiles(name, nationality, verified, avatar_url, whatsapp, instagram)').order('date', { ascending: true }).order('time', { ascending: true })
+  const buildQuery = (currentPage) => {
+    let query = supabase.from('rides')
+      .select('*, profiles(name, nationality, verified, avatar_url, whatsapp, instagram)')
+      .order('date', { ascending: true })
+      .order('time', { ascending: true })
+      .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1)
     if (filterCat !== 'all') query = query.eq('category', filterCat)
     if (filterType !== 'all') query = query.eq('type', filterType)
     if (filterWomen) query = query.eq('women_only', true)
     if (filterDate) query = filterDateMode === 'exact' ? query.eq('date', filterDate) : query.gte('date', filterDate)
-    const { data } = await query
+    return query
+  }
+
+  const fetchRides = async (reset = false) => {
+    setLoading(true)
+    setHasMore(true)
+    setPage(0)
+    const { data } = await buildQuery(0)
     setRides(data || [])
+    if (!data || data.length < PAGE_SIZE) setHasMore(false)
     setLoading(false)
+  }
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    const nextPage = page + 1
+    setPage(nextPage)
+    const { data } = await buildQuery(nextPage)
+    setRides(prev => [...prev, ...(data || [])])
+    if (!data || data.length < PAGE_SIZE) setHasMore(false)
+    setLoadingMore(false)
   }
 
   const filteredRides = rides.filter(ride => {
@@ -193,7 +220,7 @@ export default function Home({ user, onSignOut, showCGU }) {
     }
   }
 
-  if (showPost) return <PostRide user={user} onBack={() => setShowPost(false)} onSuccess={() => { setShowPost(false); fetchRides() }} />
+  if (showPost) return <PostRide user={user} onBack={() => setShowPost(false)} onSuccess={() => { setShowPost(false); fetchRides(true) }} />
   if (showMessages) return <Messages user={user} contactId={contactId} onBack={() => { setShowMessages(false); setContactId(null) }} onViewProfile={(id) => { setShowMessages(false); setOtherUserId(id); setShowOtherProfile(true) }} />
   if (showProfile) return <Profile user={user} onBack={() => setShowProfile(false)} onShowCGU={showCGU} />
   if (showOtherProfile) return <Profile user={user} viewedUserId={otherUserId} onBack={() => { setShowOtherProfile(false); setOtherUserId(null) }} onShowCGU={showCGU} />
@@ -226,35 +253,35 @@ export default function Home({ user, onSignOut, showCGU }) {
       )}
 
       <div style={{ background: '#E8572A', padding: 'calc(env(safe-area-inset-top) + 30px) 22px 22px' }}>
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-    <div>
-      <div style={{ fontSize: 42, fontFamily: "'Fredoka One'", color: '#fff' }}>Road<span style={{ color: '#F5A623' }}>Mate</span></div>
-      <div style={{ fontSize: 15, fontFamily: "'Kalam', cursive", color: '#fff', marginTop: 8 }}>{t('tagline')}</div>
-    </div>
-    <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-      <button onClick={toggleLanguage} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 12px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-        {lang === 'fr' ? '🇬🇧' : '🇫🇷'}
-      </button>
-      <button onClick={() => registerPush(user.id)} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 12px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-        🔔
-      </button>
-    </div>
-  </div>
-  <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10, marginTop: 14 }}>
-    <span style={{ fontSize: 18 }}>📍</span>
-    <input
-      value={search}
-      onChange={e => setSearch(e.target.value)}
-      placeholder={t('search_placeholder')}
-      type="search"
-      autoComplete="off"
-      style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
-    />
-    {search && (
-      <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
-    )}
-  </div>
-</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+          <div>
+            <div style={{ fontSize: 42, fontFamily: "'Fredoka One'", color: '#fff' }}>Road<span style={{ color: '#F5A623' }}>Mate</span></div>
+            <div style={{ fontSize: 15, fontFamily: "'Kalam', cursive", color: '#fff', marginTop: 8 }}>{t('tagline')}</div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+            <button onClick={toggleLanguage} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 12px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+              {lang === 'fr' ? '🇬🇧' : '🇫🇷'}
+            </button>
+            <button onClick={() => registerPush(user.id)} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 12px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+              🔔
+            </button>
+          </div>
+        </div>
+        <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10, marginTop: 14 }}>
+          <span style={{ fontSize: 18 }}>📍</span>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={t('search_placeholder')}
+            type="search"
+            autoComplete="off"
+            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
+          />
+          {search && (
+            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
+          )}
+        </div>
+      </div>
 
       <div style={{ padding: '14px 22px 0' }}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
@@ -295,17 +322,11 @@ export default function Home({ user, onSignOut, showCGU }) {
               </button>
             )}
             {filterDate && (
-  <button onClick={() => setFilterDate('')}
-    style={{ marginLeft: 4, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#E8572A', fontWeight: 900, zIndex: 3, position: 'relative' }}>
-    ✕
-  </button>
-)}
-{filterDate && (
-  <button onClick={() => setFilterDateMode(filterDateMode === 'exact' ? 'from' : 'exact')}
-    style={{ marginLeft: 4, background: filterDateMode === 'from' ? '#E8572A' : '#fff', border: '2px solid ' + (filterDateMode === 'from' ? '#E8572A' : '#EDE0CC'), borderRadius: 10, cursor: 'pointer', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: filterDateMode === 'from' ? '#fff' : '#B5967A', padding: '3px 8px', zIndex: 3, position: 'relative' }}>
-    {filterDateMode === 'exact' ? '= Exact' : (lang === 'fr' ? '≥ À partir' : '≥ From')}
-  </button>
-)}
+              <button onClick={() => setFilterDateMode(filterDateMode === 'exact' ? 'from' : 'exact')}
+                style={{ marginLeft: 4, background: filterDateMode === 'from' ? '#E8572A' : '#fff', border: '2px solid ' + (filterDateMode === 'from' ? '#E8572A' : '#EDE0CC'), borderRadius: 10, cursor: 'pointer', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: filterDateMode === 'from' ? '#fff' : '#B5967A', padding: '3px 8px', zIndex: 3, position: 'relative' }}>
+                {filterDateMode === 'exact' ? '= Exact' : (lang === 'fr' ? '≥ À partir' : '≥ From')}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -331,95 +352,107 @@ export default function Home({ user, onSignOut, showCGU }) {
               {filterFavorites ? (lang === 'fr' ? 'Appuie sur ☆ Save pour sauvegarder un trajet' : 'Tap ☆ Save to save a ride') : search || filterDate ? t('no_rides_search') : t('no_rides_sub')}
             </div>
           </div>
-        ) : filteredRides.map(ride => {
-          const cat = CATEGORIES.find(c => c.id === ride.category)
-          const colors = CAT_COLORS[ride.category] || { bg: '#F5EDD9', color: '#EDE0CC' }
-          const isFav = favorites.includes(ride.id)
-          return (
-            <div key={ride.id} style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 12 }}>
+        ) : (
+          <>
+            {filteredRides.map(ride => {
+              const cat = CATEGORIES.find(c => c.id === ride.category)
+              const colors = CAT_COLORS[ride.category] || { bg: '#F5EDD9', color: '#EDE0CC' }
+              const isFav = favorites.includes(ride.id)
+              return (
+                <div key={ride.id} style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 12 }}>
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
+                      <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: colors.bg, color: '#3D2B1F', border: '2px solid ' + colors.color }}>
+                        {cat?.icon} {cat?.label}
+                      </span>
+                      <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: ride.type === 'offer' ? '#E8F8EF' : '#EFF6FF', color: ride.type === 'offer' ? '#4CAF7D' : '#3B82F6', border: '2px solid ' + (ride.type === 'offer' ? '#4CAF7D' : '#3B82F6') }}>
+                        {ride.type === 'offer' ? t('filter_offer') : t('filter_seek')}
+                      </span>
+                      <button onClick={() => toggleFavorite(ride.id)}
+                        style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, border: '2px solid ' + (isFav ? '#F5A623' : '#EDE0CC'), background: isFav ? '#FFF8EE' : '#F5EDD9', color: isFav ? '#F5A623' : '#7B5C42', cursor: 'pointer' }}>
+                        {isFav ? '⭐ Favori' : '☆ Save'}
+                      </button>
+                    </div>
+                    {ride.women_only && (
+                      <div style={{ marginTop: 6 }}>
+                        <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#FFF0EE', color: '#E8572A', border: '2px solid #E8572A' }}>
+                          👩 {lang === 'fr' ? 'Femmes' : 'Women'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
 
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
-                  <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: colors.bg, color: '#3D2B1F', border: '2px solid ' + colors.color }}>
-                    {cat?.icon} {cat?.label}
-                  </span>
-                  <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: ride.type === 'offer' ? '#E8F8EF' : '#EFF6FF', color: ride.type === 'offer' ? '#4CAF7D' : '#3B82F6', border: '2px solid ' + (ride.type === 'offer' ? '#4CAF7D' : '#3B82F6') }}>
-                    {ride.type === 'offer' ? t('filter_offer') : t('filter_seek')}
-                  </span>
-                  <button onClick={() => toggleFavorite(ride.id)}
-                    style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, border: '2px solid ' + (isFav ? '#F5A623' : '#EDE0CC'), background: isFav ? '#FFF8EE' : '#F5EDD9', color: isFav ? '#F5A623' : '#7B5C42', cursor: 'pointer' }}>
-                    {isFav ? '⭐ Favori' : '☆ Save'}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 14, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: '2.5px solid #3D2B1F', overflow: 'hidden' }}>
+                        {ride.profiles?.avatar_url ? <img src={ride.profiles.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
+                            style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#E8572A', cursor: 'pointer', textDecoration: 'none', background: 'none', border: 'none', padding: 0, fontWeight: 900 }}>
+                            {ride.profiles?.name || 'Anonyme'}
+                          </button>
+                          {(ride.profiles?.whatsapp || ride.profiles?.instagram) && (
+                            <span style={{ fontSize: 13 }}>✅</span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.profiles?.nationality || ''}</div>
+                      </div>
+                    </div>
+                    {ride.price && (
+                      <div style={{ background: '#F5A623', borderRadius: 14, padding: '6px 12px', border: '2.5px solid #3D2B1F', boxShadow: '3px 3px 0 #3D2B1F', textAlign: 'center' }}>
+                        <div style={{ fontSize: 18, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.price}$</div>
+                        <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>{lang === 'fr' ? '/siege' : '/seat'}</div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                    <div style={{ flex: 1, background: '#F5EDD9', borderRadius: 12, padding: '8px 12px', border: '2px solid #EDE0CC' }}>
+                      <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>{lang === 'fr' ? 'De' : 'From'}</div>
+                      <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.from_city}</div>
+                    </div>
+                    <span style={{ fontSize: 18 }}>→</span>
+                    <div style={{ flex: 1, background: '#F5EDD9', borderRadius: 12, padding: '8px 12px', border: '2px solid #EDE0CC' }}>
+                      <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>{lang === 'fr' ? 'À' : 'To'}</div>
+                      <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.to_city}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 6, marginBottom: ride.note ? 10 : 12, alignItems: 'center' }}>
+                    <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>📅 {ride.date ? ride.date.split('-').reverse().join('/') : ''}</span>
+                    <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>💺 {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</span>
+                    <button onClick={() => handleShare(ride)}
+                      style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, border: '1.5px solid #EDE0CC', background: '#F5EDD9', color: '#7B5C42', cursor: 'pointer' }}>
+                      {lang === 'fr' ? '↗ Partager' : '↗ Share'}
+                    </button>
+                  </div>
+
+                  {ride.note && (
+                    <div style={{ background: '#FFF8EE', borderRadius: 12, padding: '8px 12px', border: '2px dashed #F5A623', marginBottom: 12 }}>
+                      <span style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: '#7B5C42' }}>"{ride.note}"</span>
+                    </div>
+                  )}
+
+                  <button onClick={() => { setContactId(ride.user_id); setShowMessages(true) }}
+                    style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
+                    {t('contact')}
                   </button>
                 </div>
-                {ride.women_only && (
-                  <div style={{ marginTop: 6 }}>
-                    <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#FFF0EE', color: '#E8572A', border: '2px solid #E8572A' }}>
-                      👩 {lang === 'fr' ? 'Femmes' : 'Women'}
-                    </span>
-                  </div>
-                )}
-              </div>
+              )
+            })}
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 14, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: '2.5px solid #3D2B1F', overflow: 'hidden' }}>
-                    {ride.profiles?.avatar_url ? <img src={ride.profiles.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
-                        style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#E8572A', cursor: 'pointer', textDecoration: 'none', background: 'none', border: 'none', padding: 0, fontWeight: 900 }}>
-                        {ride.profiles?.name || 'Anonyme'}
-                      </button>
-                      {(ride.profiles?.whatsapp || ride.profiles?.instagram) && (
-                        <span style={{ fontSize: 13 }}>✅</span>
-                      )}
-                    </div>
-                    <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.profiles?.nationality || ''}</div>
-                  </div>
-                </div>
-                {ride.price && (
-                  <div style={{ background: '#F5A623', borderRadius: 14, padding: '6px 12px', border: '2.5px solid #3D2B1F', boxShadow: '3px 3px 0 #3D2B1F', textAlign: 'center' }}>
-                    <div style={{ fontSize: 18, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.price}$</div>
-                    <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>{lang === 'fr' ? '/siege' : '/seat'}</div>
-                  </div>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <div style={{ flex: 1, background: '#F5EDD9', borderRadius: 12, padding: '8px 12px', border: '2px solid #EDE0CC' }}>
-                  <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>{lang === 'fr' ? 'De' : 'From'}</div>
-                  <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.from_city}</div>
-                </div>
-                <span style={{ fontSize: 18 }}>→</span>
-                <div style={{ flex: 1, background: '#F5EDD9', borderRadius: 12, padding: '8px 12px', border: '2px solid #EDE0CC' }}>
-                  <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>{lang === 'fr' ? 'À' : 'To'}</div>
-                  <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.to_city}</div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: 6, marginBottom: ride.note ? 10 : 12, alignItems: 'center' }}>
-                <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>📅 {ride.date ? ride.date.split('-').reverse().join('/') : ''}</span>
-                <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>💺 {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</span>
-                <button onClick={() => handleShare(ride)}
-                  style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, border: '1.5px solid #EDE0CC', background: '#F5EDD9', color: '#7B5C42', cursor: 'pointer' }}>
-                  {lang === 'fr' ? '↗ Partager' : '↗ Share'}
+            {hasMore && (
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <button onClick={loadMore} disabled={loadingMore}
+                  style={{ padding: '12px 24px', borderRadius: 14, border: '3px solid #3D2B1F', background: loadingMore ? '#EDE0CC' : '#E8572A', color: '#fff', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: loadingMore ? 'none' : '4px 4px 0 #3D2B1F', cursor: loadingMore ? 'not-allowed' : 'pointer' }}>
+                  {loadingMore ? (lang === 'fr' ? 'Chargement...' : 'Loading...') : (lang === 'fr' ? 'Voir plus 🚗' : 'Load more 🚗')}
                 </button>
               </div>
-
-              {ride.note && (
-                <div style={{ background: '#FFF8EE', borderRadius: 12, padding: '8px 12px', border: '2px dashed #F5A623', marginBottom: 12 }}>
-                  <span style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: '#7B5C42' }}>"{ride.note}"</span>
-                </div>
-              )}
-
-              <button onClick={() => { setContactId(ride.user_id); setShowMessages(true) }}
-                style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
-                {t('contact')}
-              </button>
-            </div>
-          )
-        })}
+            )}
+          </>
+        )}
       </div>
 
       <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 430, background: '#fff', borderTop: '3px solid #3D2B1F', padding: '12px 0 20px', display: 'flex', justifyContent: 'space-around' }}>
