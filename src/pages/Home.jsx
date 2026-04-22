@@ -225,11 +225,11 @@ export default function Home({ user, onSignOut, showCGU }) {
       )}
 
       <div style={{ background: '#E8572A', padding: 'calc(env(safe-area-inset-top) + 24px) 22px 22px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div>
-            <div style={{ fontSize: 36, fontFamily: "'Fredoka One'", color: '#fff' }}>Road<span style={{ color: '#F5A623' }}>Mate</span></div>
-            <div style={{ fontSize: 16, fontFamily: "'Kalam', cursive", color: '#fff', marginTop: 4 }}>{t('tagline')}</div>
-          </div>
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+    <div>
+      <div style={{ fontSize: 36, fontFamily: "'Fredoka One'", color: '#fff' }}>Road<span style={{ color: '#F5A623' }}>Mate</span></div>
+      <div style={{ fontSize: 15, fontFamily: "'Kalam', cursive", color: '#fff', marginTop: 4 }}>{t('tagline')}</div>
+    </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={toggleLanguage} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
               {lang === 'fr' ? '🇬🇧' : '🇫🇷'}
