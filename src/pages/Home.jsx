@@ -355,7 +355,7 @@ export default function Home({ user, onSignOut, showCGU }) {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
-                        style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#E8572A', cursor: 'pointer', textDecoration: 'underline', background: 'none', border: 'none', padding: 0 }}>
+                        style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#E8572A', cursor: 'pointer', textDecoration: 'none', background: 'none', border: 'none', padding: 0, fontWeight: 900 }}>
                         {ride.profiles?.name || 'Anonyme'}
                       </button>
                       {(ride.profiles?.whatsapp || ride.profiles?.instagram) && (
@@ -375,12 +375,12 @@ export default function Home({ user, onSignOut, showCGU }) {
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                 <div style={{ flex: 1, background: '#F5EDD9', borderRadius: 12, padding: '8px 12px', border: '2px solid #EDE0CC' }}>
-                  <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1 }}>{lang === 'fr' ? 'De' : 'From'}</div>
+                  <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>{lang === 'fr' ? 'De' : 'From'}</div>
                   <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.from_city}</div>
                 </div>
                 <span style={{ fontSize: 18 }}>→</span>
                 <div style={{ flex: 1, background: '#F5EDD9', borderRadius: 12, padding: '8px 12px', border: '2px solid #EDE0CC' }}>
-                  <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1 }}>{lang === 'fr' ? 'A' : 'To'}</div>
+                  <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>{lang === 'fr' ? 'À' : 'To'}</div>
                   <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.to_city}</div>
                 </div>
               </div>
