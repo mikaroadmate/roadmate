@@ -313,14 +313,14 @@ export default function App() {
   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#E8572A' }}>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Kalam:wght@700&display=swap" rel="stylesheet" />
     <div style={{ fontSize: 72, fontFamily: "'Fredoka One'", color: '#fff', lineHeight: 1 }}>
-      R<span style={{ fontSize: 60 }}>🛞</span>ad
-    </div>
-    <div style={{ fontSize: 72, fontFamily: "'Fredoka One'", color: '#F5A623', lineHeight: 1 }}>
-      Mate
-    </div>
-    <div style={{ fontSize: 16, fontFamily: "'Kalam', cursive", color: 'rgba(255,255,255,0.😎', marginTop: 12 }}>
-      Le co-voit' des backpackers 🤙
-    </div>
+  Road
+</div>
+<div style={{ fontSize: 72, fontFamily: "'Fredoka One'", color: '#F5A623', lineHeight: 1 }}>
+  Mate
+</div>
+<div style={{ fontSize: 16, fontFamily: "'Kalam', cursive", color: '#fff', marginTop: 12 }}>
+  Le co-voit' des backpackers 🤙
+</div>
   </div>
 )
 
