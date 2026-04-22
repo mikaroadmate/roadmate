@@ -1,7 +1,7 @@
 export const translations = {
   fr: {
     // Home
-    tagline: "Le co-voit' des backpackers 🤙",
+    tagline: "Le co-voit' des backpackers !",
     search_placeholder: "Ou tu vas ?",
     filter_all: "Tous",
     filter_offer: "🚗 Offre",
@@ -78,7 +78,7 @@ export const translations = {
 
   en: {
     // Home
-    tagline: "The backpackers' rideshare 🤙",
+    tagline: "The backpackers' rideshare !",
     search_placeholder: "Where are you going?",
     filter_all: "All",
     filter_offer: "🚗 Offering",
