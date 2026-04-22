@@ -206,10 +206,10 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>🌍 {t('profile_nationality')}</div>
             {editing ? (
-              <select value={form.nationality} onChange={e => setForm(p => ({ ...p, nationality: e.target.value }))}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>
-                {Object.keys(FLAGS).map(f => <option key={f} value={f}>{FLAGS[f]} {f}</option>)}
-              </select>
+              <input value={form.nationality} onChange={e => setForm(p => ({ ...p, nationality: e.target.value }))}
+  placeholder={lang === 'fr' ? 'Ex: Française, Belge...' : 'Ex: Australian, British...'}
+  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
+
             ) : (
               <div style={{ fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{FLAGS[profile?.nationality] || '🌍'} {profile?.nationality || (lang === 'fr' ? 'Non renseigne' : 'Not specified')}</div>
             )}
