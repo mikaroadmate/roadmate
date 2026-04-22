@@ -85,6 +85,7 @@ export default function Home({ user, onSignOut, showCGU }) {
   const [filterType, setFilterType] = useState('all')
   const [filterWomen, setFilterWomen] = useState(false)
   const [filterDate, setFilterDate] = useState('')
+  const [filterDateMode, setFilterDateMode] = useState('exact')
   const [filterFavorites, setFilterFavorites] = useState(false)
   const [favorites, setFavorites] = useState([])
   const [search, setSearch] = useState('')
@@ -99,7 +100,7 @@ export default function Home({ user, onSignOut, showCGU }) {
   const [unreadCount, setUnreadCount] = useState(0)
   const [shareToast, setShareToast] = useState(false)
 
-  useEffect(() => { fetchRides() }, [filterCat, filterType, filterWomen, filterDate])
+  useEffect(() => { fetchRides() }, [filterCat, filterType, filterWomen, filterDate, filterDateMode])
   useEffect(() => { fetchUnread() }, [])
   useEffect(() => { fetchFavorites() }, [])
   useEffect(() => { if (!showMessages) fetchUnread() }, [showMessages])
@@ -143,11 +144,11 @@ export default function Home({ user, onSignOut, showCGU }) {
 
   const fetchRides = async () => {
     setLoading(true)
-    let query = supabase.from('rides').select('*, profiles(name, nationality, verified, avatar_url, whatsapp, instagram)').order('created_at', { ascending: false })
+    let query = supabase.from('rides').select('*, profiles(name, nationality, verified, avatar_url, whatsapp, instagram)').order('date', { ascending: true }).order('time', { ascending: true })
     if (filterCat !== 'all') query = query.eq('category', filterCat)
     if (filterType !== 'all') query = query.eq('type', filterType)
     if (filterWomen) query = query.eq('women_only', true)
-    if (filterDate) query = query.eq('date', filterDate)
+    if (filterDate) query = filterDateMode === 'exact' ? query.eq('date', filterDate) : query.gte('date', filterDate)
     const { data } = await query
     setRides(data || [])
     setLoading(false)
