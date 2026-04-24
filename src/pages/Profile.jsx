@@ -34,7 +34,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
     setLoading(true)
     const { data: profileData } = await supabase.from('profiles').select('*').eq('id', targetId).single()
     const { data: ridesData } = await supabase.from('rides').select('*').eq('user_id', targetId).order('created_at', { ascending: false })
-    const { data: reviewsData } = await supabase.from('reviews').select('*, reviewer:reviewer_id(name)').eq('reviewed_id', targetId).order('created_at', { ascending: false })
+    const { data: reviewsData } = await supabase.from('reviews').select('*').eq('reviewed_id', targetId).order('created_at', { ascending: false })
     if (profileData) {
       setProfile(profileData)
       setForm({
@@ -50,7 +50,16 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
       })
     }
     setRides(ridesData || [])
-    setReviews(reviewsData || [])
+    let reviewsWithNames = reviewsData || []
+if (reviewsData && reviewsData.length > 0) {
+  const reviewerIds = [...new Set(reviewsData.map(r => r.reviewer_id))]
+  const { data: reviewerProfiles } = await supabase.from('profiles').select('id, name').in('id', reviewerIds)
+  reviewsWithNames = reviewsData.map(r => ({
+    ...r,
+    reviewer: reviewerProfiles?.find(p => p.id === r.reviewer_id) || null
+  }))
+}
+setReviews(reviewsWithNames)
     setLoading(false)
   }
 
@@ -392,7 +401,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
             {reviews.map(review => (
               <div key={review.id} style={{ paddingBottom: 12, marginBottom: 12, borderBottom: '1.5px solid #EDE0CC' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                 <div style={{ fontFamily: "'Fredoka One'", fontSize: 14, color: '#3D2B1F' }}>{review.reviewer?.name || 'Anonyme'}</div>
+                  <div style={{ fontFamily: "'Fredoka One'", fontSize: 14, color: '#3D2B1F' }}>{'Anonyme'}</div>
                   <div style={{ fontSize: 13 }}>{'⭐'.repeat(review.rating)}</div>
                 </div>
                 {review.comment && (
