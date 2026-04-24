@@ -34,7 +34,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
     setLoading(true)
     const { data: profileData } = await supabase.from('profiles').select('*').eq('id', targetId).single()
     const { data: ridesData } = await supabase.from('rides').select('*').eq('user_id', targetId).order('created_at', { ascending: false })
-    const { data: reviewsData } = await supabase.from('reviews').select('*, reviewer:profiles!reviewer_id(name)').eq('reviewed_id', targetId).order('created_at', { ascending: false })
+    const { data: reviewsData } = await supabase.from('reviews').select('*').eq('reviewed_id', targetId).order('created_at', { ascending: false })
     if (profileData) {
       setProfile(profileData)
       setForm({
@@ -392,7 +392,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
             {reviews.map(review => (
               <div key={review.id} style={{ paddingBottom: 12, marginBottom: 12, borderBottom: '1.5px solid #EDE0CC' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <div style={{ fontFamily: "'Fredoka One'", fontSize: 14, color: '#3D2B1F' }}>{review.reviewer?.name || 'Anonyme'}</div>
+                  <div style={{ fontFamily: "'Fredoka One'", fontSize: 14, color: '#3D2B1F' }}>{'Anonyme'}</div>
                   <div style={{ fontSize: 13 }}>{'⭐'.repeat(review.rating)}</div>
                 </div>
                 {review.comment && (
