@@ -54,6 +54,8 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
 if (reviewsData && reviewsData.length > 0) {
   const reviewerIds = [...new Set(reviewsData.map(r => r.reviewer_id))]
   const { data: reviewerProfiles } = await supabase.from('profiles').select('id, name').in('id', reviewerIds)
+  console.log('reviewsData:', reviewsData)
+console.log('reviewerProfiles:', reviewerProfiles)
   reviewsWithNames = reviewsData.map(r => ({
     ...r,
     reviewer: reviewerProfiles?.find(p => p.id === r.reviewer_id) || null
@@ -401,7 +403,7 @@ setReviews(reviewsWithNames)
             {reviews.map(review => (
               <div key={review.id} style={{ paddingBottom: 12, marginBottom: 12, borderBottom: '1.5px solid #EDE0CC' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <div style={{ fontFamily: "'Fredoka One'", fontSize: 14, color: '#3D2B1F' }}>{'Anonyme'}</div>
+                  <div style={{ fontFamily: "'Fredoka One'", fontSize: 14, color: '#3D2B1F' }}>{review.reviewer?.name || 'Anonyme'}</div>
                   <div style={{ fontSize: 13 }}>{'⭐'.repeat(review.rating)}</div>
                 </div>
                 {review.comment && (
