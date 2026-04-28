@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from './supabase'
 import Auth from './pages/Auth'
 import Home from './pages/Home'
+import { useLanguage } from './LanguageContext'
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
 
@@ -313,7 +314,7 @@ function ResetPassword() {
 }
 
 function Onboarding({ user, onDone }) {
-  const lang = navigator.language?.startsWith('fr') ? 'fr' : 'en'
+  const { lang } = useLanguage()
   const [name, setName] = useState('')
   const [nationality, setNationality] = useState('')
   const [saving, setSaving] = useState(false)
