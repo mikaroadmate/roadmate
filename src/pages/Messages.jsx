@@ -94,6 +94,13 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
     setUnreadMap(prev => ({ ...prev, [otherId]: 0 }))
   }
 
+  const deleteConversation = async (otherId) => {
+    await supabase.from('messages')
+      .delete()
+      .or('and(sender_id.eq.' + user.id + ',receiver_id.eq.' + otherId + '),and(sender_id.eq.' + otherId + ',receiver_id.eq.' + user.id + ')')
+    setConversations(prev => prev.filter(c => c.otherId !== otherId))
+  }
+
   const sendMessage = async () => {
     if (!newMessage.trim() || !activeConv) return
     const { error } = await supabase.from('messages').insert({
@@ -269,8 +276,14 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
                 </div>
               </div>
 
-              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: unreadCount > 0 ? '#E8572A' : '#B5967A', flexShrink: 0 }}>
-                {new Date(conv.lastMsg.created_at).toLocaleTimeString(lang === 'fr' ? 'fr-FR' : 'en-AU', { hour: '2-digit', minute: '2-digit' })}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+                <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: unreadCount > 0 ? '#E8572A' : '#B5967A' }}>
+                  {new Date(conv.lastMsg.created_at).toLocaleTimeString(lang === 'fr' ? 'fr-FR' : 'en-AU', { hour: '2-digit', minute: '2-digit' })}
+                </div>
+                <button onClick={(e) => { e.stopPropagation(); deleteConversation(conv.otherId) }}
+                  style={{ background: '#FFF0EE', border: '1.5px solid #E8572A', borderRadius: 8, padding: '3px 8px', cursor: 'pointer', fontSize: 12 }}>
+                  🗑️
+                </button>
               </div>
             </div>
           )
