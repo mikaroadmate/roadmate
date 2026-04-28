@@ -17,7 +17,8 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray
 }
 
-function CGU({ onBack, lang }) {
+function CGU({ onBack, lang: initialLang }) {
+  const [lang, setLang] = React.useState(initialLang || 'fr')
   return (
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
@@ -26,6 +27,10 @@ function CGU({ onBack, lang }) {
           <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
             {lang === 'fr' ? '← Retour' : '← Back'}
           </button>
+          <button onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
+  style={{ background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+  {lang === 'fr' ? '🇬🇧' : '🇫🇷'}
+</button>
           <div style={{ fontSize: 22, fontFamily: "'Fredoka One'", color: '#fff' }}>
             {lang === 'fr' ? "Conditions d'utilisation 📋" : 'Terms of Service 📋'}
           </div>
