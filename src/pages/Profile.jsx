@@ -11,7 +11,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
 
   const [profile, setProfile] = useState(null)
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ name: '', nationality: '', visa: 'WHV', bio: '', whatsapp: '', instagram: '', vehicle_brand: '', vehicle_model: '', vehicle_color: '' })
+  const [form, setForm] = useState({ name: '', nationality: '', visa: 'WHV', bio: '', whatsapp: '', instagram: '', show_whatsapp: false, show_instagram: false, vehicle_brand: '', vehicle_model: '', vehicle_color: '' })
   const [rides, setRides] = useState([])
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
@@ -44,6 +44,8 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
         bio: profileData.bio || '',
         whatsapp: profileData.whatsapp || '',
         instagram: profileData.instagram || '',
+        show_whatsapp: profileData.show_whatsapp || false,
+        show_instagram: profileData.show_instagram || false,
         vehicle_brand: profileData.vehicle_brand || '',
         vehicle_model: profileData.vehicle_model || '',
         vehicle_color: profileData.vehicle_color || ''
@@ -51,17 +53,15 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
     }
     setRides(ridesData || [])
     let reviewsWithNames = reviewsData || []
-if (reviewsData && reviewsData.length > 0) {
-  const reviewerIds = [...new Set(reviewsData.map(r => r.reviewer_id))]
-  const { data: reviewerProfiles } = await supabase.from('profiles').select('id, name').in('id', reviewerIds)
-  console.log('reviewsData:', reviewsData)
-console.log('reviewerProfiles:', reviewerProfiles)
-  reviewsWithNames = reviewsData.map(r => ({
-    ...r,
-    reviewer: reviewerProfiles?.find(p => p.id === r.reviewer_id) || null
-  }))
-}
-setReviews(reviewsWithNames)
+    if (reviewsData && reviewsData.length > 0) {
+      const reviewerIds = [...new Set(reviewsData.map(r => r.reviewer_id))]
+      const { data: reviewerProfiles } = await supabase.from('profiles').select('id, name').in('id', reviewerIds)
+      reviewsWithNames = reviewsData.map(r => ({
+        ...r,
+        reviewer: reviewerProfiles?.find(p => p.id === r.reviewer_id) || null
+      }))
+    }
+    setReviews(reviewsWithNames)
     setLoading(false)
   }
 
@@ -256,37 +256,83 @@ setReviews(reviewsWithNames)
             )}
           </div>
 
-          {(profile?.whatsapp || editing) && (
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📱 {t('profile_whatsapp')}</div>
-              {editing ? (
+          {/* WHATSAPP */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📱 {t('profile_whatsapp')}</div>
+            {editing ? (
+              <div>
                 <input value={form.whatsapp} onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))}
                   placeholder="+61 4XX XXX XXX (optional)"
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
-              ) : profile?.whatsapp ? (
-                <a href={'https://wa.me/' + profile.whatsapp.replace(/\D/g, '')} target="_blank" rel="noreferrer"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: '#E8F8EF', border: '2px solid #4CAF7D', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#4CAF7D', textDecoration: 'none' }}>
-                  📱 {profile.whatsapp}
-                </a>
-              ) : null}
-            </div>
-          )}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box', marginBottom: 8 }} />
+                {form.whatsapp && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#7B5C42' }}>
+                      {lang === 'fr' ? 'Visible publiquement' : 'Visible publicly'}
+                    </div>
+                    <button onClick={() => setForm(p => ({ ...p, show_whatsapp: !p.show_whatsapp }))}
+                      style={{ width: 44, height: 24, borderRadius: 12, border: '2px solid #3D2B1F', background: form.show_whatsapp ? '#4CAF7D' : '#EDE0CC', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
+                      <div style={{ width: 16, height: 16, borderRadius: 8, background: '#fff', border: '2px solid #3D2B1F', position: 'absolute', top: 2, left: form.show_whatsapp ? 22 : 2, transition: 'left 0.2s' }} />
+                    </button>
+                    <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: form.show_whatsapp ? '#4CAF7D' : '#B5967A' }}>
+                      {form.show_whatsapp ? (lang === 'fr' ? 'ON' : 'ON') : (lang === 'fr' ? 'OFF' : 'OFF')}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : profile?.whatsapp && profile?.show_whatsapp ? (
+              <a href={'https://wa.me/' + profile.whatsapp.replace(/\D/g, '')} target="_blank" rel="noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: '#E8F8EF', border: '2px solid #4CAF7D', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#4CAF7D', textDecoration: 'none' }}>
+                📱 {profile.whatsapp}
+              </a>
+            ) : profile?.whatsapp && isOwnProfile ? (
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>
+                {profile.whatsapp} {lang === 'fr' ? '(non visible)' : '(not visible)'}
+              </div>
+            ) : !profile?.whatsapp ? (
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>
+                {lang === 'fr' ? 'Non renseigné' : 'Not specified'}
+              </div>
+            ) : null}
+          </div>
 
-          {(profile?.instagram || editing) && (
-            <div>
-              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📷 {t('profile_instagram')}</div>
-              {editing ? (
+          {/* INSTAGRAM */}
+          <div>
+            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📷 {t('profile_instagram')}</div>
+            {editing ? (
+              <div>
                 <input value={form.instagram} onChange={e => setForm(p => ({ ...p, instagram: e.target.value }))}
                   placeholder="@your_handle (optional)"
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
-              ) : profile?.instagram ? (
-                <a href={'https://instagram.com/' + profile.instagram.replace('@', '')} target="_blank" rel="noreferrer"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: '#FFF0F8', border: '2px solid #E1306C', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#E1306C', textDecoration: 'none' }}>
-                  📷 {profile.instagram}
-                </a>
-              ) : null}
-            </div>
-          )}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box', marginBottom: 8 }} />
+                {form.instagram && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#7B5C42' }}>
+                      {lang === 'fr' ? 'Visible publiquement' : 'Visible publicly'}
+                    </div>
+                    <button onClick={() => setForm(p => ({ ...p, show_instagram: !p.show_instagram }))}
+                      style={{ width: 44, height: 24, borderRadius: 12, border: '2px solid #3D2B1F', background: form.show_instagram ? '#4CAF7D' : '#EDE0CC', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
+                      <div style={{ width: 16, height: 16, borderRadius: 8, background: '#fff', border: '2px solid #3D2B1F', position: 'absolute', top: 2, left: form.show_instagram ? 22 : 2, transition: 'left 0.2s' }} />
+                    </button>
+                    <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: form.show_instagram ? '#4CAF7D' : '#B5967A' }}>
+                      {form.show_instagram ? 'ON' : 'OFF'}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : profile?.instagram && profile?.show_instagram ? (
+              <a href={'https://instagram.com/' + profile.instagram.replace('@', '')} target="_blank" rel="noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: '#FFF0F8', border: '2px solid #E1306C', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#E1306C', textDecoration: 'none' }}>
+                📷 {profile.instagram}
+              </a>
+            ) : profile?.instagram && isOwnProfile ? (
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>
+                {profile.instagram} {lang === 'fr' ? '(non visible)' : '(not visible)'}
+              </div>
+            ) : !profile?.instagram ? (
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>
+                {lang === 'fr' ? 'Non renseigné' : 'Not specified'}
+              </div>
+            ) : null}
+          </div>
         </div>
 
         {(profile?.vehicle_brand || profile?.vehicle_model || editing) && (
@@ -493,7 +539,7 @@ setReviews(reviewsWithNames)
           <div style={{ marginTop: 16, marginBottom: 16 }}>
             <button onClick={() => onShowCGU && onShowCGU()}
               style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #EDE0CC', cursor: 'pointer', background: '#fff', color: '#7B5C42', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #EDE0CC', marginBottom: 10 }}>
-              {lang === 'fr' ? 'Conditions d\'utilisation 📋' : 'Terms of Service 📋'}
+              {lang === 'fr' ? "Conditions d'utilisation 📋" : 'Terms of Service 📋'}
             </button>
             <button onClick={() => supabase.auth.signOut()}
               style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#fff', color: '#E8572A', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
