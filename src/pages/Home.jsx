@@ -278,7 +278,7 @@ export default function Home({ user, onSignOut, showCGU }) {
               placeholder={lang === 'fr' ? "D'où tu pars ?" : 'From where?'}
               type="search"
               autoComplete="off"
-              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
+              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
             />
             {searchFrom && (
               <button onClick={() => setSearchFrom('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
@@ -292,7 +292,7 @@ export default function Home({ user, onSignOut, showCGU }) {
               placeholder={lang === 'fr' ? 'Où tu vas ?' : 'Where to?'}
               type="search"
               autoComplete="off"
-              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
+              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
             />
             {searchTo && (
               <button onClick={() => setSearchTo('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
