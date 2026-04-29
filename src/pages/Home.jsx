@@ -90,7 +90,8 @@ export default function Home({ user, onSignOut, showCGU }) {
   const [filterDateMode, setFilterDateMode] = useState('exact')
   const [filterFavorites, setFilterFavorites] = useState(false)
   const [favorites, setFavorites] = useState([])
-  const [search, setSearch] = useState('')
+  const [searchFrom, setSearchFrom] = useState('')
+  const [searchTo, setSearchTo] = useState('')
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
@@ -153,7 +154,7 @@ export default function Home({ user, onSignOut, showCGU }) {
       .order('date', { ascending: true })
       .order('time', { ascending: true })
       .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1)
-.eq('active', true)
+      .eq('active', true)
     if (filterCat !== 'all') query = query.eq('category', filterCat)
     if (filterType !== 'all') query = query.eq('type', filterType)
     if (filterWomen) query = query.eq('women_only', true)
@@ -183,11 +184,10 @@ export default function Home({ user, onSignOut, showCGU }) {
   }
 
   const filteredRides = rides.filter(ride => {
-    const matchSearch = !search.trim() ||
-      ride.from_city?.toLowerCase().includes(search.toLowerCase()) ||
-      ride.to_city?.toLowerCase().includes(search.toLowerCase())
+    const matchFrom = !searchFrom.trim() || ride.from_city?.toLowerCase().includes(searchFrom.toLowerCase())
+    const matchTo = !searchTo.trim() || ride.to_city?.toLowerCase().includes(searchTo.toLowerCase())
     const matchFav = !filterFavorites || favorites.includes(ride.id)
-    return matchSearch && matchFav
+    return matchFrom && matchTo && matchFav
   })
 
   const handleShare = async (ride) => {
@@ -268,19 +268,36 @@ export default function Home({ user, onSignOut, showCGU }) {
             </button>
           </div>
         </div>
-        <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10, marginTop: 14 }}>
-          <span style={{ fontSize: 18 }}>📍</span>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder={t('search_placeholder')}
-            type="search"
-            autoComplete="off"
-            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
-          />
-          {search && (
-            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
-          )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
+          <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 16 }}>📍</span>
+            <input
+              value={searchFrom}
+              onChange={e => setSearchFrom(e.target.value)}
+              placeholder={lang === 'fr' ? "D'où tu pars ?" : 'From where?'}
+              type="search"
+              autoComplete="off"
+              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
+            />
+            {searchFrom && (
+              <button onClick={() => setSearchFrom('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
+            )}
+          </div>
+          <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 16 }}>🏁</span>
+            <input
+              value={searchTo}
+              onChange={e => setSearchTo(e.target.value)}
+              placeholder={lang === 'fr' ? 'Où tu vas ?' : 'Where to?'}
+              type="search"
+              autoComplete="off"
+              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
+            />
+            {searchTo && (
+              <button onClick={() => setSearchTo('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -333,10 +350,11 @@ export default function Home({ user, onSignOut, showCGU }) {
       </div>
 
       <div style={{ padding: '12px 22px 100px' }}>
-        {(search.trim() || filterDate || filterFavorites) && (
+        {(searchFrom.trim() || searchTo.trim() || filterDate || filterFavorites) && (
           <div style={{ fontFamily: "'Nunito'", fontWeight: 700, fontSize: 13, color: '#B5967A', marginBottom: 10 }}>
             {filteredRides.length} {lang === 'fr' ? 'trajet(s) trouvé(s)' : 'ride(s) found'}
-            {search ? ' — "' + search + '"' : ''}
+            {searchFrom ? ' — 📍 ' + searchFrom : ''}
+            {searchTo ? ' — 🏁 ' + searchTo : ''}
             {filterDate ? ' — 📅 ' + filterDate.split('-').reverse().join('/') : ''}
             {filterFavorites ? ' — ⭐ ' + (lang === 'fr' ? 'Favoris' : 'Favorites') : ''}
           </div>
@@ -350,7 +368,7 @@ export default function Home({ user, onSignOut, showCGU }) {
               {filterFavorites ? (lang === 'fr' ? 'Aucun favori' : 'No favorites yet') : t('no_rides')}
             </div>
             <div style={{ fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>
-              {filterFavorites ? (lang === 'fr' ? 'Appuie sur ☆ Save pour sauvegarder un trajet' : 'Tap ☆ Save to save a ride') : search || filterDate ? t('no_rides_search') : t('no_rides_sub')}
+              {filterFavorites ? (lang === 'fr' ? 'Appuie sur ☆ Save pour sauvegarder un trajet' : 'Tap ☆ Save to save a ride') : searchFrom || searchTo || filterDate ? t('no_rides_search') : t('no_rides_sub')}
             </div>
           </div>
         ) : (
