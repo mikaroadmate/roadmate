@@ -112,11 +112,11 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
       setNewMessage('')
       fetchConversations()
       const { data: subData } = await supabase
-        .from('push_subscriptions')
-        .select('subscription')
-        .eq('user_id', activeConv)
-        .maybeSingle()
-      if (subData) {
+  .from('push_subscriptions')
+  .select('subscription')
+  .eq('user_id', activeConv)
+  .maybeSingle()
+if (subData && activeConv !== user.id) {
         await fetch('/api/send-notification', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
