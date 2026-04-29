@@ -53,7 +53,7 @@ export default function Auth() {
         {lang === 'fr' ? 'trouve ton trajet en Australie ✌️' : 'find your ride in Australia ✌️'}
       </div>
 
-      <div style={{ background: '#F5EDD9', borderRadius: 24, padding: 28, width: '100%', maxWidth: 400, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
+      <div style={{ background: '#F5EDD9', borderRadius: 24, padding: 28, width: '100%', maxWidth: 400, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', boxSizing: 'border-box' }}>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
           {['login', 'signup'].map(m => (
