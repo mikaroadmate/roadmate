@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabase'
 
-const lang = navigator.language?.startsWith('fr') ? 'fr' : 'en'
-
 export default function Auth() {
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')
@@ -10,6 +8,7 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [lang, setLang] = useState(navigator.language?.startsWith('fr') ? 'fr' : 'en')
 
   const handleAuth = async () => {
     setLoading(true)
@@ -27,7 +26,7 @@ export default function Auth() {
 
   const handleReset = async () => {
     if (!email.trim()) {
-      setMessage(lang === 'fr' ? 'Entre ton email d\'abord !' : 'Enter your email first!')
+      setMessage(lang === 'fr' ? "Entre ton email d'abord !" : 'Enter your email first!')
       return
     }
     setLoading(true)
@@ -46,6 +45,18 @@ export default function Auth() {
     <div style={{ fontFamily: "'Fredoka One', cursive", background: 'linear-gradient(170deg, #E8572A 0%, #C4622D 50%, #8B3A0F 100%)', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 20px', boxSizing: 'border-box', width: '100%' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
 
+      {/* Bouton langue */}
+      <div style={{ position: 'fixed', top: 16, right: 16, display: 'flex', gap: 6 }}>
+        <button onClick={() => setLang('fr')}
+          style={{ padding: '6px 12px', borderRadius: 20, border: '2px solid #3D2B1F', cursor: 'pointer', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, background: lang === 'fr' ? '#3D2B1F' : 'rgba(255,255,255,0.3)', color: lang === 'fr' ? '#fff' : '#fff' }}>
+          🇫🇷 FR
+        </button>
+        <button onClick={() => setLang('en')}
+          style={{ padding: '6px 12px', borderRadius: 20, border: '2px solid #3D2B1F', cursor: 'pointer', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, background: lang === 'en' ? '#3D2B1F' : 'rgba(255,255,255,0.3)', color: '#fff' }}>
+          🇬🇧 EN
+        </button>
+      </div>
+
       <div style={{ fontSize: 48, fontFamily: "'Fredoka One'", color: '#fff', marginBottom: 8, textShadow: '3px 3px 0 rgba(0,0,0,0.2)' }}>
         Road<span style={{ color: '#F5A623' }}>Mate</span>
       </div>
@@ -59,9 +70,7 @@ export default function Auth() {
           {['login', 'signup'].map(m => (
             <button key={m} onClick={() => { setMode(m); setMessage('') }}
               style={{ flex: 1, padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', fontFamily: "'Fredoka One'", fontSize: 16, background: mode === m ? '#E8572A' : '#fff', color: mode === m ? '#fff' : '#7B5C42', boxShadow: mode === m ? '4px 4px 0 #3D2B1F' : 'none' }}>
-              {m === 'login'
-                ? (lang === 'fr' ? 'Connexion' : 'Login')
-                : (lang === 'fr' ? 'Inscription' : 'Sign up')}
+              {m === 'login' ? (lang === 'fr' ? 'Connexion' : 'Login') : (lang === 'fr' ? 'Inscription' : 'Sign up')}
             </button>
           ))}
         </div>
