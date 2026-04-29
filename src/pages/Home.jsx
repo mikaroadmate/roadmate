@@ -225,7 +225,7 @@ export default function Home({ user, onSignOut, showCGU }) {
   if (showMessages) return <Messages user={user} contactId={contactId} onBack={() => { setShowMessages(false); setContactId(null) }} onViewProfile={(id) => { setShowMessages(false); setOtherUserId(id); setShowOtherProfile(true) }} />
   if (showProfile) return <Profile user={user} onBack={() => setShowProfile(false)} onShowCGU={showCGU} />
   if (showOtherProfile) return <Profile user={user} viewedUserId={otherUserId} onBack={() => { setShowOtherProfile(false); setOtherUserId(null) }} onShowCGU={showCGU} />
-  if (showMap) return <Map user={user} onBack={() => setShowMap(false)} onContact={(userId) => { setShowMap(false); setContactId(userId); setShowMessages(true) }} />
+  if (showMap) return <Map user={user} onBack={() => setShowMap(false)} onContact={(userId) => { setContactId(userId); setShowMessages(true) }} />
 
   const getTypeStyle = (id) => ({
     flex: 1, padding: '8px', borderRadius: 20,
