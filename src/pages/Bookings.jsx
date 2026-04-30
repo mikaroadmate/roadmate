@@ -4,7 +4,7 @@ import { useLanguage } from '../LanguageContext'
 
 export default function Bookings({ user, onBack, onContact, embedded = false }) {
   const { lang } = useLanguage()
-  const [tab, setTab] = useState('received') // received = conducteur, sent = passager
+  const [tab, setTab] = useState('received')
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -16,10 +16,8 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
       .from('bookings')
       .select('*, rides(from_city, to_city, date, seats), profiles:passenger_id(name, avatar_url), driver:driver_id(name, avatar_url)')
       .order('created_at', { ascending: false })
-
     if (tab === 'received') query = query.eq('driver_id', user.id)
     else query = query.eq('passenger_id', user.id)
-
     const { data } = await query
     setBookings(data || [])
     setLoading(false)
@@ -44,24 +42,29 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
 
-      <div style={{ background: '#E8572A', padding: 'calc(env(safe-area-inset-top) + 20px) 22px 20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-          <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 12, padding: '8px 12px', color: '#fff', fontSize: 18, cursor: 'pointer' }}>←</button>
-          <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>
-            {lang === 'fr' ? '🎫 Réservations' : '🎫 Bookings'}
+      {!embedded && (
+        <div style={{ background: '#E8572A', padding: 'calc(env(safe-area-inset-top) + 20px) 22px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 12, padding: '8px 12px', color: '#fff', fontSize: 18, cursor: 'pointer' }}>←</button>
+            <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>
+              {lang === 'fr' ? '🎫 Réservations' : '🎫 Bookings'}
+            </div>
           </div>
         </div>
+      )}
+
+      <div style={{ padding: '12px 22px' }}>
         <div style={{ display: 'flex', gap: 8 }}>
           {['received', 'sent'].map(t => (
             <button key={t} onClick={() => setTab(t)}
-              style={{ flex: 1, padding: '10px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', fontFamily: "'Fredoka One'", fontSize: 14, background: tab === t ? '#3D2B1F' : 'rgba(255,255,255,0.2)', color: '#fff' }}>
+              style={{ flex: 1, padding: '10px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', fontFamily: "'Fredoka One'", fontSize: 14, background: tab === t ? '#3D2B1F' : '#fff', color: tab === t ? '#fff' : '#7B5C42' }}>
               {t === 'received' ? (lang === 'fr' ? '📥 Reçues' : '📥 Received') : (lang === 'fr' ? '📤 Envoyées' : '📤 Sent')}
             </button>
           ))}
         </div>
       </div>
 
-      <div style={{ padding: '16px 22px 100px' }}>
+      <div style={{ padding: '4px 22px 100px' }}>
         {loading ? (
           <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 18 }}>
             {lang === 'fr' ? 'Chargement...' : 'Loading...'}
