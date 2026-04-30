@@ -454,10 +454,18 @@ export default function Home({ user, onSignOut, showCGU }) {
                     </div>
                   )}
 
-                  <button onClick={() => { setContactId(ride.user_id); setShowMessages(true) }}
-                    style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
-                    {t('contact')}
-                  </button>
+                  <div style={{ display: 'flex', gap: 8 }}>
+  <button onClick={() => { setContactId(ride.user_id); setShowMessages(true) }}
+    style={{ flex: 1, padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#F5EDD9', color: '#3D2B1F', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
+    💬 {t('contact')}
+  </button>
+  {ride.user_id !== user.id && ride.type === 'offer' && (
+    <button onClick={() => handleBooking(ride)}
+      style={{ flex: 1, padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
+      🎫 {lang === 'fr' ? 'Réserver' : 'Book'}
+    </button>
+  )}
+</div>
                 </div>
               )
             })}
@@ -484,14 +492,14 @@ export default function Home({ user, onSignOut, showCGU }) {
           <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>{lang === 'fr' ? 'Carte' : 'Map'}</span>
         </button>
         <button onClick={() => setShowMessages(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, position: 'relative' }}>
-          <span style={{ fontSize: 22 }}>💬</span>
-          {unreadCount > 0 && (
-            <div style={{ position: 'absolute', top: -4, right: -4, background: '#E8572A', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
-              <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff' }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
-            </div>
-          )}
-          <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>Messages</span>
-        </button>
+  <span style={{ fontSize: 22 }}>📬</span>
+  {unreadCount > 0 && (
+    <div style={{ position: 'absolute', top: -4, right: -4, background: '#E8572A', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
+      <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff' }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+    </div>
+  )}
+  <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>{lang === 'fr' ? 'Activité' : 'Activity'}</span>
+</button>
         <button onClick={() => setShowPost(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
           <span style={{ fontSize: 22 }}>➕</span>
           <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>{lang === 'fr' ? 'Poster' : 'Post'}</span>

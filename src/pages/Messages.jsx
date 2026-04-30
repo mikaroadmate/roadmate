@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabase'
 import { useLanguage } from '../LanguageContext'
+import Bookings from './Bookings'
 
 export default function Messages({ user, contactId, onBack, onViewProfile }) {
   const { t, lang } = useLanguage()
+  const [mainTab, setMainTab] = useState('messages')
   const [conversations, setConversations] = useState([])
   const [activeConv, setActiveConv] = useState(contactId || null)
   const [messages, setMessages] = useState([])
@@ -11,19 +13,17 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
   const [loading, setLoading] = useState(true)
   const [profiles, setProfiles] = useState({})
   const [unreadMap, setUnreadMap] = useState({})
+  const [pendingBookings, setPendingBookings] = useState(0)
   const bottomRef = useRef(null)
 
   useEffect(() => { fetchConversations() }, [])
+  useEffect(() => { fetchPendingBookings() }, [])
 
   useEffect(() => {
     if (activeConv) {
       fetchMessages(activeConv)
       const channel = supabase.channel('messages-' + activeConv)
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages'
-        }, (payload) => {
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
           const msg = payload.new
           if (
             (msg.sender_id === user.id && msg.receiver_id === activeConv) ||
@@ -40,6 +40,15 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
+  const fetchPendingBookings = async () => {
+    const { count } = await supabase
+      .from('bookings')
+      .select('*', { count: 'exact', head: true })
+      .eq('driver_id', user.id)
+      .eq('status', 'pending')
+    setPendingBookings(count || 0)
+  }
+
   const fetchConversations = async () => {
     setLoading(true)
     const { data } = await supabase
@@ -54,12 +63,8 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
       data.forEach(msg => {
         const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id
         const otherProfile = msg.sender_id === user.id ? msg.receiver : msg.sender
-        if (!convMap[otherId]) {
-          convMap[otherId] = { otherId, otherProfile, lastMsg: msg }
-        }
-        if (msg.receiver_id === user.id && !msg.read) {
-          unread[otherId] = (unread[otherId] || 0) + 1
-        }
+        if (!convMap[otherId]) convMap[otherId] = { otherId, otherProfile, lastMsg: msg }
+        if (msg.receiver_id === user.id && !msg.read) unread[otherId] = (unread[otherId] || 0) + 1
       })
       setConversations(Object.values(convMap))
       setUnreadMap(unread)
@@ -80,12 +85,7 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
       .or('and(sender_id.eq.' + user.id + ',receiver_id.eq.' + otherId + '),and(sender_id.eq.' + otherId + ',receiver_id.eq.' + user.id + ')')
       .order('created_at', { ascending: true })
     setMessages(data || [])
-    await supabase
-      .from('messages')
-      .update({ read: true })
-      .eq('receiver_id', user.id)
-      .eq('sender_id', otherId)
-      .eq('read', false)
+    await supabase.from('messages').update({ read: true }).eq('receiver_id', user.id).eq('sender_id', otherId).eq('read', false)
     setUnreadMap(prev => ({ ...prev, [otherId]: 0 }))
   }
 
@@ -95,8 +95,7 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
   }
 
   const deleteConversation = async (otherId) => {
-    await supabase.from('messages')
-      .delete()
+    await supabase.from('messages').delete()
       .or('and(sender_id.eq.' + user.id + ',receiver_id.eq.' + otherId + '),and(sender_id.eq.' + otherId + ',receiver_id.eq.' + user.id + ')')
     setConversations(prev => prev.filter(c => c.otherId !== otherId))
   }
@@ -111,12 +110,8 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
     if (!error) {
       setNewMessage('')
       fetchConversations()
-      const { data: subData } = await supabase
-  .from('push_subscriptions')
-  .select('subscription')
-  .eq('user_id', activeConv)
-  .maybeSingle()
-if (subData && activeConv !== user.id) {
+      const { data: subData } = await supabase.from('push_subscriptions').select('subscription').eq('user_id', activeConv).maybeSingle()
+      if (subData && activeConv !== user.id) {
         await fetch('/api/send-notification', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -138,20 +133,20 @@ if (subData && activeConv !== user.id) {
   }
 
   const getOtherAvatar = (id) => {
-    return profiles[id]?.avatar_url ||
-      conversations.find(c => c.otherId === id)?.otherProfile?.avatar_url ||
-      null
+    return profiles[id]?.avatar_url || conversations.find(c => c.otherId === id)?.otherProfile?.avatar_url || null
   }
 
   const quickReplies = lang === 'fr'
     ? ["Je suis in ! 🤙", "C'est quand ? ⏰", "Quel prix ? 💰", "OK parfait ✓"]
     : ["I'm in! 🤙", "When is it? ⏰", "What's the price? 💰", "OK perfect ✓"]
 
+  const totalUnread = Object.values(unreadMap).reduce((a, b) => a + b, 0)
+
+  // Vue conversation active
   if (activeConv) {
     return (
       <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%', display: 'flex', flexDirection: 'column' }}>
         <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
-
         <div style={{ background: '#5BC8D4', padding: 'calc(env(safe-area-inset-top) + 16px) 22px 18px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={() => setActiveConv(null)}
@@ -159,9 +154,7 @@ if (subData && activeConv !== user.id) {
               {t('post_back')}
             </button>
             <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, border: '2.5px solid #3D2B1F', overflow: 'hidden' }}>
-              {getOtherAvatar(activeConv)
-                ? <img src={getOtherAvatar(activeConv)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-                : '🤙'}
+              {getOtherAvatar(activeConv) ? <img src={getOtherAvatar(activeConv)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : '🤙'}
             </div>
             <div>
               <button onClick={() => onViewProfile && onViewProfile(activeConv)}
@@ -172,12 +165,9 @@ if (subData && activeConv !== user.id) {
             </div>
           </div>
         </div>
-
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {messages.length === 0 && (
-            <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 16 }}>
-              {t('messages_start')}
-            </div>
+            <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 16 }}>{t('messages_start')}</div>
           )}
           {messages.map(msg => (
             <div key={msg.id} style={{ display: 'flex', justifyContent: msg.sender_id === user.id ? 'flex-end' : 'flex-start' }}>
@@ -190,7 +180,6 @@ if (subData && activeConv !== user.id) {
             </div>
           ))}
           <div ref={bottomRef} />
-
           <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 8 }}>
             <button onClick={() => setActiveConv(null)}
               style={{ background: '#3D2B1F', border: '2.5px solid #3D2B1F', borderRadius: 14, padding: '10px 22px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer', boxShadow: '3px 3px 0 #B5967A' }}>
@@ -198,7 +187,6 @@ if (subData && activeConv !== user.id) {
             </button>
           </div>
         </div>
-
         <div style={{ padding: '8px 18px 0', display: 'flex', gap: 7, overflowX: 'auto', flexShrink: 0 }}>
           {quickReplies.map(r => (
             <button key={r} onClick={() => setNewMessage(r)}
@@ -207,7 +195,6 @@ if (subData && activeConv !== user.id) {
             </button>
           ))}
         </div>
-
         <div style={{ padding: '10px 18px 32px', display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0 }}>
           <input value={newMessage} onChange={e => setNewMessage(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && sendMessage()}
@@ -222,73 +209,94 @@ if (subData && activeConv !== user.id) {
     )
   }
 
+  // Vue liste (Messages + Réservations)
   return (
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
 
-      <div style={{ background: '#3D2B1F', padding: '48px 22px 22px' }}>
+      <div style={{ background: '#3D2B1F', padding: 'calc(env(safe-area-inset-top) + 20px) 22px 16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div>
-            <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>{t('messages_title')}</div>
-            <div style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: 'rgba(255,255,255,0.65)' }}>{t('messages_sub')}</div>
+          <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>
+            📬 {lang === 'fr' ? 'Activité' : 'Activity'}
           </div>
           <button onClick={onBack}
             style={{ background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
             {t('messages_home')}
           </button>
         </div>
+
+        {/* Sous-onglets */}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => setMainTab('messages')}
+            style={{ flex: 1, padding: '10px', borderRadius: 14, border: '2.5px solid rgba(255,255,255,0.3)', cursor: 'pointer', fontFamily: "'Fredoka One'", fontSize: 14, background: mainTab === 'messages' ? '#E8572A' : 'rgba(255,255,255,0.1)', color: '#fff', position: 'relative' }}>
+            💬 {lang === 'fr' ? 'Messages' : 'Messages'}
+            {totalUnread > 0 && (
+              <div style={{ position: 'absolute', top: -6, right: -6, minWidth: 20, height: 20, borderRadius: 10, background: '#F5A623', border: '2px solid #3D2B1F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontFamily: "'Nunito'", fontWeight: 900, color: '#fff', padding: '0 4px' }}>
+                {totalUnread > 9 ? '9+' : totalUnread}
+              </div>
+            )}
+          </button>
+          <button onClick={() => setMainTab('bookings')}
+            style={{ flex: 1, padding: '10px', borderRadius: 14, border: '2.5px solid rgba(255,255,255,0.3)', cursor: 'pointer', fontFamily: "'Fredoka One'", fontSize: 14, background: mainTab === 'bookings' ? '#E8572A' : 'rgba(255,255,255,0.1)', color: '#fff', position: 'relative' }}>
+            🎫 {lang === 'fr' ? 'Réservations' : 'Bookings'}
+            {pendingBookings > 0 && (
+              <div style={{ position: 'absolute', top: -6, right: -6, minWidth: 20, height: 20, borderRadius: 10, background: '#F5A623', border: '2px solid #3D2B1F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontFamily: "'Nunito'", fontWeight: 900, color: '#fff', padding: '0 4px' }}>
+                {pendingBookings > 9 ? '9+' : pendingBookings}
+              </div>
+            )}
+          </button>
+        </div>
       </div>
 
-      <div style={{ flex: 1 }}>
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 18 }}>{t('loading')} 💬</div>
-        ) : conversations.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 60 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>💬</div>
-            <div style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#3D2B1F', marginBottom: 6 }}>{t('messages_empty')}</div>
-            <div style={{ fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>{t('messages_empty_sub')}</div>
-          </div>
-        ) : conversations.map(conv => {
-          const unreadCount = unreadMap[conv.otherId] || 0
-          return (
-            <div key={conv.otherId} onClick={() => handleOpenConv(conv.otherId)}
-              style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 22px', cursor: 'pointer', borderBottom: '1.5px solid #EDE0CC', background: unreadCount > 0 ? 'rgba(232,87,42,0.06)' : 'transparent' }}>
-
-              <div style={{ position: 'relative', flexShrink: 0 }}>
-                <div style={{ width: 54, height: 54, borderRadius: 18, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, border: '3px solid ' + (unreadCount > 0 ? '#E8572A' : '#3D2B1F'), overflow: 'hidden' }}>
-                  {conv.otherProfile?.avatar_url
-                    ? <img src={conv.otherProfile.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-                    : '🤙'}
-                </div>
-                {unreadCount > 0 && (
-                  <div style={{ position: 'absolute', top: -5, right: -5, minWidth: 20, height: 20, borderRadius: 10, background: '#E8572A', border: '2px solid #F5EDD9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontFamily: "'Nunito'", fontWeight: 900, color: '#fff', padding: '0 4px' }}>
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </div>
-                )}
-              </div>
-
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#3D2B1F', marginBottom: 3 }}>
-                  {conv.otherProfile?.name || (lang === 'fr' ? 'Utilisateur' : 'User')}
-                </div>
-                <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: unreadCount > 0 ? 800 : 600, color: unreadCount > 0 ? '#3D2B1F' : '#B5967A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {conv.lastMsg.content}
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-                <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: unreadCount > 0 ? '#E8572A' : '#B5967A' }}>
-                  {new Date(conv.lastMsg.created_at).toLocaleTimeString(lang === 'fr' ? 'fr-FR' : 'en-AU', { hour: '2-digit', minute: '2-digit' })}
-                </div>
-                <button onClick={(e) => { e.stopPropagation(); deleteConversation(conv.otherId) }}
-                  style={{ background: '#FFF0EE', border: '1.5px solid #E8572A', borderRadius: 8, padding: '3px 8px', cursor: 'pointer', fontSize: 12 }}>
-                  🗑️
-                </button>
-              </div>
+      {mainTab === 'messages' ? (
+        <div>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: 40, fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 18 }}>{t('loading')} 💬</div>
+          ) : conversations.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 60 }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>💬</div>
+              <div style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#3D2B1F', marginBottom: 6 }}>{t('messages_empty')}</div>
+              <div style={{ fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>{t('messages_empty_sub')}</div>
             </div>
-          )
-        })}
-      </div>
+          ) : conversations.map(conv => {
+            const unreadCount = unreadMap[conv.otherId] || 0
+            return (
+              <div key={conv.otherId} onClick={() => handleOpenConv(conv.otherId)}
+                style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 22px', cursor: 'pointer', borderBottom: '1.5px solid #EDE0CC', background: unreadCount > 0 ? 'rgba(232,87,42,0.06)' : 'transparent' }}>
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  <div style={{ width: 54, height: 54, borderRadius: 18, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, border: '3px solid ' + (unreadCount > 0 ? '#E8572A' : '#3D2B1F'), overflow: 'hidden' }}>
+                    {conv.otherProfile?.avatar_url ? <img src={conv.otherProfile.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : '🤙'}
+                  </div>
+                  {unreadCount > 0 && (
+                    <div style={{ position: 'absolute', top: -5, right: -5, minWidth: 20, height: 20, borderRadius: 10, background: '#E8572A', border: '2px solid #F5EDD9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontFamily: "'Nunito'", fontWeight: 900, color: '#fff', padding: '0 4px' }}>
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </div>
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: "'Fredoka One'", fontSize: 16, color: '#3D2B1F', marginBottom: 3 }}>
+                    {conv.otherProfile?.name || (lang === 'fr' ? 'Utilisateur' : 'User')}
+                  </div>
+                  <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: unreadCount > 0 ? 800 : 600, color: unreadCount > 0 ? '#3D2B1F' : '#B5967A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {conv.lastMsg.content}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+                  <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: unreadCount > 0 ? '#E8572A' : '#B5967A' }}>
+                    {new Date(conv.lastMsg.created_at).toLocaleTimeString(lang === 'fr' ? 'fr-FR' : 'en-AU', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                  <button onClick={(e) => { e.stopPropagation(); deleteConversation(conv.otherId) }}
+                    style={{ background: '#FFF0EE', border: '1.5px solid #E8572A', borderRadius: 8, padding: '3px 8px', cursor: 'pointer', fontSize: 12 }}>
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <Bookings user={user} onBack={() => setMainTab('messages')} onContact={(id) => { setActiveConv(id); setMainTab('messages') }} />
+      )}
     </div>
   )
 }
