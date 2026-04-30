@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import { useLanguage } from '../LanguageContext'
 
-export default function Bookings({ user, onBack, onContact }) {
+export default function Bookings({ user, onBack, onContact, embedded = false }) {
   const { lang } = useLanguage()
   const [tab, setTab] = useState('received') // received = conducteur, sent = passager
   const [bookings, setBookings] = useState([])
