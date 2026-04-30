@@ -30,7 +30,7 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
     setLoading(true)
     let query = supabase
       .from('bookings')
-      .select('*, rides(from_city, to_city, date, seats)')
+      .select('*, rides(from_city, to_city, date, seats, total_seats)')
       .order('created_at', { ascending: false })
 
     if (tab === 'received') {
