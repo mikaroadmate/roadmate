@@ -136,23 +136,23 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                     💬 {lang === 'fr' ? 'Contacter' : 'Contact'}
                   </button>
                   {isDriver && booking.status === 'pending' && (
-                    <>
-                      <button onClick={() => handleUpdate(booking.id, 'accepted')}
-                        style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #4CAF7D', cursor: 'pointer', background: '#E8F8EF', color: '#4CAF7D', fontSize: 13, fontFamily: "'Fredoka One'" }}>
-                        ✅ {lang === 'fr' ? 'Accepter' : 'Accept'}
-                      </button>
-                      <button onClick={() => handleUpdate(booking.id, 'refused')}
-                        style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #E8572A', cursor: 'pointer', background: '#FFF0EE', color: '#E8572A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
-                        ❌ {lang === 'fr' ? 'Refuser' : 'Refuse'}
-                      </button>
-                    </>
-                  )}
-                  {!isDriver && booking.status === 'pending' && (
-                    <button onClick={() => handleUpdate(booking.id, 'cancelled')}
-                      style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #B5967A', cursor: 'pointer', background: '#F5EDD9', color: '#B5967A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
-                      🚫 {lang === 'fr' ? 'Annuler' : 'Cancel'}
-                    </button>
-                  )}
+  <>
+    <button onClick={() => handleUpdate(booking.id, 'accepted')}
+      style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #4CAF7D', cursor: 'pointer', background: '#E8F8EF', color: '#4CAF7D', fontSize: 13, fontFamily: "'Fredoka One'" }}>
+      ✅ {lang === 'fr' ? 'Accepter' : 'Accept'}
+    </button>
+    <button onClick={() => handleUpdate(booking.id, 'refused')}
+      style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #E8572A', cursor: 'pointer', background: '#FFF0EE', color: '#E8572A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
+      ❌ {lang === 'fr' ? 'Refuser' : 'Refuse'}
+    </button>
+  </>
+)}
+{!isDriver && (booking.status === 'pending' || booking.status === 'accepted') && (
+  <button onClick={() => handleUpdate(booking.id, 'cancelled')}
+    style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #B5967A', cursor: 'pointer', background: '#F5EDD9', color: '#B5967A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
+    🚫 {lang === 'fr' ? 'Annuler' : 'Cancel'}
+  </button>
+)}
                 </div>
               </div>
             )
