@@ -104,19 +104,21 @@ export default function Home({ user, onSignOut, showCGU }) {
   const [otherUserId, setOtherUserId] = useState(null)
   const [contactId, setContactId] = useState(null)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [pendingBookings, setPendingBookings] = useState(0)
   const [shareToast, setShareToast] = useState(false)
 
   useEffect(() => { fetchRides(true) }, [filterCat, filterType, filterWomen, filterDate, filterDateMode])
   useEffect(() => { fetchUnread() }, [])
+  useEffect(() => { fetchPendingBookings() }, [])
   useEffect(() => { fetchFavorites() }, [])
-  useEffect(() => { if (!showMessages) fetchUnread() }, [showMessages])
+  useEffect(() => { if (!showMessages) { fetchUnread(); fetchPendingBookings() } }, [showMessages])
   useEffect(() => {
     cleanPastRides()
     const interval = setInterval(cleanPastRides, 60 * 60 * 1000)
     return () => clearInterval(interval)
   }, [])
   useEffect(() => {
-    const interval = setInterval(fetchUnread, 5000)
+    const interval = setInterval(() => { fetchUnread(); fetchPendingBookings() }, 5000)
     return () => clearInterval(interval)
   }, [])
 
@@ -127,6 +129,15 @@ export default function Home({ user, onSignOut, showCGU }) {
       .eq('receiver_id', user.id)
       .eq('read', false)
     setUnreadCount(count || 0)
+  }
+
+  const fetchPendingBookings = async () => {
+    const { count } = await supabase
+      .from('bookings')
+      .select('*', { count: 'exact', head: true })
+      .eq('driver_id', user.id)
+      .eq('status', 'pending')
+    setPendingBookings(count || 0)
   }
 
   const fetchFavorites = async () => {
@@ -189,48 +200,50 @@ export default function Home({ user, onSignOut, showCGU }) {
     const matchFav = !filterFavorites || favorites.includes(ride.id)
     return matchFrom && matchTo && matchFav
   })
-const handleBooking = async (ride) => {
-  const { data: existing } = await supabase
-  .from('bookings')
-  .select('id, status')
-  .eq('ride_id', ride.id)
-  .eq('passenger_id', user.id)
-  .in('status', ['pending', 'accepted'])
-  .maybeSingle()
 
-if (existing) {
-  alert(lang === 'fr' ? 'Tu as déjà une demande pour ce trajet !' : 'You already have a request for this ride!')
-  return
-}
-
-  const { error } = await supabase.from('bookings').insert({
-    ride_id: ride.id,
-    passenger_id: user.id,
-    driver_id: ride.user_id,
-    status: 'pending'
-  })
-
-  if (!error) {
-    const { data: subData } = await supabase
-      .from('push_subscriptions')
-      .select('subscription')
-      .eq('user_id', ride.user_id)
+  const handleBooking = async (ride) => {
+    const { data: existing } = await supabase
+      .from('bookings')
+      .select('id, status')
+      .eq('ride_id', ride.id)
+      .eq('passenger_id', user.id)
+      .in('status', ['pending', 'accepted'])
       .maybeSingle()
 
-    if (subData) {
-      await fetch('/api/send-notification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subscription: subData.subscription,
-          title: lang === 'fr' ? '🤝 Nouvelle demande de réservation !' : '🤝 New booking request!',
-          body: ride.from_city + ' → ' + ride.to_city
-        })
-      })
+    if (existing) {
+      alert(lang === 'fr' ? 'Tu as déjà une demande pour ce trajet !' : 'You already have a request for this ride!')
+      return
     }
-    alert(lang === 'fr' ? 'Demande envoyée ! ✅' : 'Request sent! ✅')
+
+    const { error } = await supabase.from('bookings').insert({
+      ride_id: ride.id,
+      passenger_id: user.id,
+      driver_id: ride.user_id,
+      status: 'pending'
+    })
+
+    if (!error) {
+      const { data: subData } = await supabase
+        .from('push_subscriptions')
+        .select('subscription')
+        .eq('user_id', ride.user_id)
+        .maybeSingle()
+
+      if (subData) {
+        await fetch('/api/send-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subscription: subData.subscription,
+            title: lang === 'fr' ? '🤝 Nouvelle demande de réservation !' : '🤝 New booking request!',
+            body: ride.from_city + ' → ' + ride.to_city
+          })
+        })
+      }
+      alert(lang === 'fr' ? 'Demande envoyée ! ✅' : 'Request sent! ✅')
+    }
   }
-}
+
   const handleShare = async (ride) => {
     await shareRide(ride, lang)
     setShareToast(true)
@@ -284,6 +297,8 @@ if (existing) {
     fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer'
   })
 
+  const totalBadge = unreadCount + pendingBookings
+
   return (
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
@@ -313,31 +328,15 @@ if (existing) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 14 }}>
           <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 16 }}>📍</span>
-            <input
-              value={searchFrom}
-              onChange={e => setSearchFrom(e.target.value)}
-              placeholder={lang === 'fr' ? "D'où tu pars ?" : 'From where?'}
-              type="search"
-              autoComplete="off"
-              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
-            />
-            {searchFrom && (
-              <button onClick={() => setSearchFrom('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
-            )}
+            <input value={searchFrom} onChange={e => setSearchFrom(e.target.value)} placeholder={lang === 'fr' ? "D'où tu pars ?" : 'From where?'} type="search" autoComplete="off"
+              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }} />
+            {searchFrom && <button onClick={() => setSearchFrom('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>}
           </div>
           <div style={{ background: '#fff', borderRadius: 16, padding: '10px 16px', border: '3px solid #3D2B1F', display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 16 }}>🏁</span>
-            <input
-              value={searchTo}
-              onChange={e => setSearchTo(e.target.value)}
-              placeholder={lang === 'fr' ? 'Où tu vas ?' : 'Where to?'}
-              type="search"
-              autoComplete="off"
-              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }}
-            />
-            {searchTo && (
-              <button onClick={() => setSearchTo('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>
-            )}
+            <input value={searchTo} onChange={e => setSearchTo(e.target.value)} placeholder={lang === 'fr' ? 'Où tu vas ?' : 'Where to?'} type="search" autoComplete="off"
+              style={{ flex: 1, border: 'none', outline: 'none', fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', background: 'transparent', WebkitAppearance: 'none' }} />
+            {searchTo && <button onClick={() => setSearchTo('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#B5967A' }}>✕</button>}
           </div>
         </div>
       </div>
@@ -350,9 +349,7 @@ if (existing) {
         </div>
         <div style={{ display: 'flex', gap: 7, overflowX: 'auto', paddingBottom: 6 }}>
           {CATEGORIES.map(c => (
-            <button key={c.id} onClick={() => setFilterCat(c.id)} style={getCatStyle(c.id)}>
-              {c.icon} {c.label}
-            </button>
+            <button key={c.id} onClick={() => setFilterCat(c.id)} style={getCatStyle(c.id)}>{c.icon} {c.label}</button>
           ))}
         </div>
         <div style={{ marginTop: 8, marginBottom: 4, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -365,20 +362,13 @@ if (existing) {
             {filterFavorites ? '⭐' : '☆'} {lang === 'fr' ? 'Favoris' : 'Favorites'}
           </button>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <input
-              type="date"
-              value={filterDate}
-              onChange={e => setFilterDate(e.target.value)}
-              style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 2 }}
-            />
+            <input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)}
+              style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 2 }} />
             <div style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterDate ? '#E8572A' : '#EDE0CC'), background: filterDate ? '#FFF0EE' : '#fff', color: filterDate ? '#E8572A' : '#B5967A', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
               {filterDate ? '📅 ' + filterDate.split('-').reverse().join('/') : '📅 Date'}
             </div>
             {filterDate && (
-              <button onClick={() => setFilterDate('')}
-                style={{ marginLeft: 4, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#E8572A', fontWeight: 900, zIndex: 3, position: 'relative' }}>
-                ✕
-              </button>
+              <button onClick={() => setFilterDate('')} style={{ marginLeft: 4, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#E8572A', fontWeight: 900, zIndex: 3, position: 'relative' }}>✕</button>
             )}
             {filterDate && (
               <button onClick={() => setFilterDateMode(filterDateMode === 'exact' ? 'from' : 'exact')}
@@ -481,8 +471,12 @@ if (existing) {
                   </div>
 
                   <div style={{ display: 'flex', gap: 6, marginBottom: ride.note ? 10 : 12, alignItems: 'center' }}>
-                    <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>📅 {ride.date ? ride.date.split('-').reverse().join('/') : ''}{ride.time ? ' · ' + ride.time : ''}</span>
-                    <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>💺 {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</span>
+                    <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>
+                      📅 {ride.date ? ride.date.split('-').reverse().join('/') : ''}{ride.time ? ' · ' + ride.time : ''}
+                    </span>
+                    <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: '#F5EDD9', color: '#7B5C42', border: '1.5px solid #EDE0CC' }}>
+                      💺 {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}
+                    </span>
                     <button onClick={() => handleShare(ride)}
                       style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, border: '1.5px solid #EDE0CC', background: '#F5EDD9', color: '#7B5C42', cursor: 'pointer' }}>
                       {lang === 'fr' ? '↗ Partager' : '↗ Share'}
@@ -496,17 +490,17 @@ if (existing) {
                   )}
 
                   <div style={{ display: 'flex', gap: 8 }}>
-  <button onClick={() => { setContactId(ride.user_id); setShowMessages(true) }}
-    style={{ flex: 1, padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#F5EDD9', color: '#3D2B1F', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
-    💬 {t('contact')}
-  </button>
-  {ride.user_id !== user.id && ride.type === 'offer' && (
-    <button onClick={() => handleBooking(ride)}
-      style={{ flex: 1, padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
-      🤝 {lang === 'fr' ? 'Réserver' : 'Book'}
-    </button>
-  )}
-</div>
+                    <button onClick={() => { setContactId(ride.user_id); setShowMessages(true) }}
+                      style={{ flex: 1, padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#F5EDD9', color: '#3D2B1F', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
+                      💬 {t('contact')}
+                    </button>
+                    {ride.user_id !== user.id && ride.type === 'offer' && (
+                      <button onClick={() => handleBooking(ride)}
+                        style={{ flex: 1, padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
+                        🤝 {lang === 'fr' ? 'Réserver' : 'Book'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               )
             })}
@@ -533,14 +527,14 @@ if (existing) {
           <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>{lang === 'fr' ? 'Carte' : 'Map'}</span>
         </button>
         <button onClick={() => setShowMessages(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, position: 'relative' }}>
-  <span style={{ fontSize: 22 }}>📬</span>
-  {unreadCount > 0 && (
-    <div style={{ position: 'absolute', top: -4, right: -4, background: '#E8572A', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
-      <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff' }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
-    </div>
-  )}
-  <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>{lang === 'fr' ? 'Activité' : 'Activity'}</span>
-</button>
+          <span style={{ fontSize: 22 }}>📬</span>
+          {totalBadge > 0 && (
+            <div style={{ position: 'absolute', top: -4, right: -4, background: '#E8572A', borderRadius: '50%', width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
+              <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff' }}>{totalBadge > 9 ? '9+' : totalBadge}</span>
+            </div>
+          )}
+          <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>{lang === 'fr' ? 'Activité' : 'Activity'}</span>
+        </button>
         <button onClick={() => setShowPost(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
           <span style={{ fontSize: 22 }}>➕</span>
           <span style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>{lang === 'fr' ? 'Poster' : 'Post'}</span>
