@@ -9,7 +9,18 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
   const [loading, setLoading] = useState(true)
 
   useEffect(() => { fetchBookings() }, [tab])
-
+useEffect(() => {
+  const channel = supabase.channel('bookings-realtime')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'bookings'
+    }, () => {
+      fetchBookings()
+    })
+    .subscribe()
+  return () => supabase.removeChannel(channel)
+}, [tab])
   const fetchBookings = async () => {
     setLoading(true)
     let query = supabase
