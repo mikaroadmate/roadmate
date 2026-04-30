@@ -191,16 +191,17 @@ export default function Home({ user, onSignOut, showCGU }) {
   })
 const handleBooking = async (ride) => {
   const { data: existing } = await supabase
-    .from('bookings')
-    .select('id, status')
-    .eq('ride_id', ride.id)
-    .eq('passenger_id', user.id)
-    .maybeSingle()
+  .from('bookings')
+  .select('id, status')
+  .eq('ride_id', ride.id)
+  .eq('passenger_id', user.id)
+  .in('status', ['pending', 'accepted'])
+  .maybeSingle()
 
-  if (existing) {
-    alert(lang === 'fr' ? 'Tu as déjà une demande pour ce trajet !' : 'You already have a request for this ride!')
-    return
-  }
+if (existing) {
+  alert(lang === 'fr' ? 'Tu as déjà une demande pour ce trajet !' : 'You already have a request for this ride!')
+  return
+}
 
   const { error } = await supabase.from('bookings').insert({
     ride_id: ride.id,

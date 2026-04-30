@@ -38,9 +38,13 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
 }
 
   const handleUpdate = async (bookingId, status) => {
+  if (status === 'cancelled') {
+    await supabase.from('bookings').delete().eq('id', bookingId)
+  } else {
     await supabase.from('bookings').update({ status }).eq('id', bookingId)
-    fetchBookings()
   }
+  fetchBookings()
+}
 
   const statusLabel = (status) => {
     const labels = {
