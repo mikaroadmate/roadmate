@@ -238,7 +238,7 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
           </button>
           <button onClick={() => setMainTab('bookings')}
             style={{ flex: 1, padding: '10px', borderRadius: 14, border: '2.5px solid rgba(255,255,255,0.3)', cursor: 'pointer', fontFamily: "'Fredoka One'", fontSize: 14, background: mainTab === 'bookings' ? '#E8572A' : 'rgba(255,255,255,0.1)', color: '#fff', position: 'relative' }}>
-            🎫 {lang === 'fr' ? 'Réservations' : 'Bookings'}
+            🤝 {lang === 'fr' ? 'Réservations' : 'Bookings'}
             {pendingBookings > 0 && (
               <div style={{ position: 'absolute', top: -6, right: -6, minWidth: 20, height: 20, borderRadius: 10, background: '#F5A623', border: '2px solid #3D2B1F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontFamily: "'Nunito'", fontWeight: 900, color: '#fff', padding: '0 4px' }}>
                 {pendingBookings > 9 ? '9+' : pendingBookings}
@@ -295,7 +295,7 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
           })}
         </div>
       ) : (
-        <Bookings user={user} onBack={() => setMainTab('messages')} onContact={(id) => { setActiveConv(id); setMainTab('messages') }} />
+        <Bookings user={user} onBack={() => setMainTab('messages')} onContact={(id) => { setActiveConv(id); setMainTab('messages') }} embedded={true} />
       )}
     </div>
   )

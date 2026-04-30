@@ -47,7 +47,7 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 12, padding: '8px 12px', color: '#fff', fontSize: 18, cursor: 'pointer' }}>←</button>
             <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>
-              {lang === 'fr' ? '🎫 Réservations' : '🎫 Bookings'}
+              {lang === 'fr' ? '🤝 Réservations' : '🤝 Bookings'}
             </div>
           </div>
         </div>
@@ -71,7 +71,7 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
           </div>
         ) : bookings.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🎫</div>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>🤝</div>
             <div style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#3D2B1F', marginBottom: 6 }}>
               {lang === 'fr' ? 'Aucune réservation' : 'No bookings yet'}
             </div>

@@ -462,7 +462,7 @@ export default function Home({ user, onSignOut, showCGU }) {
   {ride.user_id !== user.id && ride.type === 'offer' && (
     <button onClick={() => handleBooking(ride)}
       style={{ flex: 1, padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
-      🎫 {lang === 'fr' ? 'Réserver' : 'Book'}
+      🤝 {lang === 'fr' ? 'Réserver' : 'Book'}
     </button>
   )}
 </div>
