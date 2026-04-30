@@ -11,17 +11,25 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
   useEffect(() => { fetchBookings() }, [tab])
 
   const fetchBookings = async () => {
-    setLoading(true)
-    let query = supabase
-      .from('bookings')
-      .select('*, rides(from_city, to_city, date, seats), profiles:passenger_id(name, avatar_url), driver:driver_id(name, avatar_url)')
-      .order('created_at', { ascending: false })
-    if (tab === 'received') query = query.eq('driver_id', user.id)
-    else query = query.eq('passenger_id', user.id)
-    const { data } = await query
-    setBookings(data || [])
-    setLoading(false)
-  }
+  setLoading(true)
+  let query = supabase
+    .from('bookings')
+    .select(`
+      *,
+      rides(from_city, to_city, date, seats),
+      profiles:passenger_id(name, avatar_url),
+      driver:driver_id(name, avatar_url)
+    `)
+    .order('created_at', { ascending: false })
+
+  if (tab === 'received') query = query.eq('driver_id', user.id)
+  else query = query.eq('passenger_id', user.id)
+
+  const { data, error } = await query
+  console.log('bookings data:', data, 'error:', error)
+  setBookings(data || [])
+  setLoading(false)
+}
 
   const handleUpdate = async (bookingId, status) => {
     await supabase.from('bookings').update({ status }).eq('id', bookingId)
