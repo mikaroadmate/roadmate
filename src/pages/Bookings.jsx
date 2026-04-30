@@ -151,7 +151,7 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
     </button>
   </>
 )}
-{(booking.status === 'pending' || booking.status === 'accepted') && (
+{((!isDriver && (booking.status === 'pending' || booking.status === 'accepted')) || (isDriver && booking.status === 'accepted')) && (
   <button onClick={() => handleUpdate(booking.id, 'cancelled')}
     style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #B5967A', cursor: 'pointer', background: '#F5EDD9', color: '#B5967A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
     🚫 {lang === 'fr' ? 'Annuler' : 'Cancel'}
