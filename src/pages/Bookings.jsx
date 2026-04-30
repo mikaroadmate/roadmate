@@ -12,22 +12,28 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
 
   const fetchBookings = async () => {
   setLoading(true)
+  
   let query = supabase
     .from('bookings')
-    .select(`
-      *,
-      rides(from_city, to_city, date, seats),
-      profiles:passenger_id(name, avatar_url),
-      driver:driver_id(name, avatar_url)
-    `)
+    .select('*, rides(from_city, to_city, date, seats)')
     .order('created_at', { ascending: false })
 
   if (tab === 'received') query = query.eq('driver_id', user.id)
   else query = query.eq('passenger_id', user.id)
 
   const { data, error } = await query
-  console.log('bookings data:', data, 'error:', error)
-  setBookings(data || [])
+  console.log('bookings:', data, error)
+
+  if (data) {
+    const enriched = await Promise.all(data.map(async (booking) => {
+      const { data: passenger } = await supabase.from('profiles').select('name, avatar_url').eq('id', booking.passenger_id).single()
+      const { data: driver } = await supabase.from('profiles').select('name, avatar_url').eq('id', booking.driver_id).single()
+      return { ...booking, profiles: passenger, driver }
+    }))
+    setBookings(enriched)
+  } else {
+    setBookings([])
+  }
   setLoading(false)
 }
 
