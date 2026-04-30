@@ -9,7 +9,7 @@ export default function PostRide({ user, onBack, onSuccess }) {
   const [step, setStep] = useState(1)
   const [type, setType] = useState('offer')
   const [category, setCategory] = useState('travel')
-  const [form, setForm] = useState({ from_city: '', to_city: '', date: '', time: '', seats: '2', price: '', note: '', womenOnly: false })
+  const [form, setForm] = useState({ from_city: '', to_city: '', date: '', time: '00:00', seats: '2', price: '', note: '', womenOnly: false })
   const [coords, setCoords] = useState({ from_lat: null, from_lng: null })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
