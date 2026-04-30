@@ -54,18 +54,68 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
   }
 
   const handleAcceptRefuse = async (bookingId, status) => {
-    await supabase.from('bookings').update({ status }).eq('id', bookingId)
-    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b))
+  const booking = bookings.find(b => b.id === bookingId)
+  await supabase.from('bookings').update({ status }).eq('id', bookingId)
+  setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b))
+
+  // Déduire une place si accepté
+  if (status === 'accepted' && booking?.ride_id) {
+    const currentSeats = booking.rides?.seats || 1
+    await supabase.from('rides').update({ seats: Math.max(0, currentSeats - 1) }).eq('id', booking.ride_id)
   }
 
-  const handleCancel = async (bookingId, isDriver) => {
-    // Celui qui annule : on cache de sa liste et on met cancelled
-    const updateData = isDriver
-      ? { status: 'cancelled', hidden_by_driver: true }
-      : { status: 'cancelled', hidden_by_passenger: true }
-    await supabase.from('bookings').update(updateData).eq('id', bookingId)
-    setBookings(prev => prev.filter(b => b.id !== bookingId))
+  // Notifier le passager
+  const { data: subData } = await supabase
+    .from('push_subscriptions')
+    .select('subscription')
+    .eq('user_id', booking.passenger_id)
+    .maybeSingle()
+
+  if (subData) {
+    const title = status === 'accepted'
+      ? (lang === 'fr' ? '✅ Réservation acceptée !' : '✅ Booking accepted!')
+      : (lang === 'fr' ? '❌ Réservation refusée' : '❌ Booking refused')
+    const body = (booking.rides?.from_city || '') + ' → ' + (booking.rides?.to_city || '')
+    await fetch('/api/send-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subscription: subData.subscription, title, body })
+    })
   }
+}
+
+  const handleCancel = async (bookingId, isDriver) => {
+  const booking = bookings.find(b => b.id === bookingId)
+  const updateData = isDriver
+    ? { status: 'cancelled', hidden_by_driver: true }
+    : { status: 'cancelled', hidden_by_passenger: true }
+  await supabase.from('bookings').update(updateData).eq('id', bookingId)
+  setBookings(prev => prev.filter(b => b.id !== bookingId))
+
+  // Remettre la place si c'était accepté
+  if (booking?.status === 'accepted' && booking?.ride_id) {
+    const currentSeats = booking.rides?.seats || 0
+    await supabase.from('rides').update({ seats: currentSeats + 1 }).eq('id', booking.ride_id)
+  }
+
+  // Notifier l'autre personne
+  const notifyUserId = isDriver ? booking.passenger_id : booking.driver_id
+  const { data: subData } = await supabase
+    .from('push_subscriptions')
+    .select('subscription')
+    .eq('user_id', notifyUserId)
+    .maybeSingle()
+
+  if (subData) {
+    const title = lang === 'fr' ? '🚫 Réservation annulée' : '🚫 Booking cancelled'
+    const body = (booking.rides?.from_city || '') + ' → ' + (booking.rides?.to_city || '')
+    await fetch('/api/send-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subscription: subData.subscription, title, body })
+    })
+  }
+}
 
   const handleHide = async (bookingId, isDriver) => {
     // L'autre qui veut faire disparaître la carte annulée
