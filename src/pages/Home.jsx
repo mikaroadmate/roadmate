@@ -475,7 +475,7 @@ export default function Home({ user, onSignOut, showCGU }) {
                       📅 {ride.date ? ride.date.split('-').reverse().join('/') : ''}{ride.time ? ' · ' + ride.time : ''}
                     </span>
                     <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: ride.seats === 0 ? '#FFF0EE' : '#F5EDD9', color: ride.seats === 0 ? '#E8572A' : '#7B5C42', border: '1.5px solid ' + (ride.seats === 0 ? '#E8572A' : '#EDE0CC') }}>
-  💺 {ride.seats}/{ride.total_seats || ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}
+  💺 {ride.seats} {lang === 'fr' ? 'dispo' : 'left'} / {ride.total_seats || ride.seats}
 </span>
                     <button onClick={() => handleShare(ride)}
                       style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 10px', borderRadius: 20, border: '1.5px solid #EDE0CC', background: '#F5EDD9', color: '#7B5C42', cursor: 'pointer' }}>
