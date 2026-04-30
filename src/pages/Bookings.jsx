@@ -12,15 +12,22 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
 useEffect(() => {
   const channel = supabase.channel('bookings-realtime')
     .on('postgres_changes', {
-      event: '*',
+      event: 'DELETE',
       schema: 'public',
       table: 'bookings'
-    }, () => {
-      fetchBookings()
+    }, (payload) => {
+      setBookings(prev => prev.filter(b => b.id !== payload.old.id))
+    })
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'bookings'
+    }, (payload) => {
+      setBookings(prev => prev.map(b => b.id === payload.new.id ? { ...b, status: payload.new.status } : b))
     })
     .subscribe()
   return () => supabase.removeChannel(channel)
-}, [tab])
+}, [])
   const fetchBookings = async () => {
     setLoading(true)
     let query = supabase
