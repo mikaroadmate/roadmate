@@ -37,11 +37,13 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
   setLoading(false)
 }
 
-  const handleUpdate = async (bookingId, status) => {
+ const handleUpdate = async (bookingId, status) => {
   if (status === 'cancelled') {
-    await supabase.from('bookings').delete().eq('id', bookingId)
+    const { error } = await supabase.from('bookings').delete().eq('id', bookingId)
+    console.log('delete error:', error)
   } else {
-    await supabase.from('bookings').update({ status }).eq('id', bookingId)
+    const { error } = await supabase.from('bookings').update({ status }).eq('id', bookingId)
+    console.log('update error:', error)
   }
   fetchBookings()
 }
