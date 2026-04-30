@@ -189,7 +189,47 @@ export default function Home({ user, onSignOut, showCGU }) {
     const matchFav = !filterFavorites || favorites.includes(ride.id)
     return matchFrom && matchTo && matchFav
   })
+const handleBooking = async (ride) => {
+  const { data: existing } = await supabase
+    .from('bookings')
+    .select('id, status')
+    .eq('ride_id', ride.id)
+    .eq('passenger_id', user.id)
+    .maybeSingle()
 
+  if (existing) {
+    alert(lang === 'fr' ? 'Tu as déjà une demande pour ce trajet !' : 'You already have a request for this ride!')
+    return
+  }
+
+  const { error } = await supabase.from('bookings').insert({
+    ride_id: ride.id,
+    passenger_id: user.id,
+    driver_id: ride.user_id,
+    status: 'pending'
+  })
+
+  if (!error) {
+    const { data: subData } = await supabase
+      .from('push_subscriptions')
+      .select('subscription')
+      .eq('user_id', ride.user_id)
+      .maybeSingle()
+
+    if (subData) {
+      await fetch('/api/send-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subscription: subData.subscription,
+          title: lang === 'fr' ? '🤝 Nouvelle demande de réservation !' : '🤝 New booking request!',
+          body: ride.from_city + ' → ' + ride.to_city
+        })
+      })
+    }
+    alert(lang === 'fr' ? 'Demande envoyée ! ✅' : 'Request sent! ✅')
+  }
+}
   const handleShare = async (ride) => {
     await shareRide(ride, lang)
     setShareToast(true)
