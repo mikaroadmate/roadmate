@@ -191,12 +191,12 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                     </button>
                   )}
 
-                  {isCancelled && (
-                    <button onClick={() => handleHide(booking.id, isDriver)}
-                      style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #B5967A', cursor: 'pointer', background: '#F5EDD9', color: '#B5967A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
-                      🗑️ {lang === 'fr' ? 'Supprimer' : 'Remove'}
-                    </button>
-                  )}
+                  {(isCancelled || booking.status === 'refused') && (
+  <button onClick={() => handleHide(booking.id, isDriver)}
+    style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #B5967A', cursor: 'pointer', background: '#F5EDD9', color: '#B5967A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
+    🗑️ {lang === 'fr' ? 'Supprimer' : 'Remove'}
+  </button>
+)}
                 </div>
               </div>
             )
