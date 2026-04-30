@@ -11,42 +11,36 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
   useEffect(() => { fetchBookings() }, [tab])
 
   const fetchBookings = async () => {
-  setLoading(true)
-  
-  let query = supabase
-    .from('bookings')
-    .select('*, rides(from_city, to_city, date, seats)')
-    .order('created_at', { ascending: false })
-
-  if (tab === 'received') query = query.eq('driver_id', user.id)
-  else query = query.eq('passenger_id', user.id)
-
-  const { data, error } = await query
-  console.log('bookings:', data, error)
-
-  if (data) {
-    const enriched = await Promise.all(data.map(async (booking) => {
-      const { data: passenger } = await supabase.from('profiles').select('name, avatar_url').eq('id', booking.passenger_id).single()
-      const { data: driver } = await supabase.from('profiles').select('name, avatar_url').eq('id', booking.driver_id).single()
-      return { ...booking, profiles: passenger, driver }
-    }))
-    setBookings(enriched)
-  } else {
-    setBookings([])
+    setLoading(true)
+    let query = supabase
+      .from('bookings')
+      .select('*, rides(from_city, to_city, date, seats)')
+      .order('created_at', { ascending: false })
+    if (tab === 'received') query = query.eq('driver_id', user.id)
+    else query = query.eq('passenger_id', user.id)
+    const { data } = await query
+    if (data) {
+      const enriched = await Promise.all(data.map(async (booking) => {
+        const { data: passenger } = await supabase.from('profiles').select('name, avatar_url').eq('id', booking.passenger_id).single()
+        const { data: driver } = await supabase.from('profiles').select('name, avatar_url').eq('id', booking.driver_id).single()
+        return { ...booking, profiles: passenger, driver }
+      }))
+      setBookings(enriched)
+    } else {
+      setBookings([])
+    }
+    setLoading(false)
   }
-  setLoading(false)
-}
 
- const handleUpdate = async (bookingId, status) => {
-  if (status === 'cancelled') {
-    const { error } = await supabase.from('bookings').delete().eq('id', bookingId)
-    console.log('delete error:', error)
-  } else {
-    const { error } = await supabase.from('bookings').update({ status }).eq('id', bookingId)
-    console.log('update error:', error)
+  const handleUpdate = async (bookingId, status) => {
+    if (status === 'cancelled') {
+      await supabase.from('bookings').delete().eq('id', bookingId)
+      setBookings(prev => prev.filter(b => b.id !== bookingId))
+    } else {
+      await supabase.from('bookings').update({ status }).eq('id', bookingId)
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b))
+    }
   }
-  fetchBookings()
-}
 
   const statusLabel = (status) => {
     const labels = {
@@ -142,23 +136,23 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                     💬 {lang === 'fr' ? 'Contacter' : 'Contact'}
                   </button>
                   {isDriver && booking.status === 'pending' && (
-  <>
-    <button onClick={() => handleUpdate(booking.id, 'accepted')}
-      style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #4CAF7D', cursor: 'pointer', background: '#E8F8EF', color: '#4CAF7D', fontSize: 13, fontFamily: "'Fredoka One'" }}>
-      ✅ {lang === 'fr' ? 'Accepter' : 'Accept'}
-    </button>
-    <button onClick={() => handleUpdate(booking.id, 'refused')}
-      style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #E8572A', cursor: 'pointer', background: '#FFF0EE', color: '#E8572A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
-      ❌ {lang === 'fr' ? 'Refuser' : 'Refuse'}
-    </button>
-  </>
-)}
-{((!isDriver && (booking.status === 'pending' || booking.status === 'accepted')) || (isDriver && booking.status === 'accepted')) && (
-  <button onClick={() => handleUpdate(booking.id, 'cancelled')}
-    style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #B5967A', cursor: 'pointer', background: '#F5EDD9', color: '#B5967A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
-    🚫 {lang === 'fr' ? 'Annuler' : 'Cancel'}
-  </button>
-)}
+                    <>
+                      <button onClick={() => handleUpdate(booking.id, 'accepted')}
+                        style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #4CAF7D', cursor: 'pointer', background: '#E8F8EF', color: '#4CAF7D', fontSize: 13, fontFamily: "'Fredoka One'" }}>
+                        ✅ {lang === 'fr' ? 'Accepter' : 'Accept'}
+                      </button>
+                      <button onClick={() => handleUpdate(booking.id, 'refused')}
+                        style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #E8572A', cursor: 'pointer', background: '#FFF0EE', color: '#E8572A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
+                        ❌ {lang === 'fr' ? 'Refuser' : 'Refuse'}
+                      </button>
+                    </>
+                  )}
+                  {((!isDriver && (booking.status === 'pending' || booking.status === 'accepted')) || (isDriver && booking.status === 'accepted')) && (
+                    <button onClick={() => handleUpdate(booking.id, 'cancelled')}
+                      style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #B5967A', cursor: 'pointer', background: '#F5EDD9', color: '#B5967A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
+                      🚫 {lang === 'fr' ? 'Annuler' : 'Cancel'}
+                    </button>
+                  )}
                 </div>
               </div>
             )
