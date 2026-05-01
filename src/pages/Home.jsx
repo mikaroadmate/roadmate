@@ -373,11 +373,7 @@ export default function Home({ user, onSignOut, showCGU }) {
                     <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: ride.type === 'offer' ? '#E8F8EF' : '#EFF6FF', color: ride.type === 'offer' ? '#4CAF7D' : '#3B82F6', border: '2px solid ' + (ride.type === 'offer' ? '#4CAF7D' : '#3B82F6'), whiteSpace: 'nowrap' }}>
                       {ride.type === 'offer' ? t('filter_offer') : t('filter_seek')}
                     </span>
-                    {ride.women_only && (
-                      <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#FFF0EE', color: '#E8572A', border: '2px solid #E8572A', whiteSpace: 'nowrap' }}>
-                        👩 {lang === 'fr' ? 'Femmes' : 'Women'}
-                      </span>
-                    )}
+                   
                     <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
                       <button onClick={() => toggleFavorite(ride.id)}
                         style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, border: '2px solid ' + (isFav ? '#F5A623' : '#EDE0CC'), background: isFav ? '#FFF8EE' : '#F5EDD9', color: isFav ? '#F5A623' : '#7B5C42', cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -408,15 +404,14 @@ export default function Home({ user, onSignOut, showCGU }) {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5, flexShrink: 0 }}>
                       {ride.price ? (
-                        <div style={{ background: '#F5A623', borderRadius: 12, padding: '5px 10px', border: '2.5px solid #3D2B1F', boxShadow: '3px 3px 0 rgba(0,0,0,0.2)', textAlign: 'center' }}>
-                          <div style={{ fontSize: 17, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{ride.price}$</div>
-                          <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>{lang === 'fr' ? '/siège' : '/seat'}</div>
-                        </div>
-                      ) : (
-                        <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 12, padding: '5px 10px', textAlign: 'center' }}>
-                          <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff' }}>{lang === 'fr' ? 'Essence' : 'Fuel'}</div>
-                        </div>
-                      )}
+  <div style={{ background: '#F5A623', borderRadius: 10, padding: '3px 8px', border: '2px solid #3D2B1F', boxShadow: '2px 2px 0 rgba(0,0,0,0.2)', textAlign: 'center', flexShrink: 0 }}>
+    <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: '#3D2B1F', lineHeight: 1.1 }}>{ride.price}$ <span style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>{lang === 'fr' ? '/siège' : '/seat'}</span></div>
+  </div>
+) : (
+  <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 10, padding: '3px 8px', textAlign: 'center' }}>
+    <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff' }}>{lang === 'fr' ? 'Essence' : 'Fuel'}</div>
+  </div>
+)}
                       <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: ride.seats === 0 ? '#FFF0EE' : 'rgba(255,255,255,0.2)', color: ride.seats === 0 ? '#E8572A' : '#fff', whiteSpace: 'nowrap' }}>
                         💺 {ride.seats} {lang === 'fr' ? 'dispo' : 'left'} / {ride.total_seats || ride.seats}
                       </span>
@@ -429,23 +424,30 @@ export default function Home({ user, onSignOut, showCGU }) {
                       {ride.profiles?.avatar_url ? <img src={ride.profiles.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
-                          style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#E8572A', cursor: 'pointer', background: 'none', border: 'none', padding: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
-                          {ride.profiles?.name || 'Anonyme'}
-                        </button>
-                        {isVerified && (
-                          <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 13, fontWeight: 700, color: '#4CAF7D', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
-                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-                              <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
-                              <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            {lang === 'fr' ? 'profil vérifié' : 'verified profile'}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.profiles?.nationality || ''}</div>
-                    </div>
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
+        style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#E8572A', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>
+        {ride.profiles?.name || 'Anonyme'}
+      </button>
+      {isVerified && (
+        <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 13, fontWeight: 700, color: '#4CAF7D', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+            <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
+            <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          {lang === 'fr' ? 'profil vérifié' : 'verified profile'}
+        </span>
+      )}
+    </div>
+    {ride.women_only && (
+      <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#FFF0EE', color: '#E8572A', border: '2px solid #E8572A', whiteSpace: 'nowrap', flexShrink: 0 }}>
+        👩 {lang === 'fr' ? 'Femmes' : 'Women'}
+      </span>
+    )}
+  </div>
+  <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.profiles?.nationality || ''}</div>
+</div>
                   </div>
 
                   {/* Note */}
