@@ -182,12 +182,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
           <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
             {t('post_back')}
           </button>
-          {isOwnProfile && (
-            <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
-              style={{ background: editing ? '#4CAF7D' : 'rgba(255,255,255,0.2)', border: '2px solid ' + (editing ? '#3D2B1F' : 'rgba(255,255,255,0.4)'), borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer', boxShadow: editing ? '3px 3px 0 #3D2B1F' : 'none' }}>
-              {saving ? (lang === 'fr' ? 'Sauvegarde...' : 'Saving...') : editing ? t('profile_save') : t('profile_edit')}
-            </button>
-          )}
+          
         </div>
 
         {/* Avatar + Nom */}
