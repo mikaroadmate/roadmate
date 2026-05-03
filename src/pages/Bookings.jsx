@@ -66,9 +66,11 @@ useEffect(() => {
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b))
 
     if (status === 'accepted' && booking?.ride_id) {
-      const currentSeats = booking.rides?.seats || 1
-      await supabase.from('rides').update({ seats: Math.max(0, currentSeats - 1) }).eq('id', booking.ride_id)
-    }
+  const { data: rideData } = await supabase.from('rides').select('seats').eq('id', booking.ride_id).single()
+  if (rideData) {
+    await supabase.from('rides').update({ seats: Math.max(0, (rideData.seats || 1) - 1) }).eq('id', booking.ride_id)
+  }
+}
 
     const { data: subData } = await supabase.from('push_subscriptions').select('subscription').eq('user_id', booking.passenger_id).maybeSingle()
     if (subData) {
@@ -88,9 +90,11 @@ await supabase.from('bookings').update({ ...updateData, [notifyCol]: false }).eq
     setBookings(prev => prev.filter(b => b.id !== bookingId))
 
     if (booking?.status === 'accepted' && booking?.ride_id) {
-      const currentSeats = booking.rides?.seats || 0
-      await supabase.from('rides').update({ seats: currentSeats + 1 }).eq('id', booking.ride_id)
-    }
+  const { data: rideData } = await supabase.from('rides').select('seats, total_seats').eq('id', booking.ride_id).single()
+  if (rideData) {
+    await supabase.from('rides').update({ seats: (rideData.seats || 0) + 1 }).eq('id', booking.ride_id)
+  }
+}
 
     const notifyUserId = isDriver ? booking.passenger_id : booking.driver_id
     const { data: subData } = await supabase.from('push_subscriptions').select('subscription').eq('user_id', notifyUserId).maybeSingle()
