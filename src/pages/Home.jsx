@@ -60,7 +60,6 @@ const cleanPastRides = async () => {
       const departure = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hours, minutes)
       const deleteAfter = new Date(departure.getTime() + 8 * 60 * 60 * 1000)
       if (now > deleteAfter) {
-        // Vérifier si une réservation acceptée existe
         const { data: bookings } = await supabase
           .from('bookings')
           .select('id')
@@ -123,8 +122,7 @@ export default function Home({ user, onSignOut, showCGU }) {
   useEffect(() => { fetchPendingBookings() }, [])
   useEffect(() => { fetchFavorites() }, [])
   useEffect(() => { if (!showMessages) { fetchUnread(); fetchPendingBookings() } }, [showMessages])
-  useEffect(() => { fetchPendingBookings() }, [])
-    useEffect(() => {
+  useEffect(() => {
     cleanPastRides()
     const interval = setInterval(cleanPastRides, 60 * 60 * 1000)
     return () => clearInterval(interval)
@@ -140,20 +138,19 @@ export default function Home({ user, onSignOut, showCGU }) {
   }
 
   const fetchPendingBookings = async () => {
-  const { count } = await supabase
-    .from('bookings')
-    .select('*', { count: 'exact', head: true })
-    .eq('driver_id', user.id)
-    .eq('seen_by_driver', false)
-  
-  const { count: count2 } = await supabase
-    .from('bookings')
-    .select('*', { count: 'exact', head: true })
-    .eq('passenger_id', user.id)
-    .eq('seen_by_passenger', false)
+    const { count } = await supabase
+      .from('bookings')
+      .select('*', { count: 'exact', head: true })
+      .eq('driver_id', user.id)
+      .eq('seen_by_driver', false)
+    const { count: count2 } = await supabase
+      .from('bookings')
+      .select('*', { count: 'exact', head: true })
+      .eq('passenger_id', user.id)
+      .eq('seen_by_passenger', false)
+    setPendingBookings((count || 0) + (count2 || 0))
+  }
 
-  setPendingBookings((count || 0) + (count2 || 0))
-}
   const fetchFavorites = async () => {
     const { data } = await supabase.from('favorites').select('ride_id').eq('user_id', user.id)
     setFavorites(data?.map(f => f.ride_id) || [])
@@ -218,7 +215,7 @@ export default function Home({ user, onSignOut, showCGU }) {
       alert(lang === 'fr' ? 'Tu as déjà une demande pour ce trajet !' : 'You already have a request for this ride!')
       return
     }
-    const { error, data: newBooking } = await supabase.from('bookings').insert({ ride_id: ride.id, passenger_id: user.id, driver_id: ride.user_id, status: 'pending', seen_by_driver: false }).select().single()
+    const { error } = await supabase.from('bookings').insert({ ride_id: ride.id, passenger_id: user.id, driver_id: ride.user_id, status: 'pending', seen_by_driver: false }).select().single()
     if (!error) {
       const { data: subData } = await supabase.from('push_subscriptions').select('subscription').eq('user_id', ride.user_id).maybeSingle()
       if (subData) {
@@ -330,29 +327,29 @@ export default function Home({ user, onSignOut, showCGU }) {
           ))}
         </div>
         <div style={{ marginTop: 8, marginBottom: 4, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-    <input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)}
-      style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 2 }} />
-    <div style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterDate ? '#3D2B1F' : '#EDE0CC'), background: filterDate ? '#3D2B1F' : '#fff', color: filterDate ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
-      {filterDate ? '📅 ' + filterDate.split('-').reverse().join('/') : '📅 Date'}
-    </div>
-    {filterDate && <button onClick={() => setFilterDate('')} style={{ marginLeft: 4, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#3D2B1F', fontWeight: 900, zIndex: 3, position: 'relative' }}>✕</button>}
-    {filterDate && (
-      <button onClick={() => setFilterDateMode(filterDateMode === 'exact' ? 'from' : 'exact')}
-        style={{ marginLeft: 4, background: filterDateMode === 'from' ? '#3D2B1F' : '#fff', border: '2px solid ' + (filterDateMode === 'from' ? '#3D2B1F' : '#EDE0CC'), borderRadius: 10, cursor: 'pointer', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: filterDateMode === 'from' ? '#fff' : '#7B5C42', padding: '3px 8px', zIndex: 3, position: 'relative' }}>
-        {filterDateMode === 'exact' ? '= Exact' : (lang === 'fr' ? '≥ À partir' : '≥ From')}
-      </button>
-    )}
-  </div>
-  <button onClick={() => setFilterWomen(!filterWomen)}
-    style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterWomen ? '#3D2B1F' : '#EDE0CC'), background: filterWomen ? '#3D2B1F' : '#fff', color: filterWomen ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
-    {t('women_only_filter')}
-  </button>
-  <button onClick={() => setFilterFavorites(!filterFavorites)}
-    style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterFavorites ? '#3D2B1F' : '#EDE0CC'), background: filterFavorites ? '#3D2B1F' : '#fff', color: filterFavorites ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
-    {filterFavorites ? '⭐' : '☆'} {lang === 'fr' ? 'Favoris' : 'Favorites'}
-  </button>
-</div>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)}
+              style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 2 }} />
+            <div style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterDate ? '#3D2B1F' : '#EDE0CC'), background: filterDate ? '#3D2B1F' : '#fff', color: filterDate ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+              {filterDate ? '📅 ' + filterDate.split('-').reverse().join('/') : '📅 Date'}
+            </div>
+            {filterDate && <button onClick={() => setFilterDate('')} style={{ marginLeft: 4, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#3D2B1F', fontWeight: 900, zIndex: 3, position: 'relative' }}>✕</button>}
+            {filterDate && (
+              <button onClick={() => setFilterDateMode(filterDateMode === 'exact' ? 'from' : 'exact')}
+                style={{ marginLeft: 4, background: filterDateMode === 'from' ? '#3D2B1F' : '#fff', border: '2px solid ' + (filterDateMode === 'from' ? '#3D2B1F' : '#EDE0CC'), borderRadius: 10, cursor: 'pointer', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: filterDateMode === 'from' ? '#fff' : '#7B5C42', padding: '3px 8px', zIndex: 3, position: 'relative' }}>
+                {filterDateMode === 'exact' ? '= Exact' : (lang === 'fr' ? '≥ À partir' : '≥ From')}
+              </button>
+            )}
+          </div>
+          <button onClick={() => setFilterWomen(!filterWomen)}
+            style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterWomen ? '#3D2B1F' : '#EDE0CC'), background: filterWomen ? '#3D2B1F' : '#fff', color: filterWomen ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
+            {t('women_only_filter')}
+          </button>
+          <button onClick={() => setFilterFavorites(!filterFavorites)}
+            style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterFavorites ? '#3D2B1F' : '#EDE0CC'), background: filterFavorites ? '#3D2B1F' : '#fff', color: filterFavorites ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
+            {filterFavorites ? '⭐' : '☆'} {lang === 'fr' ? 'Favoris' : 'Favorites'}
+          </button>
+        </div>
       </div>
 
       <div style={{ padding: '12px 22px 100px' }}>
@@ -387,7 +384,7 @@ export default function Home({ user, onSignOut, showCGU }) {
               return (
                 <div key={ride.id} style={{ background: '#fff', borderRadius: 20, overflow: 'hidden', border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 12 }}>
 
-                  {/* ROW 1 : Tags + Women + Save + Share */}
+                  {/* ROW 1 */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '12px 14px 10px', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: colors.bg, color: '#3D2B1F', border: '2px solid ' + colors.color, whiteSpace: 'nowrap' }}>
                       {cat?.icon} {cat?.label}
@@ -395,7 +392,6 @@ export default function Home({ user, onSignOut, showCGU }) {
                     <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: ride.type === 'offer' ? '#E8F8EF' : '#EFF6FF', color: ride.type === 'offer' ? '#4CAF7D' : '#3B82F6', border: '2px solid ' + (ride.type === 'offer' ? '#4CAF7D' : '#3B82F6'), whiteSpace: 'nowrap' }}>
                       {ride.type === 'offer' ? t('filter_offer') : t('filter_seek')}
                     </span>
-                   
                     <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
                       <button onClick={() => toggleFavorite(ride.id)}
                         style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, border: '2px solid ' + (isFav ? '#F5A623' : '#EDE0CC'), background: isFav ? '#FFF8EE' : '#F5EDD9', color: isFav ? '#F5A623' : '#7B5C42', cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -408,17 +404,13 @@ export default function Home({ user, onSignOut, showCGU }) {
                     </div>
                   </div>
 
-                  {/* ROW 2 : Header orange — Trajet + date | Prix + places */}
+                  {/* ROW 2 */}
                   <div style={{ background: 'linear-gradient(135deg, #E8572A, #C4622D)', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5, flexWrap: 'wrap' }}>
-                        <span style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.2)' }}>
-  {ride.from_city}
-</span>
-<span style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', flexShrink: 0 }}>→</span>
-<span style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.2)' }}>
-  {ride.to_city}
-</span>
+                        <span style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.2)' }}>{ride.from_city}</span>
+                        <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', flexShrink: 0 }}>→</span>
+                        <span style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.2)' }}>{ride.to_city}</span>
                       </div>
                       <span style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>
                         📅 {ride.date ? ride.date.split('-').reverse().join('/') : ''}{ride.time ? ' · ' + ride.time : ''}
@@ -426,50 +418,54 @@ export default function Home({ user, onSignOut, showCGU }) {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5, flexShrink: 0 }}>
                       {ride.price ? (
-  <div style={{ background: '#F5A623', borderRadius: 10, padding: '3px 8px', border: '2px solid #3D2B1F', boxShadow: '2px 2px 0 rgba(0,0,0,0.2)', textAlign: 'center', flexShrink: 0 }}>
-    <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: '#3D2B1F', lineHeight: 1.1 }}>{ride.price}$ <span style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>{lang === 'fr' ? '/siège' : '/seat'}</span></div>
-  </div>
-) : (
-  <div style={{ background: '#F5A623', borderRadius: 10, padding: '3px 8px', border: '2px solid #3D2B1F', boxShadow: '2px 2px 0 rgba(0,0,0,0.2)', textAlign: 'center', flexShrink: 0 }}>
-    <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: '#3D2B1F', lineHeight: 1.1 }}>⛽ <span style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>{lang === 'fr' ? 'Essence' : 'Fuel'}</span></div>
-  </div>
-)}
+                        <div style={{ background: '#F5A623', borderRadius: 10, padding: '3px 8px', border: '2px solid #3D2B1F', boxShadow: '2px 2px 0 rgba(0,0,0,0.2)', textAlign: 'center', flexShrink: 0 }}>
+                          <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: '#3D2B1F', lineHeight: 1.1 }}>{ride.price}$ <span style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>{lang === 'fr' ? '/siège' : '/seat'}</span></div>
+                        </div>
+                      ) : (
+                        <div style={{ background: '#F5A623', borderRadius: 10, padding: '3px 8px', border: '2px solid #3D2B1F', boxShadow: '2px 2px 0 rgba(0,0,0,0.2)', textAlign: 'center', flexShrink: 0 }}>
+                          <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: '#3D2B1F', lineHeight: 1.1 }}>⛽ <span style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>{lang === 'fr' ? 'Essence' : 'Fuel'}</span></div>
+                        </div>
+                      )}
                       <div style={{ background: ride.seats === 0 ? '#E8572A' : '#F5A623', borderRadius: 10, padding: '3px 8px', border: '2px solid #3D2B1F', boxShadow: '2px 2px 0 rgba(0,0,0,0.2)', textAlign: 'center', flexShrink: 0 }}>
-  <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: '#3D2B1F', lineHeight: 1.1 }}>💺 {ride.seats}/{ride.total_seats || ride.seats} <span style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>{lang === 'fr' ? 'dispo' : 'left'}</span></div>
-</div>
+                        <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: '#3D2B1F', lineHeight: 1.1 }}>💺 {ride.seats}/{ride.total_seats || ride.seats} <span style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>{lang === 'fr' ? 'dispo' : 'left'}</span></div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* ROW 3 : Profil */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
+                  {/* ROW 3 */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px' }}>
                     <div style={{ width: 44, height: 44, borderRadius: 14, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: '2.5px solid #3D2B1F', overflow: 'hidden', flexShrink: 0 }}>
                       {ride.profiles?.avatar_url ? <img src={ride.profiles.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
-        style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#E8572A', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>
-        {ride.profiles?.name || 'Anonyme'}
-      </button>
-      {isVerified && (
-        <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 13, fontWeight: 700, color: '#4CAF7D', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-            <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
-            <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          {lang === 'fr' ? 'profil vérifié' : 'verified profile'}
-        </span>
-      )}
-    </div>
-    {ride.women_only && (
-      <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#FFF0EE', color: '#E8572A', border: '2px solid #E8572A', whiteSpace: 'nowrap', flexShrink: 0 }}>
-        👩 {lang === 'fr' ? 'Femmes' : 'Women'}
-      </span>
-    )}
-  </div>
-  <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.profiles?.nationality || ''}</div>
-</div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                          <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
+                            style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#E8572A', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>
+                            {ride.profiles?.name || 'Anonyme'}
+                          </button>
+                          {ride.profiles?.nationality && (
+                            <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>· {ride.profiles.nationality}</span>
+                          )}
+                          {isVerified && (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+                              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                                <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
+                                <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                              <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 12, fontWeight: 700, color: '#4CAF7D', fontStyle: 'italic' }}>
+                                {lang === 'fr' ? 'profil vérifié' : 'verified'}
+                              </span>
+                            </span>
+                          )}
+                        </div>
+                        {ride.women_only && (
+                          <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#FFF0EE', color: '#E8572A', border: '2px solid #E8572A', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                            👩 {lang === 'fr' ? 'Femmes' : 'Women'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Note */}
