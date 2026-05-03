@@ -248,7 +248,7 @@ export default function Home({ user, onSignOut, showCGU }) {
     flexShrink: 0, padding: '6px 14px', borderRadius: 20,
     border: '2.5px solid ' + (filterCat === id ? '#3D2B1F' : '#EDE0CC'),
     background: filterCat === id ? '#E8572A' : '#fff',
-    color: filterCat === id ? '#fff' : '#B5967A',
+    color: filterCat === id ? '#fff' : '#7B5C42',
     fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer'
   })
 
@@ -309,17 +309,17 @@ export default function Home({ user, onSignOut, showCGU }) {
         </div>
         <div style={{ marginTop: 8, marginBottom: 4, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <button onClick={() => setFilterWomen(!filterWomen)}
-            style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterWomen ? '#E8572A' : '#EDE0CC'), background: filterWomen ? '#FFF0EE' : '#fff', color: filterWomen ? '#E8572A' : '#B5967A', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
+            style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterWomen ? '#3D2B1F' : '#EDE0CC'), background: filterWomen ? '#3D2B1F' : '#fff', color: filterWomen ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
             {t('women_only_filter')}
           </button>
           <button onClick={() => setFilterFavorites(!filterFavorites)}
-            style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterFavorites ? '#F5A623' : '#EDE0CC'), background: filterFavorites ? '#FFF8EE' : '#fff', color: filterFavorites ? '#F5A623' : '#B5967A', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
+            style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterFavorites ? '#3D2B1F' : '#EDE0CC'), background: filterFavorites ? '#3D2B1F' : '#fff', color: filterFavorites ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
             {filterFavorites ? '⭐' : '☆'} {lang === 'fr' ? 'Favoris' : 'Favorites'}
           </button>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)}
               style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 2 }} />
-            <div style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterDate ? '#E8572A' : '#EDE0CC'), background: filterDate ? '#FFF0EE' : '#fff', color: filterDate ? '#E8572A' : '#B5967A', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+            <div style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterDate ? '#3D2B1F' : '#EDE0CC'), background: filterDate ? '#3D2B1F' : '#fff', color: filterDate ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
               {filterDate ? '📅 ' + filterDate.split('-').reverse().join('/') : '📅 Date'}
             </div>
             {filterDate && <button onClick={() => setFilterDate('')} style={{ marginLeft: 4, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#E8572A', fontWeight: 900, zIndex: 3, position: 'relative' }}>✕</button>}
