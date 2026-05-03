@@ -7,6 +7,7 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
   const [tab, setTab] = useState('received')
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
+  const [reviewForms, setReviewForms] = useState({})
 
   useEffect(() => { fetchBookings() }, [tab])
 
@@ -19,7 +20,7 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
         if (hiddenForMe) {
           setBookings(prev => prev.filter(b => b.id !== updated.id))
         } else {
-          setBookings(prev => prev.map(b => b.id === updated.id ? { ...b, status: updated.status, hidden_by_driver: updated.hidden_by_driver, hidden_by_passenger: updated.hidden_by_passenger } : b))
+          setBookings(prev => prev.map(b => b.id === updated.id ? { ...b, ...updated } : b))
         }
       })
       .subscribe()
@@ -54,74 +55,79 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
   }
 
   const handleAcceptRefuse = async (bookingId, status) => {
-  const booking = bookings.find(b => b.id === bookingId)
-  await supabase.from('bookings').update({ status }).eq('id', bookingId)
-  setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b))
+    const booking = bookings.find(b => b.id === bookingId)
+    await supabase.from('bookings').update({ status }).eq('id', bookingId)
+    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b))
 
-  // Déduire une place si accepté
-  if (status === 'accepted' && booking?.ride_id) {
-    const currentSeats = booking.rides?.seats || 1
-    await supabase.from('rides').update({ seats: Math.max(0, currentSeats - 1) }).eq('id', booking.ride_id)
+    if (status === 'accepted' && booking?.ride_id) {
+      const currentSeats = booking.rides?.seats || 1
+      await supabase.from('rides').update({ seats: Math.max(0, currentSeats - 1) }).eq('id', booking.ride_id)
+    }
+
+    const { data: subData } = await supabase.from('push_subscriptions').select('subscription').eq('user_id', booking.passenger_id).maybeSingle()
+    if (subData) {
+      const title = status === 'accepted'
+        ? (lang === 'fr' ? '✅ Réservation acceptée !' : '✅ Booking accepted!')
+        : (lang === 'fr' ? '❌ Réservation refusée' : '❌ Booking refused')
+      const body = (booking.rides?.from_city || '') + ' → ' + (booking.rides?.to_city || '')
+      await fetch('/api/send-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: subData.subscription, title, body }) })
+    }
   }
-
-  // Notifier le passager
-  const { data: subData } = await supabase
-    .from('push_subscriptions')
-    .select('subscription')
-    .eq('user_id', booking.passenger_id)
-    .maybeSingle()
-
-  if (subData) {
-    const title = status === 'accepted'
-      ? (lang === 'fr' ? '✅ Réservation acceptée !' : '✅ Booking accepted!')
-      : (lang === 'fr' ? '❌ Réservation refusée' : '❌ Booking refused')
-    const body = (booking.rides?.from_city || '') + ' → ' + (booking.rides?.to_city || '')
-    await fetch('/api/send-notification', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subscription: subData.subscription, title, body })
-    })
-  }
-}
 
   const handleCancel = async (bookingId, isDriver) => {
-  const booking = bookings.find(b => b.id === bookingId)
-  const updateData = isDriver
-    ? { status: 'cancelled', hidden_by_driver: true }
-    : { status: 'cancelled', hidden_by_passenger: true }
-  await supabase.from('bookings').update(updateData).eq('id', bookingId)
-  setBookings(prev => prev.filter(b => b.id !== bookingId))
+    const booking = bookings.find(b => b.id === bookingId)
+    const updateData = isDriver ? { status: 'cancelled', hidden_by_driver: true } : { status: 'cancelled', hidden_by_passenger: true }
+    await supabase.from('bookings').update(updateData).eq('id', bookingId)
+    setBookings(prev => prev.filter(b => b.id !== bookingId))
 
-  // Remettre la place si c'était accepté
-  if (booking?.status === 'accepted' && booking?.ride_id) {
-    const currentSeats = booking.rides?.seats || 0
-    await supabase.from('rides').update({ seats: currentSeats + 1 }).eq('id', booking.ride_id)
+    if (booking?.status === 'accepted' && booking?.ride_id) {
+      const currentSeats = booking.rides?.seats || 0
+      await supabase.from('rides').update({ seats: currentSeats + 1 }).eq('id', booking.ride_id)
+    }
+
+    const notifyUserId = isDriver ? booking.passenger_id : booking.driver_id
+    const { data: subData } = await supabase.from('push_subscriptions').select('subscription').eq('user_id', notifyUserId).maybeSingle()
+    if (subData) {
+      const title = lang === 'fr' ? '🚫 Réservation annulée' : '🚫 Booking cancelled'
+      const body = (booking.rides?.from_city || '') + ' → ' + (booking.rides?.to_city || '')
+      await fetch('/api/send-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: subData.subscription, title, body }) })
+    }
   }
-
-  // Notifier l'autre personne
-  const notifyUserId = isDriver ? booking.passenger_id : booking.driver_id
-  const { data: subData } = await supabase
-    .from('push_subscriptions')
-    .select('subscription')
-    .eq('user_id', notifyUserId)
-    .maybeSingle()
-
-  if (subData) {
-    const title = lang === 'fr' ? '🚫 Réservation annulée' : '🚫 Booking cancelled'
-    const body = (booking.rides?.from_city || '') + ' → ' + (booking.rides?.to_city || '')
-    await fetch('/api/send-notification', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subscription: subData.subscription, title, body })
-    })
-  }
-}
 
   const handleHide = async (bookingId, isDriver) => {
-    // L'autre qui veut faire disparaître la carte annulée
     const updateData = isDriver ? { hidden_by_driver: true } : { hidden_by_passenger: true }
     await supabase.from('bookings').update(updateData).eq('id', bookingId)
     setBookings(prev => prev.filter(b => b.id !== bookingId))
+  }
+
+  const handleConfirmTrip = async (bookingId, isDriver) => {
+    const updateData = isDriver ? { completed_by_driver: true } : { completed_by_passenger: true }
+    await supabase.from('bookings').update(updateData).eq('id', bookingId)
+    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...updateData } : b))
+  }
+
+  const handleSubmitReview = async (bookingId, isDriver, rating, comment) => {
+    const booking = bookings.find(b => b.id === bookingId)
+    const reviewedId = isDriver ? booking.passenger_id : booking.driver_id
+    await supabase.from('reviews').insert({
+      reviewer_id: user.id,
+      reviewed_id: reviewedId,
+      booking_id: bookingId,
+      rating,
+      comment
+    })
+    const updateData = isDriver ? { reviewed_by_driver: true } : { reviewed_by_passenger: true }
+    await supabase.from('bookings').update(updateData).eq('id', bookingId)
+    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...updateData } : b))
+    setReviewForms(prev => ({ ...prev, [bookingId]: null }))
+  }
+
+  const isRidePast = (booking) => {
+    if (!booking.rides?.date) return false
+    const parts = booking.rides.date.split('-')
+    const timeParts = (booking.rides.time || '23:59').split(':')
+    const rideDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), parseInt(timeParts[0]), parseInt(timeParts[1]))
+    return new Date() > rideDate
   }
 
   const statusLabel = (status) => {
@@ -183,6 +189,13 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
             const isDriver = tab === 'received'
             const person = isDriver ? booking.profiles : booking.driver
             const isCancelled = booking.status === 'cancelled'
+            const past = isRidePast(booking)
+            const confirmedByMe = isDriver ? booking.completed_by_driver : booking.completed_by_passenger
+            const reviewedByMe = isDriver ? booking.reviewed_by_driver : booking.reviewed_by_passenger
+            const showConfirm = booking.status === 'accepted' && past && !confirmedByMe
+            const showReview = booking.status === 'accepted' && past && confirmedByMe && !reviewedByMe
+            const reviewForm = reviewForms[booking.id] || { rating: 5, comment: '' }
+
             return (
               <div key={booking.id} style={{ background: '#fff', borderRadius: 20, overflow: 'hidden', border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 12 }}>
 
@@ -190,13 +203,9 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                 <div style={{ background: 'linear-gradient(135deg, #E8572A, #C4622D)', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5, flexWrap: 'wrap' }}>
-                      <span style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.2)' }}>
-                        {booking.rides?.from_city}
-                      </span>
+                      <span style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.2)' }}>{booking.rides?.from_city}</span>
                       <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', flexShrink: 0 }}>→</span>
-                      <span style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.2)' }}>
-                        {booking.rides?.to_city}
-                      </span>
+                      <span style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.2)' }}>{booking.rides?.to_city}</span>
                     </div>
                     <span style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>
                       📅 {booking.rides?.date ? booking.rides.date.split('-').reverse().join('/') : ''}{booking.rides?.time ? ' · ' + booking.rides.time : ''}
@@ -214,6 +223,45 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                   </div>
                   <div style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#E8572A' }}>{person?.name || 'Anonyme'}</div>
                 </div>
+
+                {/* Confirmation trajet effectué */}
+                {showConfirm && (
+                  <div style={{ margin: '0 14px 12px', background: '#FFF8EE', borderRadius: 12, padding: '12px', border: '2px dashed #F5A623', textAlign: 'center' }}>
+                    <div style={{ fontFamily: "'Fredoka One'", fontSize: 15, color: '#3D2B1F', marginBottom: 8 }}>
+                      {lang === 'fr' ? '🚗 Ce trajet a eu lieu ?' : '🚗 Did this trip happen?'}
+                    </div>
+                    <button onClick={() => handleConfirmTrip(booking.id, isDriver)}
+                      style={{ padding: '8px 20px', borderRadius: 12, border: '2.5px solid #4CAF7D', background: '#E8F8EF', color: '#4CAF7D', fontSize: 14, fontFamily: "'Fredoka One'", cursor: 'pointer' }}>
+                      ✅ {lang === 'fr' ? 'Oui, confirmer' : 'Yes, confirm'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Formulaire d'avis */}
+                {showReview && (
+                  <div style={{ margin: '0 14px 12px', background: '#FFF8EE', borderRadius: 12, padding: '12px', border: '2px dashed #F5A623' }}>
+                    <div style={{ fontFamily: "'Fredoka One'", fontSize: 15, color: '#3D2B1F', marginBottom: 8 }}>
+                      ⭐ {lang === 'fr' ? 'Laisser un avis' : 'Leave a review'}
+                    </div>
+                    <div style={{ display: 'flex', gap: 4, marginBottom: 8, justifyContent: 'center' }}>
+                      {[1,2,3,4,5].map(star => (
+                        <button key={star} onClick={() => setReviewForms(prev => ({ ...prev, [booking.id]: { ...reviewForm, rating: star } }))}
+                          style={{ fontSize: 24, background: 'none', border: 'none', cursor: 'pointer', opacity: star <= reviewForm.rating ? 1 : 0.3 }}>⭐</button>
+                      ))}
+                    </div>
+                    <textarea
+                      value={reviewForm.comment}
+                      onChange={e => setReviewForms(prev => ({ ...prev, [booking.id]: { ...reviewForm, comment: e.target.value } }))}
+                      placeholder={lang === 'fr' ? 'Ton commentaire (optionnel)...' : 'Your comment (optional)...'}
+                      rows={2}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: 10, border: '2px solid #EDE0CC', fontSize: 13, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', marginBottom: 8 }}
+                    />
+                    <button onClick={() => handleSubmitReview(booking.id, isDriver, reviewForm.rating, reviewForm.comment)}
+                      style={{ width: '100%', padding: '10px', borderRadius: 12, border: '2.5px solid #3D2B1F', background: '#F5A623', color: '#3D2B1F', fontSize: 14, fontFamily: "'Fredoka One'", cursor: 'pointer', boxShadow: '3px 3px 0 #3D2B1F' }}>
+                      {lang === 'fr' ? 'Envoyer ⭐' : 'Send ⭐'}
+                    </button>
+                  </div>
+                )}
 
                 {/* Boutons */}
                 <div style={{ display: 'flex', gap: 8, padding: '0 14px 14px' }}>
