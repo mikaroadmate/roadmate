@@ -49,19 +49,30 @@ const cleanPastRides = async () => {
   if (!rides) return
   const now = new Date()
   const toDelete = []
-  rides.forEach(ride => {
+  for (const ride of rides) {
     try {
       const parts = ride.date?.split('-')
-      if (!parts || parts.length !== 3) return
+      if (!parts || parts.length !== 3) continue
       const [year, month, day] = parts
       const timeParts = (ride.time || '00:00').split(':')
       const hours = parseInt(timeParts[0]) || 0
       const minutes = parseInt(timeParts[1]) || 0
       const departure = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), hours, minutes)
       const deleteAfter = new Date(departure.getTime() + 8 * 60 * 60 * 1000)
-      if (now > deleteAfter) toDelete.push(ride.id)
+      if (now > deleteAfter) {
+        // Vérifier si une réservation acceptée existe
+        const { data: bookings } = await supabase
+          .from('bookings')
+          .select('id')
+          .eq('ride_id', ride.id)
+          .eq('status', 'accepted')
+          .limit(1)
+        if (!bookings || bookings.length === 0) {
+          toDelete.push(ride.id)
+        }
+      }
     } catch (e) {}
-  })
+  }
   if (toDelete.length > 0) {
     await supabase.from('rides').delete().in('id', toDelete)
   }
