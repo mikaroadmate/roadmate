@@ -242,37 +242,33 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
 
         {/* TRAVELER INFO */}
         <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
-          <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 12 }}>🧳 {t('profile_traveler')}</div>
+         <div style={{ marginBottom: 12 }}>
+  <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{t('profile_bio')}</div>
+  {editing ? (
+    <textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
+      placeholder={lang === 'fr' ? 'Parle de toi...' : 'Tell us about yourself...'}
+      rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6 }} />
+  ) : (
+    <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6 }}>{profile?.bio || (lang === 'fr' ? 'Aucune bio' : 'No bio')}</div>
+  )}
+</div>
 
-          <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📋 {t('profile_visa')}</div>
-              {editing ? (
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {VISAS.map(v => (
-                    <button key={v} onClick={() => setForm(p => ({ ...p, visa: v }))}
-                      style={{ padding: '5px 10px', borderRadius: 20, border: '2.5px solid ' + (form.visa === v ? '#3D2B1F' : '#EDE0CC'), background: form.visa === v ? '#E8572A' : '#fff', color: form.visa === v ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
-                      {v}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 20, background: '#FFF3E0', border: '2px solid #F97316', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#F97316' }}>
-                  {profile?.visa || '-'}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{t('profile_bio')}</div>
-            {editing ? (
-              <textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
-                placeholder={lang === 'fr' ? 'Parle de toi...' : 'Tell us about yourself...'}
-                rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6 }} />
-            ) : (
-              <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6 }}>{profile?.bio || (lang === 'fr' ? 'Aucune bio' : 'No bio')}</div>
-            )}
+<div style={{ marginBottom: 12 }}>
+  <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📋 {t('profile_visa')}</div>
+  {editing ? (
+    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      {VISAS.map(v => (
+        <button key={v} onClick={() => setForm(p => ({ ...p, visa: v }))}
+          style={{ padding: '5px 10px', borderRadius: 20, border: '2.5px solid ' + (form.visa === v ? '#3D2B1F' : '#EDE0CC'), background: form.visa === v ? '#E8572A' : '#fff', color: form.visa === v ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
+          {v}
+        </button>
+      ))}
+    </div>
+  ) : (
+    <div style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 20, background: '#FFF3E0', border: '2px solid #F97316', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#F97316' }}>
+      {profile?.visa || '-'}
+    </div>
+  )} 
           </div>
 
           {/* WHATSAPP */}
@@ -422,22 +418,26 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
                     </div>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: ride.active ? '#3D2B1F' : '#B5967A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ride.from_city} → {ride.to_city}</div>
-                      <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.date ? ride.date.split('-').reverse().join('/') : ''} · {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
-                      <button onClick={() => toggleRideActive(ride)}
-                        style={{ background: ride.active ? '#E8F8EF' : '#FFF0EE', border: '2px solid ' + (ride.active ? '#4CAF7D' : '#E8572A'), borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: ride.active ? '#4CAF7D' : '#E8572A', minWidth: 72, textAlign: 'center' }}>
-                        {ride.active ? (lang === 'fr' ? '✅ Actif' : '✅ Active') : (lang === 'fr' ? '🔴 Complet' : '🔴 Full')}
-                      </button>
-                      <button onClick={() => setEditingRide({ ...ride })}
-                        style={{ background: '#FFF3E0', border: '2px solid #F97316', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>✏️</button>
-                      <button onClick={() => deleteRide(ride.id)}
-                        style={{ background: '#FFF0EE', border: '2px solid #E8572A', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>🗑️</button>
-                    </div>
-                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+  <div style={{ flex: 1, minWidth: 0 }}>
+    <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: ride.active ? '#3D2B1F' : '#B5967A' }}>
+      {ride.from_city} → {ride.to_city}
+    </div>
+    <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>
+      {ride.date ? ride.date.split('-').reverse().join('/') : ''} · {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}
+    </div>
+  </div>
+  <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
+    <button onClick={() => toggleRideActive(ride)}
+      style={{ background: ride.active ? '#E8F8EF' : '#FFF0EE', border: '2px solid ' + (ride.active ? '#4CAF7D' : '#E8572A'), borderRadius: 10, padding: '6px 8px', cursor: 'pointer', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: ride.active ? '#4CAF7D' : '#E8572A', width: 76, textAlign: 'center' }}>
+      {ride.active ? (lang === 'fr' ? '✅ Actif' : '✅ Active') : (lang === 'fr' ? '🔴 Complet' : '🔴 Full')}
+    </button>
+    <button onClick={() => setEditingRide({ ...ride })}
+      style={{ background: '#FFF3E0', border: '2px solid #F97316', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>✏️</button>
+    <button onClick={() => deleteRide(ride.id)}
+      style={{ background: '#FFF0EE', border: '2px solid #E8572A', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>🗑️</button>
+  </div>
+</div>
                 )}
               </div>
             ))}
