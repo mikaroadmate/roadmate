@@ -9,7 +9,10 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
   const [loading, setLoading] = useState(true)
   const [reviewForms, setReviewForms] = useState({})
 
-  useEffect(() => { fetchBookings() }, [tab])
+  useEffect(() => { 
+  fetchBookings()
+  markAsSeen()
+}, [tab])
 
   useEffect(() => {
     const channel = supabase.channel('bookings-realtime')
@@ -56,7 +59,7 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
 
   const handleAcceptRefuse = async (bookingId, status) => {
     const booking = bookings.find(b => b.id === bookingId)
-    await supabase.from('bookings').update({ status }).eq('id', bookingId)
+    await supabase.from('bookings').update({ status, seen_by_passenger: false }).eq('id', bookingId)
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b))
 
     if (status === 'accepted' && booking?.ride_id) {
@@ -77,7 +80,8 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
   const handleCancel = async (bookingId, isDriver) => {
     const booking = bookings.find(b => b.id === bookingId)
     const updateData = isDriver ? { status: 'cancelled', hidden_by_driver: true } : { status: 'cancelled', hidden_by_passenger: true }
-    await supabase.from('bookings').update(updateData).eq('id', bookingId)
+    const notifyCol = isDriver ? 'seen_by_passenger' : 'seen_by_driver'
+await supabase.from('bookings').update({ ...updateData, [notifyCol]: false }).eq('id', bookingId)
     setBookings(prev => prev.filter(b => b.id !== bookingId))
 
     if (booking?.status === 'accepted' && booking?.ride_id) {
@@ -99,6 +103,19 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
     await supabase.from('bookings').update(updateData).eq('id', bookingId)
     setBookings(prev => prev.filter(b => b.id !== bookingId))
   }
+const markAsSeen = async () => {
+  await supabase
+    .from('bookings')
+    .update({ seen_by_driver: true })
+    .eq('driver_id', user.id)
+    .eq('seen_by_driver', false)
+
+  await supabase
+    .from('bookings')
+    .update({ seen_by_passenger: true })
+    .eq('passenger_id', user.id)
+    .eq('seen_by_passenger', false)
+}
 
   const handleConfirmTrip = async (bookingId, isDriver) => {
     const updateData = isDriver ? { completed_by_driver: true } : { completed_by_passenger: true }

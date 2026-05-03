@@ -139,10 +139,20 @@ export default function Home({ user, onSignOut, showCGU }) {
   }
 
   const fetchPendingBookings = async () => {
-    const { count } = await supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('driver_id', user.id).eq('status', 'pending')
-    setPendingBookings(count || 0)
-  }
+  const { count } = await supabase
+    .from('bookings')
+    .select('*', { count: 'exact', head: true })
+    .eq('driver_id', user.id)
+    .eq('seen_by_driver', false)
+  
+  const { count: count2 } = await supabase
+    .from('bookings')
+    .select('*', { count: 'exact', head: true })
+    .eq('passenger_id', user.id)
+    .eq('seen_by_passenger', false)
 
+  setPendingBookings((count || 0) + (count2 || 0))
+}
   const fetchFavorites = async () => {
     const { data } = await supabase.from('favorites').select('ride_id').eq('user_id', user.id)
     setFavorites(data?.map(f => f.ride_id) || [])
@@ -207,7 +217,7 @@ export default function Home({ user, onSignOut, showCGU }) {
       alert(lang === 'fr' ? 'Tu as déjà une demande pour ce trajet !' : 'You already have a request for this ride!')
       return
     }
-    const { error } = await supabase.from('bookings').insert({ ride_id: ride.id, passenger_id: user.id, driver_id: ride.user_id, status: 'pending' })
+    const { error, data: newBooking } = await supabase.from('bookings').insert({ ride_id: ride.id, passenger_id: user.id, driver_id: ride.user_id, status: 'pending', seen_by_driver: false }).select().single()
     if (!error) {
       const { data: subData } = await supabase.from('push_subscriptions').select('subscription').eq('user_id', ride.user_id).maybeSingle()
       if (subData) {
