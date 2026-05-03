@@ -397,7 +397,7 @@ export default function Home({ user, onSignOut, showCGU }) {
 
                   {/* ROW 2 */}
                   <div style={{ background: 'linear-gradient(135deg, #E8572A, #C4622D)', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5, flexWrap: 'wrap' }}>
                         <span style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.2)' }}>{ride.from_city}</span>
                         <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', flexShrink: 0 }}>→</span>
@@ -428,7 +428,7 @@ export default function Home({ user, onSignOut, showCGU }) {
                     <div style={{ width: 44, height: 44, borderRadius: 14, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: '2.5px solid #3D2B1F', overflow: 'hidden', flexShrink: 0 }}>
                       {ride.profiles?.avatar_url ? <img src={ride.profiles.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
@@ -454,7 +454,7 @@ export default function Home({ user, onSignOut, showCGU }) {
                         )}
                       </div>
                       {ride.profiles?.nationality && (
-                        <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A', marginTop: 1 }}>
+                        <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>
                           {ride.profiles.nationality}
                         </div>
                       )}
