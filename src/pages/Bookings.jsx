@@ -99,15 +99,8 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
     await supabase.from('bookings').update({ ...updateData, [notifyCol]: false }).eq('id', bookingId)
 
     if (booking?.status === 'accepted' && booking?.ride_id) {
-      const { data: rideData } = await supabase.from('rides').select('seats, total_seats').eq('id', booking.ride_id).single()
-      if (rideData) {
-        const total = rideData.total_seats || rideData.seats
-        await supabase.from('rides').update({
-          seats: Math.min((rideData.seats || 0) + 1, total),
-          total_seats: total
-        }).eq('id', booking.ride_id)
-      }
-    }
+  await supabase.rpc('restore_seat', { booking_id: bookingId })
+}
 
     const notifyUserId = isDriver ? booking.passenger_id : booking.driver_id
     const { data: subData } = await supabase.from('push_subscriptions').select('subscription').eq('user_id', notifyUserId).maybeSingle()
