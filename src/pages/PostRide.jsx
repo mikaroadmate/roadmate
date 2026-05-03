@@ -31,22 +31,29 @@ export default function PostRide({ user, onBack, onSuccess }) {
     : ['', 'Type & category', 'Route & date', 'Details & publish']
 
   const geocodeCity = async (city) => {
-    if (!city.trim()) return
-    try {
-      const base = 'https://api.mapbox.com/geocoding/v5/mapbox.places/'
-      const query = encodeURIComponent(city) + '.json'
-      const params = '?country=au&limit=1&access_token=' + MAPBOX_TOKEN
-      const res = await fetch(base + query + params)
-      const data = await res.json()
-      if (data.features && data.features.length > 0) {
-        const [lng, lat] = data.features[0].center
+  if (!city.trim()) return
+  try {
+    const base = 'https://api.mapbox.com/geocoding/v5/mapbox.places/'
+    const query = encodeURIComponent(city) + '.json'
+    const params = '?country=au&limit=1&types=place,locality,region,poi&access_token=' + MAPBOX_TOKEN
+    const res = await fetch(base + query + params)
+    const data = await res.json()
+    if (data.features && data.features.length > 0) {
+      const [lng, lat] = data.features[0].center
+      setCoords({ from_lat: lat, from_lng: lng })
+    } else {
+      // Retry sans restriction de pays pour les lieux comme Uluru
+      const res2 = await fetch(base + query + '?limit=1&types=place,locality,region,poi&access_token=' + MAPBOX_TOKEN)
+      const data2 = await res2.json()
+      if (data2.features && data2.features.length > 0) {
+        const [lng, lat] = data2.features[0].center
         setCoords({ from_lat: lat, from_lng: lng })
       }
-    } catch (e) {
-      console.log('Geocoding error:', e)
     }
+  } catch (e) {
+    console.log('Geocoding error:', e)
   }
-
+}
   const handleSubmit = async () => {
     setLoading(true)
     setError('')
