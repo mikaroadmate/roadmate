@@ -66,15 +66,16 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
   const handleAcceptRefuse = async (bookingId, status) => {
     const booking = bookings.find(b => b.id === bookingId)
     await supabase.from('bookings').update({ status, seen_by_passenger: false }).eq('id', bookingId)
-    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b))
 
     if (status === 'accepted' && booking?.ride_id) {
-      const currentSeats = booking.rides?.seats ?? 1
-      const totalSeats = booking.rides?.total_seats ?? currentSeats
-      await supabase.from('rides').update({
-        seats: Math.max(0, currentSeats - 1),
-        total_seats: totalSeats
-      }).eq('id', booking.ride_id)
+      const { data: rideData } = await supabase.from('rides').select('seats, total_seats').eq('id', booking.ride_id).single()
+      if (rideData) {
+        const total = rideData.total_seats || rideData.seats
+        await supabase.from('rides').update({
+          seats: Math.max(0, (rideData.seats || 1) - 1),
+          total_seats: total
+        }).eq('id', booking.ride_id)
+      }
     }
 
     const { data: subData } = await supabase.from('push_subscriptions').select('subscription').eq('user_id', booking.passenger_id).maybeSingle()
@@ -85,6 +86,8 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
       const body = (booking.rides?.from_city || '') + ' → ' + (booking.rides?.to_city || '')
       await fetch('/api/send-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: subData.subscription, title, body }) })
     }
+
+    await fetchBookings()
   }
 
   const handleCancel = async (bookingId, isDriver) => {
@@ -94,16 +97,16 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
       : { status: 'cancelled', hidden_by_passenger: true }
     const notifyCol = isDriver ? 'seen_by_passenger' : 'seen_by_driver'
     await supabase.from('bookings').update({ ...updateData, [notifyCol]: false }).eq('id', bookingId)
-    setBookings(prev => prev.filter(b => b.id !== bookingId))
 
     if (booking?.status === 'accepted' && booking?.ride_id) {
-      const currentSeats = booking.rides?.seats ?? 0
-      const totalSeats = booking.rides?.total_seats ?? currentSeats
-      const newSeats = Math.min(currentSeats + 1, totalSeats)
-      await supabase.from('rides').update({
-        seats: newSeats,
-        total_seats: totalSeats
-      }).eq('id', booking.ride_id)
+      const { data: rideData } = await supabase.from('rides').select('seats, total_seats').eq('id', booking.ride_id).single()
+      if (rideData) {
+        const total = rideData.total_seats || rideData.seats
+        await supabase.from('rides').update({
+          seats: Math.min((rideData.seats || 0) + 1, total),
+          total_seats: total
+        }).eq('id', booking.ride_id)
+      }
     }
 
     const notifyUserId = isDriver ? booking.passenger_id : booking.driver_id
@@ -113,6 +116,8 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
       const body = (booking.rides?.from_city || '') + ' → ' + (booking.rides?.to_city || '')
       await fetch('/api/send-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: subData.subscription, title, body }) })
     }
+
+    await fetchBookings()
   }
 
   const handleHide = async (bookingId, isDriver) => {
@@ -220,7 +225,6 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
             return (
               <div key={booking.id} style={{ background: '#fff', borderRadius: 20, overflow: 'hidden', border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 12 }}>
 
-                {/* Header orange */}
                 <div style={{ background: 'linear-gradient(135deg, #E8572A, #C4622D)', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5, flexWrap: 'wrap' }}>
@@ -237,7 +241,6 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                   </div>
                 </div>
 
-                {/* Profil */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
                   <div style={{ width: 40, height: 40, borderRadius: 12, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, border: '2px solid #3D2B1F', overflow: 'hidden', flexShrink: 0 }}>
                     {person?.avatar_url ? <img src={person.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
@@ -245,7 +248,6 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                   <div style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#E8572A' }}>{person?.name || 'Anonyme'}</div>
                 </div>
 
-                {/* Confirmation trajet effectué */}
                 {showConfirm && (
                   <div style={{ margin: '0 14px 12px', background: '#FFF8EE', borderRadius: 12, padding: '12px', border: '2px dashed #F5A623', textAlign: 'center' }}>
                     <div style={{ fontFamily: "'Fredoka One'", fontSize: 15, color: '#3D2B1F', marginBottom: 8 }}>
@@ -258,7 +260,6 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                   </div>
                 )}
 
-                {/* Formulaire d'avis */}
                 {showReview && (
                   <div style={{ margin: '0 14px 12px', background: '#FFF8EE', borderRadius: 12, padding: '12px', border: '2px dashed #F5A623' }}>
                     <div style={{ fontFamily: "'Fredoka One'", fontSize: 15, color: '#3D2B1F', marginBottom: 8 }}>
@@ -284,7 +285,6 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                   </div>
                 )}
 
-                {/* Boutons */}
                 <div style={{ display: 'flex', gap: 8, padding: '0 14px 14px' }}>
                   {!isCancelled && (
                     <button onClick={() => onContact(isDriver ? booking.passenger_id : booking.driver_id)}
