@@ -9,7 +9,7 @@ export default function PostRide({ user, onBack, onSuccess }) {
   const [step, setStep] = useState(1)
   const [type, setType] = useState('offer')
   const [category, setCategory] = useState('travel')
-  const [form, setForm] = useState({ from_city: '', to_city: '', date: '', time: '00:00', seats: '2', price: '', note: '', womenOnly: false })
+  const [form, setForm] = useState({ from_city: '', to_city: '', date: '', time: '00:00', seats: '2', price: '', fuelShare: false, note: '', womenOnly: false })
   const [coords, setCoords] = useState({ from_lat: null, from_lng: null })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -59,7 +59,7 @@ export default function PostRide({ user, onBack, onSuccess }) {
       date: form.date,
       time: form.time,
       seats: parseInt(form.seats),
-      price: form.price ? parseFloat(form.price) : null,
+      price: form.fuelShare ? null : (form.price ? parseFloat(form.price) : null),
       note: form.note,
       women_only: form.womenOnly,
       from_lat: coords.from_lat,
@@ -169,12 +169,20 @@ export default function PostRide({ user, onBack, onSuccess }) {
                   ))}
                 </div>
               </Section>
-              {type === 'offer' && (
-                <Section title={t('post_price')} style={{ flex: 1 }}>
-                  <input type="number" placeholder="0" value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))}
-                    style={{ ...inputStyle }} />
-                </Section>
-              )}
+             {type === 'offer' && (
+  <Section title={lang === 'fr' ? 'Prix ou essence' : 'Price or fuel'} style={{ flex: 1 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <button onClick={() => setForm(p => ({ ...p, price: '', fuelShare: !p.fuelShare }))}
+        style={{ padding: '10px', borderRadius: 12, border: '2.5px solid ' + (form.fuelShare ? '#E8572A' : '#EDE0CC'), background: form.fuelShare ? '#FFF0EE' : '#fff', color: form.fuelShare ? '#E8572A' : '#7B5C42', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer', boxShadow: form.fuelShare ? '3px 3px 0 #3D2B1F' : 'none' }}>
+        ⛽ {lang === 'fr' ? 'Partage essence' : 'Fuel share'}
+      </button>
+      {!form.fuelShare && (
+        <input type="number" placeholder={lang === 'fr' ? 'Prix $' : 'Price $'} value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))}
+          style={{ ...inputStyle }} />
+      )}
+    </div>
+  </Section>
+)}
             </div>
 
             <Section title={t('post_note')}>
