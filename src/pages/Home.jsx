@@ -424,42 +424,42 @@ export default function Home({ user, onSignOut, showCGU }) {
                   </div>
 
                   {/* ROW 3 */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px' }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 14, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: '2.5px solid #3D2B1F', overflow: 'hidden', flexShrink: 0 }}>
-                      {ride.profiles?.avatar_url ? <img src={ride.profiles.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
-                            style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#E8572A', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>
-                            {ride.profiles?.name || 'Anonyme'}
-                          </button>
-                          {isVerified && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
-                              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-                                <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
-                                <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                              </svg>
-                              <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 12, fontWeight: 700, color: '#4CAF7D', fontStyle: 'italic' }}>
-                                {lang === 'fr' ? 'profil vérifié' : 'verified'}
-                              </span>
-                            </span>
-                          )}
-                        </div>
-                        {ride.women_only && (
-                          <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#FFF0EE', color: '#E8572A', border: '2px solid #E8572A', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                            👩 {lang === 'fr' ? 'Femmes' : 'Women'}
-                          </span>
-                        )}
-                      </div>
-                      {ride.profiles?.nationality && (
-                        <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>
-                          {ride.profiles.nationality}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+<div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
+  <div style={{ width: 44, height: 44, borderRadius: 14, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: '2.5px solid #3D2B1F', overflow: 'hidden', flexShrink: 0 }}>
+    {ride.profiles?.avatar_url ? <img src={ride.profiles.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
+  </div>
+  <div style={{ flex: 1, minWidth: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
+          style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#E8572A', cursor: 'pointer', background: 'none', border: 'none', padding: 0, lineHeight: 1 }}>
+          {ride.profiles?.name || 'Anonyme'}
+        </button>
+        {isVerified && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+              <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
+              <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 12, fontWeight: 700, color: '#4CAF7D', fontStyle: 'italic' }}>
+              {lang === 'fr' ? 'profil vérifié' : 'verified'}
+            </span>
+          </span>
+        )}
+      </div>
+      {ride.profiles?.nationality && (
+        <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A', lineHeight: 1.2 }}>
+          {ride.profiles.nationality}
+        </div>
+      )}
+    </div>
+    {ride.women_only && (
+      <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#FFF0EE', color: '#E8572A', border: '2px solid #E8572A', whiteSpace: 'nowrap', flexShrink: 0 }}>
+        👩 {lang === 'fr' ? 'Femmes' : 'Women'}
+      </span>
+    )}
+  </div>
+</div>
 
                   {/* Note */}
                   {ride.note && (
