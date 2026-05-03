@@ -157,32 +157,35 @@ const geocodeCity = async (city) => {
 
         {step === 3 && (
           <>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <Section title={t('post_seats')} style={{ flex: 1 }}>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  {['1','2','3','4'].map(n => (
-                    <button key={n} onClick={() => setForm(p => ({ ...p, seats: n }))}
-                      style={{ flex: 1, padding: '10px 0', borderRadius: 12, border: '2.5px solid ' + (form.seats === n ? '#3D2B1F' : '#EDE0CC'), background: form.seats === n ? '#E8572A' : '#fff', color: form.seats === n ? '#fff' : '#7B5C42', fontSize: 15, fontFamily: "'Fredoka One'", cursor: 'pointer', boxShadow: form.seats === n ? '3px 3px 0 #3D2B1F' : 'none' }}>
-                      {n}
-                    </button>
-                  ))}
-                </div>
-              </Section>
-             {type === 'offer' && (
-  <Section title={lang === 'fr' ? 'Prix ou essence' : 'Price or fuel'} style={{ flex: 1 }}>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <button onClick={() => setForm(p => ({ ...p, price: '', fuelShare: !p.fuelShare }))}
-        style={{ padding: '10px', borderRadius: 12, border: '2.5px solid ' + (form.fuelShare ? '#E8572A' : '#EDE0CC'), background: form.fuelShare ? '#FFF0EE' : '#fff', color: form.fuelShare ? '#E8572A' : '#7B5C42', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer', boxShadow: form.fuelShare ? '3px 3px 0 #3D2B1F' : 'none' }}>
-        ⛽ {lang === 'fr' ? 'Partage essence' : 'Fuel share'}
+            <Section title={t('post_seats')}>
+  <div style={{ display: 'flex', gap: 6 }}>
+    {['1','2','3','4'].map(n => (
+      <button key={n} onClick={() => setForm(p => ({ ...p, seats: n }))}
+        style={{ flex: 1, padding: '10px 0', borderRadius: 12, border: '2.5px solid ' + (form.seats === n ? '#3D2B1F' : '#EDE0CC'), background: form.seats === n ? '#E8572A' : '#fff', color: form.seats === n ? '#fff' : '#7B5C42', fontSize: 15, fontFamily: "'Fredoka One'", cursor: 'pointer', boxShadow: form.seats === n ? '3px 3px 0 #3D2B1F' : 'none' }}>
+        {n}
       </button>
-      {!form.fuelShare && (
-        <input type="number" placeholder={lang === 'fr' ? 'Prix $' : 'Price $'} value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))}
-          style={{ ...inputStyle }} />
-      )}
+    ))}
+  </div>
+</Section>
+
+{type === 'offer' && (
+  <Section title={lang === 'fr' ? 'Paiement' : 'Payment'}>
+    <div style={{ display: 'flex', gap: 10, marginBottom: form.fuelShare ? 0 : 10 }}>
+      <button onClick={() => setForm(p => ({ ...p, fuelShare: false }))}
+        style={{ flex: 1, padding: '14px', borderRadius: 14, border: '3px solid ' + (!form.fuelShare ? '#3D2B1F' : '#EDE0CC'), background: !form.fuelShare ? '#E8572A' : '#fff', color: !form.fuelShare ? '#fff' : '#7B5C42', fontSize: 14, fontFamily: "'Fredoka One'", cursor: 'pointer', boxShadow: !form.fuelShare ? '4px 4px 0 #3D2B1F' : 'none', textAlign: 'center' }}>
+        💰 {lang === 'fr' ? 'Prix / siège' : 'Price / seat'}
+      </button>
+      <button onClick={() => setForm(p => ({ ...p, fuelShare: true, price: '' }))}
+        style={{ flex: 1, padding: '14px', borderRadius: 14, border: '3px solid ' + (form.fuelShare ? '#3D2B1F' : '#EDE0CC'), background: form.fuelShare ? '#E8572A' : '#fff', color: form.fuelShare ? '#fff' : '#7B5C42', fontSize: 14, fontFamily: "'Fredoka One'", cursor: 'pointer', boxShadow: form.fuelShare ? '4px 4px 0 #3D2B1F' : 'none', textAlign: 'center' }}>
+        ⛽ {lang === 'fr' ? 'Essence' : 'Fuel share'}
+      </button>
     </div>
+    {!form.fuelShare && (
+      <input type="number" placeholder={lang === 'fr' ? 'Prix en $ par siège' : 'Price in $ per seat'} value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))}
+        style={{ ...inputStyle }} />
+    )}
   </Section>
 )}
-            </div>
 
             <Section title={t('post_note')}>
               <textarea placeholder={t('post_note_placeholder')} value={form.note} onChange={e => setForm(p => ({ ...p, note: e.target.value }))} rows={3}
