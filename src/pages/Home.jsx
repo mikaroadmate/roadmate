@@ -412,9 +412,9 @@ export default function Home({ user, onSignOut, showCGU }) {
     <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: '#3D2B1F', lineHeight: 1.1 }}>⛽ <span style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>{lang === 'fr' ? 'Essence' : 'Fuel'}</span></div>
   </div>
 )}
-                      <span style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: ride.seats === 0 ? '#FFF0EE' : 'rgba(255,255,255,0.2)', color: ride.seats === 0 ? '#E8572A' : '#fff', whiteSpace: 'nowrap' }}>
-                        💺 {ride.seats} {lang === 'fr' ? 'dispo' : 'left'} / {ride.total_seats || ride.seats}
-                      </span>
+                      <div style={{ background: ride.seats === 0 ? '#E8572A' : '#F5A623', borderRadius: 10, padding: '3px 8px', border: '2px solid #3D2B1F', boxShadow: '2px 2px 0 rgba(0,0,0,0.2)', textAlign: 'center', flexShrink: 0 }}>
+  <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: '#3D2B1F', lineHeight: 1.1 }}>💺 {ride.seats}/{ride.total_seats || ride.seats} <span style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B3F00' }}>{lang === 'fr' ? 'dispo' : 'left'}</span></div>
+</div>
                     </div>
                   </div>
 
