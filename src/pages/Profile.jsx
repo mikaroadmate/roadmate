@@ -19,6 +19,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
   const [message, setMessage] = useState('')
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [showReviewForm, setShowReviewForm] = useState(false)
+  const [canReview, setCanReview] = useState(false)
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
@@ -62,6 +63,15 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
       }))
     }
     setReviews(reviewsWithNames)
+    if (!isOwnProfile) {
+  const { data: bookingCheck } = await supabase
+    .from('bookings')
+    .select('id')
+    .eq('status', 'accepted')
+    .or('and(passenger_id.eq.' + user.id + ',driver_id.eq.' + targetId + '),and(passenger_id.eq.' + targetId + ',driver_id.eq.' + user.id + ')')
+    .maybeSingle()
+  setCanReview(!!bookingCheck)
+}
     setLoading(false)
   }
 
