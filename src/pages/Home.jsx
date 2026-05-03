@@ -440,10 +440,7 @@ export default function Home({ user, onSignOut, showCGU }) {
                     <div style={{ flex: 1, minWidth: 0 }}>
   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <button onClick={() => { setOtherUserId(ride.user_id); setShowOtherProfile(true) }}
-        style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#E8572A', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>
-        {ride.profiles?.name || 'Anonyme'}
-      </button>
+      
       {isVerified && (
         <span style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
           <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
