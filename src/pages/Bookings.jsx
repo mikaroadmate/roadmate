@@ -9,13 +9,11 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
   const [loading, setLoading] = useState(true)
   const [reviewForms, setReviewForms] = useState({})
 
-  useEffect(() => { 
-  fetchBookings()
-}, [tab])
+  useEffect(() => { fetchBookings() }, [tab])
 
-useEffect(() => {
-  return () => { markAsSeen() }
-}, [])
+  useEffect(() => {
+    return () => { markAsSeen() }
+  }, [])
 
   useEffect(() => {
     const channel = supabase.channel('bookings-realtime')
@@ -60,20 +58,24 @@ useEffect(() => {
     setLoading(false)
   }
 
+  const markAsSeen = async () => {
+    await supabase.from('bookings').update({ seen_by_driver: true }).eq('driver_id', user.id).eq('seen_by_driver', false)
+    await supabase.from('bookings').update({ seen_by_passenger: true }).eq('passenger_id', user.id).eq('seen_by_passenger', false)
+  }
+
   const handleAcceptRefuse = async (bookingId, status) => {
     const booking = bookings.find(b => b.id === bookingId)
     await supabase.from('bookings').update({ status, seen_by_passenger: false }).eq('id', bookingId)
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b))
 
-  if (status === 'accepted' && booking?.ride_id) {
-  const { data: rideData } = await supabase.from('rides').select('seats, total_seats').eq('id', booking.ride_id).single()
-  if (rideData) {
-    await supabase.from('rides').update({ 
-      seats: Math.max(0, (rideData.seats || 1) - 1),
-      total_seats: rideData.total_seats || rideData.seats
-    }).eq('id', booking.ride_id)
-  }
-}
+    if (status === 'accepted' && booking?.ride_id) {
+      const currentSeats = booking.rides?.seats ?? 1
+      const totalSeats = booking.rides?.total_seats ?? currentSeats
+      await supabase.from('rides').update({
+        seats: Math.max(0, currentSeats - 1),
+        total_seats: totalSeats
+      }).eq('id', booking.ride_id)
+    }
 
     const { data: subData } = await supabase.from('push_subscriptions').select('subscription').eq('user_id', booking.passenger_id).maybeSingle()
     if (subData) {
@@ -87,20 +89,22 @@ useEffect(() => {
 
   const handleCancel = async (bookingId, isDriver) => {
     const booking = bookings.find(b => b.id === bookingId)
-    const updateData = isDriver ? { status: 'cancelled', hidden_by_driver: true } : { status: 'cancelled', hidden_by_passenger: true }
+    const updateData = isDriver
+      ? { status: 'cancelled', hidden_by_driver: true }
+      : { status: 'cancelled', hidden_by_passenger: true }
     const notifyCol = isDriver ? 'seen_by_passenger' : 'seen_by_driver'
-await supabase.from('bookings').update({ ...updateData, [notifyCol]: false }).eq('id', bookingId)
+    await supabase.from('bookings').update({ ...updateData, [notifyCol]: false }).eq('id', bookingId)
     setBookings(prev => prev.filter(b => b.id !== bookingId))
 
-  if (booking?.status === 'accepted' && booking?.ride_id) {
-  const { data: rideData } = await supabase.from('rides').select('seats, total_seats').eq('id', booking.ride_id).single()
-  if (rideData) {
-    await supabase.from('rides').update({ 
-      seats: Math.min((rideData.total_seats || rideData.seats), (rideData.seats || 0) + 1),
-      total_seats: rideData.total_seats || rideData.seats
-    }).eq('id', booking.ride_id)
-  }
-}
+    if (booking?.status === 'accepted' && booking?.ride_id) {
+      const currentSeats = booking.rides?.seats ?? 0
+      const totalSeats = booking.rides?.total_seats ?? currentSeats
+      const newSeats = Math.min(currentSeats + 1, totalSeats)
+      await supabase.from('rides').update({
+        seats: newSeats,
+        total_seats: totalSeats
+      }).eq('id', booking.ride_id)
+    }
 
     const notifyUserId = isDriver ? booking.passenger_id : booking.driver_id
     const { data: subData } = await supabase.from('push_subscriptions').select('subscription').eq('user_id', notifyUserId).maybeSingle()
@@ -116,19 +120,6 @@ await supabase.from('bookings').update({ ...updateData, [notifyCol]: false }).eq
     await supabase.from('bookings').update(updateData).eq('id', bookingId)
     setBookings(prev => prev.filter(b => b.id !== bookingId))
   }
-const markAsSeen = async () => {
-  await supabase
-    .from('bookings')
-    .update({ seen_by_driver: true })
-    .eq('driver_id', user.id)
-    .eq('seen_by_driver', false)
-
-  await supabase
-    .from('bookings')
-    .update({ seen_by_passenger: true })
-    .eq('passenger_id', user.id)
-    .eq('seen_by_passenger', false)
-}
 
   const handleConfirmTrip = async (bookingId, isDriver) => {
     const updateData = isDriver ? { completed_by_driver: true } : { completed_by_passenger: true }
