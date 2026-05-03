@@ -449,40 +449,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
           </div>
         )}
 
-        {/* AVIS */}
-        {!isOwnProfile && (
-          <div style={{ marginBottom: 4 }}>
-            {!showReviewForm ? (
-              <button onClick={() => setShowReviewForm(true)}
-                style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#F5A623', color: '#3D2B1F', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
-                ⭐ {lang === 'fr' ? 'Laisser un avis' : 'Leave a review'}
-              </button>
-            ) : (
-              <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
-                <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 12 }}>⭐ {lang === 'fr' ? 'Ton avis' : 'Your review'}</div>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12, justifyContent: 'center' }}>
-                  {[1,2,3,4,5].map(star => (
-                    <button key={star} onClick={() => setRating(star)}
-                      style={{ fontSize: 28, background: 'none', border: 'none', cursor: 'pointer', opacity: star <= rating ? 1 : 0.3 }}>⭐</button>
-                  ))}
-                </div>
-                <textarea value={comment} onChange={e => setComment(e.target.value)}
-                  placeholder={lang === 'fr' ? 'Ton commentaire (optionnel)...' : 'Your comment (optional)...'}
-                  rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6, marginBottom: 10 }} />
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => setShowReviewForm(false)}
-                    style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', cursor: 'pointer' }}>
-                    {lang === 'fr' ? 'Annuler' : 'Cancel'}
-                  </button>
-                  <button onClick={submitReview} disabled={submittingReview}
-                    style={{ flex: 2, padding: '10px', borderRadius: 12, border: '3px solid #3D2B1F', background: '#4CAF7D', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff', cursor: 'pointer', boxShadow: '3px 3px 0 #3D2B1F' }}>
-                    {submittingReview ? (lang === 'fr' ? 'Envoi...' : 'Sending...') : (lang === 'fr' ? 'Envoyer ✓' : 'Send ✓')}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+       
 
         {reviews.length > 0 && (
           <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
