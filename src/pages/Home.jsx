@@ -123,7 +123,8 @@ export default function Home({ user, onSignOut, showCGU }) {
   useEffect(() => { fetchPendingBookings() }, [])
   useEffect(() => { fetchFavorites() }, [])
   useEffect(() => { if (!showMessages) { fetchUnread(); fetchPendingBookings() } }, [showMessages])
-  useEffect(() => {
+  useEffect(() => { fetchPendingBookings() }, [])
+    useEffect(() => {
     cleanPastRides()
     const interval = setInterval(cleanPastRides, 60 * 60 * 1000)
     return () => clearInterval(interval)

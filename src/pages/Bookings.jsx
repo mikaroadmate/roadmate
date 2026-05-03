@@ -11,8 +11,11 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
 
   useEffect(() => { 
   fetchBookings()
-  markAsSeen()
 }, [tab])
+
+useEffect(() => {
+  return () => { markAsSeen() }
+}, [])
 
   useEffect(() => {
     const channel = supabase.channel('bookings-realtime')
