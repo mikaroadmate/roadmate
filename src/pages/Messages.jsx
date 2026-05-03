@@ -18,7 +18,10 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
 
   useEffect(() => { fetchConversations() }, [])
   useEffect(() => { fetchPendingBookings() }, [])
-
+useEffect(() => {
+  const interval = setInterval(() => { fetchPendingBookings() }, 5000)
+  return () => clearInterval(interval)
+}, [])
   useEffect(() => {
     if (activeConv) {
       fetchMessages(activeConv)
@@ -41,13 +44,20 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
   const fetchPendingBookings = async () => {
-    const { count } = await supabase
-      .from('bookings')
-      .select('*', { count: 'exact', head: true })
-      .eq('driver_id', user.id)
-      .eq('status', 'pending')
-    setPendingBookings(count || 0)
-  }
+  const { count } = await supabase
+    .from('bookings')
+    .select('*', { count: 'exact', head: true })
+    .eq('driver_id', user.id)
+    .eq('seen_by_driver', false)
+
+  const { count: count2 } = await supabase
+    .from('bookings')
+    .select('*', { count: 'exact', head: true })
+    .eq('passenger_id', user.id)
+    .eq('seen_by_passenger', false)
+
+  setPendingBookings((count || 0) + (count2 || 0))
+}
 
   const fetchConversations = async () => {
     setLoading(true)
