@@ -153,7 +153,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
     setTimeout(() => setMessage(''), 3000)
   }
 
-  const avgRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : '0'
+  const avgRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : null
   const isVerified = !!(profile?.whatsapp || profile?.instagram)
 
   if (loading) return (
@@ -164,10 +164,11 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
 
   return (
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%' }}>
-      <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet" />
 
-      <div style={{ background: isOwnProfile ? '#8B5CF6' : '#5BC8D4', padding: 'calc(env(safe-area-inset-top) + 16px) 22px 24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      {/* HEADER */}
+      <div style={{ background: 'linear-gradient(135deg, #E8572A, #C4622D)', padding: 'calc(env(safe-area-inset-top) + 16px) 20px 20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
           <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
             {t('post_back')}
           </button>
@@ -179,7 +180,8 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        {/* Avatar + Nom */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
           <div style={{ position: 'relative' }}>
             <div style={{ width: 72, height: 72, borderRadius: 22, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 rgba(0,0,0,0.2)', overflow: 'hidden' }}>
               {profile?.avatar_url ? <img src={profile.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
@@ -198,58 +200,75 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
             {editing ? (
               <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
                 placeholder={lang === 'fr' ? 'Ton prenom' : 'Your name'}
-                style={{ fontSize: 24, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px', width: '100%' }} />
+                style={{ fontSize: 22, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px' }} />
             ) : (
               <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>{profile?.name || 'Anonyme'}</div>
             )}
-            <div style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: 'rgba(255,255,255,0.75)', marginTop: 2 }}>
-              {isOwnProfile ? user.email : (profile?.nationality || '')}
-            </div>
+            {isVerified && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                  <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
+                  <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 14, fontWeight: 700, color: '#fff', fontStyle: 'italic' }}>
+                  {lang === 'fr' ? 'profil vérifié' : 'verified profile'}
+                </span>
+              </div>
+            )}
           </div>
+        </div>
+
+        {/* Stats */}
+        <div style={{ display: 'flex', gap: 8 }}>
+          {[
+            ['🚐', rides.length, lang === 'fr' ? 'Trajets' : 'Rides'],
+            ['⭐', avgRating || '0', lang === 'fr' ? 'Avis' : 'Reviews'],
+            ['🌍', profile?.nationality || '-', lang === 'fr' ? 'Nationalité' : 'Nationality']
+          ].map(([icon, val, label]) => (
+            <div key={label} style={{ flex: 1, background: 'rgba(255,255,255,0.15)', borderRadius: 14, padding: '10px 6px', textAlign: 'center', border: '2px solid rgba(255,255,255,0.3)' }}>
+              <div style={{ fontSize: 16 }}>{icon}</div>
+              <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{val}</div>
+              <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>{label}</div>
+            </div>
+          ))}
         </div>
       </div>
 
       {message && (
-        <div style={{ margin: '12px 22px 0', padding: '10px 14px', borderRadius: 12, background: '#E8F8EF', border: '2px solid #4CAF7D', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{message}</div>
+        <div style={{ margin: '12px 20px 0', padding: '10px 14px', borderRadius: 12, background: '#E8F8EF', border: '2px solid #4CAF7D', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{message}</div>
       )}
 
-      <div style={{ padding: '16px 22px 100px' }}>
+      <div style={{ padding: '16px 20px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-        <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>{t('profile_traveler')}</div>
+        {/* TRAVELER INFO */}
+        <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
+          <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 12 }}>🧳 {t('profile_traveler')}</div>
 
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>🌍 {t('profile_nationality')}</div>
-            {editing ? (
-              <input value={form.nationality} onChange={e => setForm(p => ({ ...p, nationality: e.target.value }))}
-                placeholder={lang === 'fr' ? 'Ex: Française, Belge...' : 'Ex: Australian, British...'}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
-            ) : (
-              <div style={{ fontSize: 16, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.nationality || (lang === 'fr' ? 'Non renseigne' : 'Not specified')}</div>
-            )}
+          <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📋 {t('profile_visa')}</div>
+              {editing ? (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {VISAS.map(v => (
+                    <button key={v} onClick={() => setForm(p => ({ ...p, visa: v }))}
+                      style={{ padding: '5px 10px', borderRadius: 20, border: '2.5px solid ' + (form.visa === v ? '#3D2B1F' : '#EDE0CC'), background: form.visa === v ? '#E8572A' : '#fff', color: form.visa === v ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
+                      {v}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 20, background: '#FFF3E0', border: '2px solid #F97316', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#F97316' }}>
+                  {profile?.visa || '-'}
+                </div>
+              )}
+            </div>
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📋 {t('profile_visa')}</div>
-            {editing ? (
-              <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
-                {VISAS.map(v => (
-                  <button key={v} onClick={() => setForm(p => ({ ...p, visa: v }))}
-                    style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (form.visa === v ? '#3D2B1F' : '#EDE0CC'), background: form.visa === v ? '#8B5CF6' : '#fff', color: form.visa === v ? '#fff' : '#7B5C42', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
-                    {v}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div style={{ display: 'inline-block', padding: '6px 14px', borderRadius: 20, background: '#F3EFFE', border: '2px solid #8B5CF6', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#8B5CF6' }}>{profile?.visa || (lang === 'fr' ? 'Non renseigne' : 'Not specified')}</div>
-            )}
-          </div>
-
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{t('profile_bio')}</div>
+            <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{t('profile_bio')}</div>
             {editing ? (
               <textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
-                placeholder={lang === 'fr' ? 'Parle de toi, tes projets en Australie...' : 'Tell us about yourself, your plans in Australia...'}
+                placeholder={lang === 'fr' ? 'Parle de toi...' : 'Tell us about yourself...'}
                 rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6 }} />
             ) : (
               <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6 }}>{profile?.bio || (lang === 'fr' ? 'Aucune bio' : 'No bio')}</div>
@@ -257,216 +276,117 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
           </div>
 
           {/* WHATSAPP */}
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📱 {t('profile_whatsapp')}</div>
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📱 {t('profile_whatsapp')}</div>
             {editing ? (
               <div>
                 <input value={form.whatsapp} onChange={e => setForm(p => ({ ...p, whatsapp: e.target.value }))}
-                  placeholder="+61 4XX XXX XXX (optional)"
+                  placeholder="+61 4XX XXX XXX"
                   style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box', marginBottom: 8 }} />
                 {form.whatsapp && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#7B5C42' }}>
-                      {lang === 'fr' ? 'Visible publiquement' : 'Visible publicly'}
-                    </div>
+                    <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#7B5C42' }}>{lang === 'fr' ? 'Visible publiquement' : 'Visible publicly'}</div>
                     <button onClick={() => setForm(p => ({ ...p, show_whatsapp: !p.show_whatsapp }))}
-                      style={{ width: 44, height: 24, borderRadius: 12, border: '2px solid #3D2B1F', background: form.show_whatsapp ? '#4CAF7D' : '#EDE0CC', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
-                      <div style={{ width: 16, height: 16, borderRadius: 8, background: '#fff', border: '2px solid #3D2B1F', position: 'absolute', top: 2, left: form.show_whatsapp ? 22 : 2, transition: 'left 0.2s' }} />
+                      style={{ width: 44, height: 24, borderRadius: 12, border: '2px solid #3D2B1F', background: form.show_whatsapp ? '#4CAF7D' : '#EDE0CC', cursor: 'pointer', position: 'relative' }}>
+                      <div style={{ width: 16, height: 16, borderRadius: 8, background: '#fff', border: '2px solid #3D2B1F', position: 'absolute', top: 2, left: form.show_whatsapp ? 22 : 2 }} />
                     </button>
-                    <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: form.show_whatsapp ? '#4CAF7D' : '#B5967A' }}>
-                      {form.show_whatsapp ? (lang === 'fr' ? 'ON' : 'ON') : (lang === 'fr' ? 'OFF' : 'OFF')}
-                    </div>
+                    <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: form.show_whatsapp ? '#4CAF7D' : '#B5967A' }}>{form.show_whatsapp ? 'ON' : 'OFF'}</div>
                   </div>
                 )}
               </div>
             ) : profile?.whatsapp && profile?.show_whatsapp ? (
               <a href={'https://wa.me/' + profile.whatsapp.replace(/\D/g, '')} target="_blank" rel="noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: '#E8F8EF', border: '2px solid #4CAF7D', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#4CAF7D', textDecoration: 'none' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 20, background: '#E8F8EF', border: '2px solid #4CAF7D', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#4CAF7D', textDecoration: 'none' }}>
                 📱 {profile.whatsapp}
               </a>
             ) : profile?.whatsapp && isOwnProfile ? (
-              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>
-                {profile.whatsapp} {lang === 'fr' ? '(non visible)' : '(not visible)'}
-              </div>
-            ) : !profile?.whatsapp ? (
-              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>
-                {lang === 'fr' ? 'Non renseigné' : 'Not specified'}
-              </div>
-            ) : null}
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{profile.whatsapp} {lang === 'fr' ? '(non visible)' : '(not visible)'}</div>
+            ) : (
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{lang === 'fr' ? 'Non renseigné' : 'Not specified'}</div>
+            )}
           </div>
 
           {/* INSTAGRAM */}
           <div>
-            <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📷 {t('profile_instagram')}</div>
+            <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📷 {t('profile_instagram')}</div>
             {editing ? (
               <div>
                 <input value={form.instagram} onChange={e => setForm(p => ({ ...p, instagram: e.target.value }))}
-                  placeholder="@your_handle (optional)"
+                  placeholder="@your_handle"
                   style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box', marginBottom: 8 }} />
                 {form.instagram && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#7B5C42' }}>
-                      {lang === 'fr' ? 'Visible publiquement' : 'Visible publicly'}
-                    </div>
+                    <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#7B5C42' }}>{lang === 'fr' ? 'Visible publiquement' : 'Visible publicly'}</div>
                     <button onClick={() => setForm(p => ({ ...p, show_instagram: !p.show_instagram }))}
-                      style={{ width: 44, height: 24, borderRadius: 12, border: '2px solid #3D2B1F', background: form.show_instagram ? '#4CAF7D' : '#EDE0CC', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
-                      <div style={{ width: 16, height: 16, borderRadius: 8, background: '#fff', border: '2px solid #3D2B1F', position: 'absolute', top: 2, left: form.show_instagram ? 22 : 2, transition: 'left 0.2s' }} />
+                      style={{ width: 44, height: 24, borderRadius: 12, border: '2px solid #3D2B1F', background: form.show_instagram ? '#4CAF7D' : '#EDE0CC', cursor: 'pointer', position: 'relative' }}>
+                      <div style={{ width: 16, height: 16, borderRadius: 8, background: '#fff', border: '2px solid #3D2B1F', position: 'absolute', top: 2, left: form.show_instagram ? 22 : 2 }} />
                     </button>
-                    <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: form.show_instagram ? '#4CAF7D' : '#B5967A' }}>
-                      {form.show_instagram ? 'ON' : 'OFF'}
-                    </div>
+                    <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: form.show_instagram ? '#4CAF7D' : '#B5967A' }}>{form.show_instagram ? 'ON' : 'OFF'}</div>
                   </div>
                 )}
               </div>
             ) : profile?.instagram && profile?.show_instagram ? (
               <a href={'https://instagram.com/' + profile.instagram.replace('@', '')} target="_blank" rel="noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: '#FFF0F8', border: '2px solid #E1306C', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#E1306C', textDecoration: 'none' }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 20, background: '#FFF0F8', border: '2px solid #E1306C', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#E1306C', textDecoration: 'none' }}>
                 📷 {profile.instagram}
               </a>
             ) : profile?.instagram && isOwnProfile ? (
-              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>
-                {profile.instagram} {lang === 'fr' ? '(non visible)' : '(not visible)'}
-              </div>
-            ) : !profile?.instagram ? (
-              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>
-                {lang === 'fr' ? 'Non renseigné' : 'Not specified'}
-              </div>
-            ) : null}
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{profile.instagram} {lang === 'fr' ? '(non visible)' : '(not visible)'}</div>
+            ) : (
+              <div style={{ fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{lang === 'fr' ? 'Non renseigné' : 'Not specified'}</div>
+            )}
           </div>
         </div>
 
+        {/* VEHICLE */}
         {(profile?.vehicle_brand || profile?.vehicle_model || editing) && (
-          <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
-            <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>🚗 {t('profile_vehicle')}</div>
-            <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+          <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
+            <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 12 }}>🚗 {t('profile_vehicle')}</div>
+            <div style={{ display: 'flex', gap: 10 }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{t('profile_brand')}</div>
+                <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>{t('profile_brand')}</div>
                 {editing ? (
                   <input value={form.vehicle_brand} onChange={e => setForm(p => ({ ...p, vehicle_brand: e.target.value }))}
                     placeholder="Ex: Toyota"
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 10, border: '2.5px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
                 ) : (
-                  <div style={{ fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_brand || '-'}</div>
+                  <div style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_brand || '-'}</div>
                 )}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{t('profile_model')}</div>
+                <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>{t('profile_model')}</div>
                 {editing ? (
                   <input value={form.vehicle_model} onChange={e => setForm(p => ({ ...p, vehicle_model: e.target.value }))}
                     placeholder="Ex: HiAce"
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 10, border: '2.5px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
                 ) : (
-                  <div style={{ fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_model || '-'}</div>
+                  <div style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_model || '-'}</div>
+                )}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>{t('profile_color')}</div>
+                {editing ? (
+                  <input value={form.vehicle_color} onChange={e => setForm(p => ({ ...p, vehicle_color: e.target.value }))}
+                    placeholder="Ex: White"
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: 10, border: '2.5px solid #EDE0CC', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
+                ) : (
+                  <div style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_color || '-'}</div>
                 )}
               </div>
             </div>
-            <div>
-              <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{t('profile_color')}</div>
-              {editing ? (
-                <input value={form.vehicle_color} onChange={e => setForm(p => ({ ...p, vehicle_color: e.target.value }))}
-                  placeholder={lang === 'fr' ? 'Ex: Blanc' : 'Ex: White'}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
-              ) : (
-                <div style={{ fontSize: 15, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.vehicle_color || '-'}</div>
-              )}
-            </div>
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
-          {[['🚐', rides.length, lang === 'fr' ? 'Trajets' : 'Rides'], ['⭐', avgRating, lang === 'fr' ? 'Avis' : 'Reviews'], [isVerified ? '✅' : '🔒', isVerified ? (lang === 'fr' ? 'Oui' : 'Yes') : (lang === 'fr' ? 'Non' : 'No'), lang === 'fr' ? 'Verifie' : 'Verified']].map(([icon, val, label]) => (
-            <div key={label} style={{ flex: 1, background: '#fff', borderRadius: 16, padding: '14px 10px', border: '3px solid #3D2B1F', boxShadow: '3px 3px 0 #3D2B1F', textAlign: 'center' }}>
-              <div style={{ fontSize: 22 }}>{icon}</div>
-              <div style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F' }}>{val}</div>
-              <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>{label}</div>
-            </div>
-          ))}
-        </div>
-
-        {!isOwnProfile && (
-          <div style={{ marginBottom: 14 }}>
-            {!showReviewForm ? (
-              <button onClick={() => setShowReviewForm(true)}
-                style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#F5A623', color: '#3D2B1F', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
-                ⭐ {lang === 'fr' ? 'Laisser un avis' : 'Leave a review'}
-              </button>
-            ) : (
-              <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
-                <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>⭐ {lang === 'fr' ? 'Ton avis' : 'Your review'}</div>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12, justifyContent: 'center' }}>
-                  {[1,2,3,4,5].map(star => (
-                    <button key={star} onClick={() => setRating(star)}
-                      style={{ fontSize: 28, background: 'none', border: 'none', cursor: 'pointer', opacity: star <= rating ? 1 : 0.3 }}>
-                      ⭐
-                    </button>
-                  ))}
-                </div>
-                <textarea value={comment} onChange={e => setComment(e.target.value)}
-                  placeholder={lang === 'fr' ? 'Ton commentaire (optionnel)...' : 'Your comment (optional)...'}
-                  rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6, marginBottom: 10 }} />
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => setShowReviewForm(false)}
-                    style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', cursor: 'pointer' }}>
-                    {lang === 'fr' ? 'Annuler' : 'Cancel'}
-                  </button>
-                  <button onClick={submitReview} disabled={submittingReview}
-                    style={{ flex: 2, padding: '10px', borderRadius: 12, border: '3px solid #3D2B1F', background: '#4CAF7D', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff', cursor: 'pointer', boxShadow: '3px 3px 0 #3D2B1F' }}>
-                    {submittingReview ? (lang === 'fr' ? 'Envoi...' : 'Sending...') : (lang === 'fr' ? 'Envoyer ✓' : 'Send ✓')}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {!showReportForm ? (
-              <button onClick={() => setShowReportForm(true)}
-                style={{ width: '100%', padding: '12px', borderRadius: 14, border: '2.5px solid #EDE0CC', cursor: 'pointer', background: '#fff', color: '#B5967A', fontSize: 14, fontFamily: "'Fredoka One'", marginTop: 8 }}>
-                🚩 {lang === 'fr' ? 'Signaler cet utilisateur' : 'Report this user'}
-              </button>
-            ) : (
-              <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginTop: 8 }}>
-                <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>🚩 {lang === 'fr' ? 'Signaler' : 'Report'}</div>
-                <textarea value={reportReason} onChange={e => setReportReason(e.target.value)}
-                  placeholder={lang === 'fr' ? 'Raison du signalement...' : 'Reason for report...'}
-                  rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', marginBottom: 10 }} />
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => setShowReportForm(false)}
-                    style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', cursor: 'pointer' }}>
-                    {lang === 'fr' ? 'Annuler' : 'Cancel'}
-                  </button>
-                  <button onClick={submitReport} disabled={submittingReport || !reportReason.trim()}
-                    style={{ flex: 2, padding: '10px', borderRadius: 12, border: '3px solid #3D2B1F', background: '#E8572A', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff', cursor: 'pointer', boxShadow: '3px 3px 0 #3D2B1F' }}>
-                    {submittingReport ? (lang === 'fr' ? 'Envoi...' : 'Sending...') : (lang === 'fr' ? 'Envoyer 🚩' : 'Send 🚩')}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {reviews.length > 0 && (
-          <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 14 }}>
-            <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>⭐ {lang === 'fr' ? 'Avis' : 'Reviews'} ({reviews.length})</div>
-            {reviews.map(review => (
-              <div key={review.id} style={{ paddingBottom: 12, marginBottom: 12, borderBottom: '1.5px solid #EDE0CC' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                  <div style={{ fontFamily: "'Fredoka One'", fontSize: 14, color: '#3D2B1F' }}>{review.reviewer?.name || 'Anonyme'}</div>
-                  <div style={{ fontSize: 13 }}>{'⭐'.repeat(review.rating)}</div>
-                </div>
-                {review.comment && (
-                  <div style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.5 }}>{review.comment}</div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
+        {/* MY RIDES */}
         {isOwnProfile && (
           <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
-            <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 14 }}>{lang === 'fr' ? 'Mes trajets 🚐' : 'My rides 🚐'}</div>
+            <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 12 }}>{lang === 'fr' ? '🚐 Mes trajets' : '🚐 My Rides'}</div>
             {rides.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '20px 0', fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>{lang === 'fr' ? 'Aucun trajet poste 🌊' : 'No rides posted 🌊'}</div>
-            ) : rides.map(ride => (
-              <div key={ride.id} style={{ padding: '10px 0', borderBottom: '1.5px solid #EDE0CC' }}>
+              <div style={{ textAlign: 'center', padding: '20px 0', fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>
+                {lang === 'fr' ? 'Aucun trajet posté 🌊' : 'No rides posted 🌊'}
+              </div>
+            ) : rides.map((ride, index) => (
+              <div key={ride.id} style={{ padding: '10px 0', borderBottom: index < rides.length - 1 ? '1.5px solid #EDE0CC' : 'none' }}>
                 {editingRide?.id === ride.id ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ display: 'flex', gap: 8 }}>
@@ -502,32 +422,21 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
                     </div>
                   </div>
                 ) : (
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontSize: 15, fontFamily: "'Fredoka One'", color: ride.active ? '#3D2B1F' : '#B5967A' }}>{ride.from_city} → {ride.to_city}</div>
-                        <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.date ? ride.date.split('-').reverse().join('/') : ''} · {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                        <button onClick={() => toggleRideActive(ride)}
-                          style={{ background: ride.active ? '#E8F8EF' : '#FFF0EE', border: '2px solid ' + (ride.active ? '#4CAF7D' : '#E8572A'), borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: ride.active ? '#4CAF7D' : '#E8572A' }}>
-                          {ride.active ? (lang === 'fr' ? '✅ Actif' : '✅ Active') : (lang === 'fr' ? '🔴 Complet' : '🔴 Full')}
-                        </button>
-                        <button onClick={() => setEditingRide({ ...ride })}
-                          style={{ background: '#EFF6FF', border: '2px solid #3B82F6', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>
-                          ✏️
-                        </button>
-                        <button onClick={() => deleteRide(ride.id)}
-                          style={{ background: '#FFF0EE', border: '2px solid #E8572A', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>
-                          🗑️
-                        </button>
-                      </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: ride.active ? '#3D2B1F' : '#B5967A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ride.from_city} → {ride.to_city}</div>
+                      <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.date ? ride.date.split('-').reverse().join('/') : ''} · {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</div>
                     </div>
-                    {!ride.active && (
-                      <div style={{ marginTop: 4, fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#E8572A' }}>
-                        {lang === 'fr' ? '🔴 Masqué des résultats' : '🔴 Hidden from results'}
-                      </div>
-                    )}
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
+                      <button onClick={() => toggleRideActive(ride)}
+                        style={{ background: ride.active ? '#E8F8EF' : '#FFF0EE', border: '2px solid ' + (ride.active ? '#4CAF7D' : '#E8572A'), borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: ride.active ? '#4CAF7D' : '#E8572A', minWidth: 72, textAlign: 'center' }}>
+                        {ride.active ? (lang === 'fr' ? '✅ Actif' : '✅ Active') : (lang === 'fr' ? '🔴 Complet' : '🔴 Full')}
+                      </button>
+                      <button onClick={() => setEditingRide({ ...ride })}
+                        style={{ background: '#FFF3E0', border: '2px solid #F97316', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>✏️</button>
+                      <button onClick={() => deleteRide(ride.id)}
+                        style={{ background: '#FFF0EE', border: '2px solid #E8572A', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>🗑️</button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -535,10 +444,90 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
           </div>
         )}
 
+        {/* AVIS */}
+        {!isOwnProfile && (
+          <div style={{ marginBottom: 4 }}>
+            {!showReviewForm ? (
+              <button onClick={() => setShowReviewForm(true)}
+                style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #3D2B1F', cursor: 'pointer', background: '#F5A623', color: '#3D2B1F', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #3D2B1F' }}>
+                ⭐ {lang === 'fr' ? 'Laisser un avis' : 'Leave a review'}
+              </button>
+            ) : (
+              <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
+                <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 12 }}>⭐ {lang === 'fr' ? 'Ton avis' : 'Your review'}</div>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12, justifyContent: 'center' }}>
+                  {[1,2,3,4,5].map(star => (
+                    <button key={star} onClick={() => setRating(star)}
+                      style={{ fontSize: 28, background: 'none', border: 'none', cursor: 'pointer', opacity: star <= rating ? 1 : 0.3 }}>⭐</button>
+                  ))}
+                </div>
+                <textarea value={comment} onChange={e => setComment(e.target.value)}
+                  placeholder={lang === 'fr' ? 'Ton commentaire (optionnel)...' : 'Your comment (optional)...'}
+                  rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6, marginBottom: 10 }} />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => setShowReviewForm(false)}
+                    style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', cursor: 'pointer' }}>
+                    {lang === 'fr' ? 'Annuler' : 'Cancel'}
+                  </button>
+                  <button onClick={submitReview} disabled={submittingReview}
+                    style={{ flex: 2, padding: '10px', borderRadius: 12, border: '3px solid #3D2B1F', background: '#4CAF7D', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff', cursor: 'pointer', boxShadow: '3px 3px 0 #3D2B1F' }}>
+                    {submittingReview ? (lang === 'fr' ? 'Envoi...' : 'Sending...') : (lang === 'fr' ? 'Envoyer ✓' : 'Send ✓')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {reviews.length > 0 && (
+          <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
+            <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 12 }}>⭐ {lang === 'fr' ? 'Avis' : 'Reviews'} ({reviews.length})</div>
+            {reviews.map((review, index) => (
+              <div key={review.id} style={{ paddingBottom: 12, marginBottom: 12, borderBottom: index < reviews.length - 1 ? '1.5px solid #EDE0CC' : 'none' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                  <div style={{ fontFamily: "'Fredoka One'", fontSize: 14, color: '#3D2B1F' }}>{review.reviewer?.name || 'Anonyme'}</div>
+                  <div style={{ fontSize: 13 }}>{'⭐'.repeat(review.rating)}</div>
+                </div>
+                {review.comment && (
+                  <div style={{ fontSize: 13, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.5 }}>{review.comment}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* SIGNALEMENT */}
+        {!isOwnProfile && (
+          !showReportForm ? (
+            <button onClick={() => setShowReportForm(true)}
+              style={{ width: '100%', padding: '12px', borderRadius: 14, border: '2.5px solid #EDE0CC', cursor: 'pointer', background: '#fff', color: '#B5967A', fontSize: 14, fontFamily: "'Fredoka One'" }}>
+              🚩 {lang === 'fr' ? 'Signaler cet utilisateur' : 'Report this user'}
+            </button>
+          ) : (
+            <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
+              <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 12 }}>🚩 {lang === 'fr' ? 'Signaler' : 'Report'}</div>
+              <textarea value={reportReason} onChange={e => setReportReason(e.target.value)}
+                placeholder={lang === 'fr' ? 'Raison du signalement...' : 'Reason for report...'}
+                rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', marginBottom: 10 }} />
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => setShowReportForm(false)}
+                  style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', cursor: 'pointer' }}>
+                  {lang === 'fr' ? 'Annuler' : 'Cancel'}
+                </button>
+                <button onClick={submitReport} disabled={submittingReport || !reportReason.trim()}
+                  style={{ flex: 2, padding: '10px', borderRadius: 12, border: '3px solid #3D2B1F', background: '#E8572A', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 800, color: '#fff', cursor: 'pointer', boxShadow: '3px 3px 0 #3D2B1F' }}>
+                  {submittingReport ? (lang === 'fr' ? 'Envoi...' : 'Sending...') : (lang === 'fr' ? 'Envoyer 🚩' : 'Send 🚩')}
+                </button>
+              </div>
+            </div>
+          )
+        )}
+
+        {/* TERMS + SIGN OUT */}
         {isOwnProfile && (
-          <div style={{ marginTop: 16, marginBottom: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <button onClick={() => onShowCGU && onShowCGU()}
-              style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #EDE0CC', cursor: 'pointer', background: '#fff', color: '#7B5C42', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #EDE0CC', marginBottom: 10 }}>
+              style={{ width: '100%', padding: '12px', borderRadius: 14, border: '3px solid #EDE0CC', cursor: 'pointer', background: '#fff', color: '#7B5C42', fontSize: 15, fontFamily: "'Fredoka One'", boxShadow: '4px 4px 0 #EDE0CC' }}>
               {lang === 'fr' ? "Conditions d'utilisation 📋" : 'Terms of Service 📋'}
             </button>
             <button onClick={() => supabase.auth.signOut()}
