@@ -200,33 +200,33 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
     )}
   </div>
   <div style={{ flex: 1 }}>
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
     {editing ? (
       <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
         placeholder={lang === 'fr' ? 'Ton prenom' : 'Your name'}
-        style={{ fontSize: 22, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px' }} />
+        style={{ fontSize: 22, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px', flex: 1, marginRight: 8 }} />
     ) : (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>{profile?.name || 'Anonyme'}</div>
-        {isOwnProfile && (
-          <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
-  style={{ background: '#F5EDD9', border: '2px solid #3D2B1F', borderRadius: 20, padding: '5px 14px', color: '#3D2B1F', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, cursor: 'pointer', boxShadow: '2px 2px 0 #3D2B1F' }}>
-  {saving ? (lang === 'fr' ? 'Sauvegarde...' : 'Saving...') : editing ? (lang === 'fr' ? '✅ Sauvegarder' : '✅ Save') : (lang === 'fr' ? '✏️ Modifier' : '✏️ Edit')}
-</button>
-        )}
-      </div>
+      <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>{profile?.name || 'Anonyme'}</div>
     )}
-    {isVerified && (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
-        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-          <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
-          <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-        <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 14, fontWeight: 700, color: '#fff', fontStyle: 'italic' }}>
-          {lang === 'fr' ? 'profil vérifié' : 'verified profile'}
-        </span>
-      </div>
+    {isOwnProfile && (
+      <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
+        style={{ background: '#F5EDD9', border: '2px solid #3D2B1F', borderRadius: 20, padding: '5px 14px', color: '#3D2B1F', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, cursor: 'pointer', boxShadow: '2px 2px 0 #3D2B1F', flexShrink: 0 }}>
+        {saving ? (lang === 'fr' ? 'Sauvegarde...' : 'Saving...') : editing ? (lang === 'fr' ? '✅ Sauvegarder' : '✅ Save') : (lang === 'fr' ? '✏️ Modifier' : '✏️ Edit')}
+      </button>
     )}
   </div>
+  {isVerified && (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
+        <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 14, fontWeight: 700, color: '#fff', fontStyle: 'italic' }}>
+        {lang === 'fr' ? 'profil vérifié' : 'verified profile'}
+      </span>
+    </div>
+  )}
+</div>
 </div>
 
         {/* Stats */}
