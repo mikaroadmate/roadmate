@@ -178,55 +178,56 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
 
       {/* HEADER */}
       <div style={{ background: 'linear-gradient(135deg, #E8572A, #C4622D)', padding: 'calc(env(safe-area-inset-top) + 16px) 20px 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div style={{ marginBottom: 20 }}>
   <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
     {t('post_back')}
   </button>
-  {isOwnProfile && (
-    <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
-      style={{ background: editing ? '#4CAF7D' : 'rgba(255,255,255,0.2)', border: '2px solid ' + (editing ? '#3D2B1F' : 'rgba(255,255,255,0.4)'), borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer', boxShadow: editing ? '3px 3px 0 #3D2B1F' : 'none' }}>
-      {saving ? (lang === 'fr' ? 'Sauvegarde...' : 'Saving...') : editing ? t('profile_save') : t('profile_edit')}
-    </button>
-  )}
 </div>
 
-        {/* Avatar + Nom */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-          <div style={{ position: 'relative' }}>
-            <div style={{ width: 72, height: 72, borderRadius: 22, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 rgba(0,0,0,0.2)', overflow: 'hidden' }}>
-              {profile?.avatar_url ? <img src={profile.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
-            </div>
-            {isOwnProfile && (
-              <>
-                <button onClick={() => fileInputRef.current.click()} disabled={uploadingPhoto}
-                  style={{ position: 'absolute', bottom: -6, right: -6, width: 26, height: 26, borderRadius: 8, background: '#fff', border: '2px solid #3D2B1F', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {uploadingPhoto ? '⏳' : '📷'}
-                </button>
-                <input ref={fileInputRef} type="file" accept="image/*" onChange={uploadAvatar} style={{ display: 'none' }} />
-              </>
-            )}
-          </div>
-          <div>
-            {editing ? (
-              <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                placeholder={lang === 'fr' ? 'Ton prenom' : 'Your name'}
-                style={{ fontSize: 22, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px' }} />
-            ) : (
-              <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>{profile?.name || 'Anonyme'}</div>
-            )}
-            {isVerified && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
-                <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-                  <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
-                  <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 14, fontWeight: 700, color: '#fff', fontStyle: 'italic' }}>
-                  {lang === 'fr' ? 'profil vérifié' : 'verified profile'}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
+<div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+  <div style={{ position: 'relative' }}>
+    <div style={{ width: 72, height: 72, borderRadius: 22, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 rgba(0,0,0,0.2)', overflow: 'hidden' }}>
+      {profile?.avatar_url ? <img src={profile.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
+    </div>
+    {isOwnProfile && (
+      <>
+        <button onClick={() => fileInputRef.current.click()} disabled={uploadingPhoto}
+          style={{ position: 'absolute', bottom: -6, right: -6, width: 26, height: 26, borderRadius: 8, background: '#fff', border: '2px solid #3D2B1F', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {uploadingPhoto ? '⏳' : '📷'}
+        </button>
+        <input ref={fileInputRef} type="file" accept="image/*" onChange={uploadAvatar} style={{ display: 'none' }} />
+      </>
+    )}
+  </div>
+  <div style={{ flex: 1 }}>
+    {editing ? (
+      <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+        placeholder={lang === 'fr' ? 'Ton prenom' : 'Your name'}
+        style={{ fontSize: 22, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px' }} />
+    ) : (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>{profile?.name || 'Anonyme'}</div>
+        {isOwnProfile && (
+          <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
+            style={{ background: editing ? '#4CAF7D' : 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '6px 12px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>
+            {saving ? (lang === 'fr' ? 'Sauvegarde...' : 'Saving...') : editing ? t('profile_save') : t('profile_edit')}
+          </button>
+        )}
+      </div>
+    )}
+    {isVerified && (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
+          <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 14, fontWeight: 700, color: '#fff', fontStyle: 'italic' }}>
+          {lang === 'fr' ? 'profil vérifié' : 'verified profile'}
+        </span>
+      </div>
+    )}
+  </div>
+</div>
 
         {/* Stats */}
         <div style={{ display: 'flex', gap: 8 }}>
