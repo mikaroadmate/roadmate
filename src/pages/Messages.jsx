@@ -213,10 +213,10 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
           ))}
         </div>
         <div style={{ padding: '10px 18px 32px', display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0 }}>
-          <input value={newMessage} onChange={e => setNewMessage(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && sendMessage()}
-            placeholder={t('messages_placeholder')}
-            style={{ flex: 1, padding: '12px 16px', borderRadius: 18, border: '3px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F' }} />
+         <textarea value={newMessage} onChange={e => setNewMessage(e.target.value)}
+  placeholder={t('messages_placeholder')}
+  rows={2}
+  style={{ flex: 1, padding: '12px 16px', borderRadius: 18, border: '3px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', resize: 'none', lineHeight: 1.5 }} />
           <button onClick={sendMessage}
             style={{ width: 48, height: 48, borderRadius: 16, border: '3px solid #3D2B1F', background: newMessage.trim() ? '#E8572A' : '#EDE0CC', cursor: 'pointer', fontSize: 20, boxShadow: '4px 4px 0 #3D2B1F', flexShrink: 0 }}>
             🤙
