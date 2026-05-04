@@ -247,21 +247,7 @@ export default function Home({ user, onSignOut, showCGU }) {
   if (showOtherProfile) return <Profile user={user} viewedUserId={otherUserId} onBack={() => { setShowOtherProfile(false); setOtherUserId(null) }} onShowCGU={showCGU} />
   if (showMap) return <Map user={user} onBack={() => setShowMap(false)} onContact={(userId) => { setContactId(userId); setShowMessages(true) }} />
 
-  const getTypeStyle = (id) => ({
-    flex: 1, padding: '8px', borderRadius: 20,
-    border: '2.5px solid ' + (filterType === id ? '#3D2B1F' : '#EDE0CC'),
-    background: filterType === id ? '#3D2B1F' : '#fff',
-    color: filterType === id ? '#fff' : '#7B5C42',
-    fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer'
-  })
-
-  const getCatStyle = (id) => ({
-    flexShrink: 0, padding: '6px 14px', borderRadius: 20,
-    border: '2.5px solid ' + (filterCat === id ? '#3D2B1F' : '#EDE0CC'),
-    background: filterCat === id ? '#E8572A' : '#fff',
-    color: filterCat === id ? '#fff' : '#7B5C42',
-    fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer'
-  })
+  
 
   const totalBadge = unreadCount + pendingBookings
 
@@ -307,41 +293,46 @@ export default function Home({ user, onSignOut, showCGU }) {
       </div>
 
       <div style={{ padding: '14px 22px 0' }}>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-          {[['all', t('filter_all')], ['offer', t('filter_offer')], ['seek', t('filter_seek')]].map(([id, label]) => (
-            <button key={id} onClick={() => setFilterType(id)} style={getTypeStyle(id)}>{label}</button>
-          ))}
-        </div>
-        <div style={{ display: 'flex', gap: 7, overflowX: 'auto', paddingBottom: 6 }}>
-          {CATEGORIES.map(c => (
-            <button key={c.id} onClick={() => setFilterCat(c.id)} style={getCatStyle(c.id)}>{c.icon} {c.label}</button>
-          ))}
-        </div>
-        <div style={{ marginTop: 8, marginBottom: 4, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)}
-              style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 2 }} />
-            <div style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterDate ? '#3D2B1F' : '#EDE0CC'), background: filterDate ? '#3D2B1F' : '#fff', color: filterDate ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
-              {filterDate ? '📅 ' + filterDate.split('-').reverse().join('/') : '📅 Date'}
-            </div>
-            {filterDate && <button onClick={() => setFilterDate('')} style={{ marginLeft: 4, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#3D2B1F', fontWeight: 900, zIndex: 3, position: 'relative' }}>✕</button>}
-            {filterDate && (
-              <button onClick={() => setFilterDateMode(filterDateMode === 'exact' ? 'from' : 'exact')}
-                style={{ marginLeft: 4, background: filterDateMode === 'from' ? '#3D2B1F' : '#fff', border: '2px solid ' + (filterDateMode === 'from' ? '#3D2B1F' : '#EDE0CC'), borderRadius: 10, cursor: 'pointer', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: filterDateMode === 'from' ? '#fff' : '#7B5C42', padding: '3px 8px', zIndex: 3, position: 'relative' }}>
-                {filterDateMode === 'exact' ? '= Exact' : (lang === 'fr' ? '≥ À partir' : '≥ From')}
-              </button>
-            )}
-          </div>
-          <button onClick={() => setFilterWomen(!filterWomen)}
-            style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterWomen ? '#3D2B1F' : '#EDE0CC'), background: filterWomen ? '#3D2B1F' : '#fff', color: filterWomen ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
-            {t('women_only_filter')}
-          </button>
-          <button onClick={() => setFilterFavorites(!filterFavorites)}
-            style={{ padding: '6px 14px', borderRadius: 20, border: '2.5px solid ' + (filterFavorites ? '#3D2B1F' : '#EDE0CC'), background: filterFavorites ? '#3D2B1F' : '#fff', color: filterFavorites ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
-            {filterFavorites ? '⭐' : '☆'} {lang === 'fr' ? 'Favoris' : 'Favorites'}
-          </button>
-        </div>
+  {/* Ligne 1 : Tous / Offre / Cherche */}
+  <div style={{ display: 'flex', gap: 7, marginBottom: 8 }}>
+    {[['all', t('filter_all')], ['offer', t('filter_offer')], ['seek', t('filter_seek')]].map(([id, label]) => (
+      <button key={id} onClick={() => setFilterType(id)}
+        style={{ flex: 1, padding: '6px 4px', borderRadius: 20, border: '2.5px solid ' + (filterType === id ? '#3D2B1F' : '#EDE0CC'), background: filterType === id ? '#3D2B1F' : '#fff', color: filterType === id ? '#fff' : '#7B5C42', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer', textAlign: 'center' }}>
+        {label}
+      </button>
+    ))}
+  </div>
+
+  {/* Ligne 2 : Catégories 2x2 */}
+  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, marginBottom: 8 }}>
+    {CATEGORIES.map(c => (
+      <button key={c.id} onClick={() => setFilterCat(filterCat === c.id ? null : c.id)}
+        style={{ padding: '6px 4px', borderRadius: 20, border: '2.5px solid ' + (filterCat === c.id ? '#3D2B1F' : '#EDE0CC'), background: filterCat === c.id ? '#E8572A' : '#fff', color: filterCat === c.id ? '#fff' : '#7B5C42', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer', textAlign: 'center' }}>
+        {c.icon} {c.label}
+      </button>
+    ))}
+  </div>
+
+  {/* Ligne 3 : Date / Femmes only / Favoris */}
+  <div style={{ display: 'flex', gap: 7, marginBottom: 8 }}>
+    <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
+      <input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)}
+        style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 2 }} />
+      <div style={{ flex: 1, padding: '6px 4px', borderRadius: 20, border: '2.5px solid ' + (filterDate ? '#3D2B1F' : '#EDE0CC'), background: filterDate ? '#3D2B1F' : '#fff', color: filterDate ? '#fff' : '#7B5C42', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, pointerEvents: 'none', textAlign: 'center', whiteSpace: 'nowrap' }}>
+        {filterDate ? '📅 ' + filterDate.split('-').reverse().join('/') : '📅 Date'}
       </div>
+      {filterDate && <button onClick={() => setFilterDate('')} style={{ position: 'absolute', right: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: '#3D2B1F', fontWeight: 900, zIndex: 3 }}>✕</button>}
+    </div>
+    <button onClick={() => setFilterWomen(!filterWomen)}
+      style={{ flex: 1, padding: '6px 4px', borderRadius: 20, border: '2.5px solid ' + (filterWomen ? '#3D2B1F' : '#EDE0CC'), background: filterWomen ? '#3D2B1F' : '#fff', color: filterWomen ? '#fff' : '#7B5C42', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer', textAlign: 'center', whiteSpace: 'nowrap' }}>
+      👩 {lang === 'fr' ? 'Femmes only' : 'Women only'}
+    </button>
+    <button onClick={() => setFilterFavorites(!filterFavorites)}
+      style={{ flex: 1, padding: '6px 4px', borderRadius: 20, border: '2.5px solid ' + (filterFavorites ? '#3D2B1F' : '#EDE0CC'), background: filterFavorites ? '#3D2B1F' : '#fff', color: filterFavorites ? '#fff' : '#7B5C42', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer', textAlign: 'center' }}>
+      {filterFavorites ? '⭐' : '☆'} {lang === 'fr' ? 'Favoris' : 'Favorites'}
+    </button>
+  </div>
+</div>
 
       <div style={{ padding: '12px 22px 100px' }}>
         {(searchFrom.trim() || searchTo.trim() || filterDate || filterFavorites) && (
