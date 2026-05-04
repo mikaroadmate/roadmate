@@ -104,16 +104,19 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
   }
 
   const deleteConversation = async (otherId) => {
-    const { data: msgs } = await supabase.from('messages')
-      .select('id, deleted_by')
-      .or('and(sender_id.eq.' + user.id + ',receiver_id.eq.' + otherId + '),and(sender_id.eq.' + otherId + ',receiver_id.eq.' + user.id + ')')
-    for (const msg of msgs || []) {
-      const newDeletedBy = [...(msg.deleted_by || []), user.id]
-      await supabase.from('messages').update({ deleted_by: newDeletedBy }).eq('id', msg.id)
-    }
-    setConversations(prev => prev.filter(c => c.otherId !== otherId))
-    setUnreadMap(prev => { const next = { ...prev }; delete next[otherId]; return next })
+  const { data: msgs } = await supabase
+    .from('messages')
+    .select('id, deleted_by')
+    .or('and(sender_id.eq.' + user.id + ',receiver_id.eq.' + otherId + '),and(sender_id.eq.' + otherId + ',receiver_id.eq.' + user.id + ')')
+
+  const ids = (msgs || []).map(m => m.id)
+  if (ids.length > 0) {
+    await supabase.rpc('mark_messages_deleted', { message_ids: ids, user_uuid: user.id })
   }
+
+  setConversations(prev => prev.filter(c => c.otherId !== otherId))
+  setUnreadMap(prev => { const next = { ...prev }; delete next[otherId]; return next })
+}
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !activeConv) return
