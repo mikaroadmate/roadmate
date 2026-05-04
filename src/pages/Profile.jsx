@@ -145,15 +145,13 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
 
       {/* HEADER */}
       <div style={{ background: 'linear-gradient(135deg, #E8572A, #C4622D)', padding: 'calc(env(safe-area-inset-top) + 16px) 20px 20px' }}>
-        
-        {/* Retour */}
+
         <div style={{ marginBottom: 16 }}>
           <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
             {t('post_back')}
           </button>
         </div>
 
-        {/* Avatar + Nom + Modifier */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <div style={{ width: 72, height: 72, borderRadius: 22, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 rgba(0,0,0,0.2)', overflow: 'hidden' }}>
@@ -171,38 +169,33 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
           </div>
 
           <div style={{ flex: 1, minWidth: 0 }}>
-            editing ? (
-  <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-    placeholder={lang === 'fr' ? 'Ton prenom' : 'Your name'}
-    style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px', width: '100%', boxSizing: 'border-box', marginBottom: 4 }} />
-) : (
-  <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff', marginBottom: 4 }}>{profile?.name || 'Anonyme'}</div>
-)
-{isVerified && (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 5 }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-      <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-        <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
-        <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-      <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 14, fontWeight: 700, color: '#fff', fontStyle: 'italic' }}>
-        {lang === 'fr' ? 'profil vérifié' : 'verified profile'}
-      </span>
-    </div>
-    {isOwnProfile && (
-      <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
-        style={{ background: '#F5EDD9', border: '2px solid #3D2B1F', borderRadius: 20, padding: '5px 12px', color: '#3D2B1F', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, cursor: 'pointer', boxShadow: '2px 2px 0 #3D2B1F', flexShrink: 0, whiteSpace: 'nowrap' }}>
-        {saving ? '...' : editing ? (lang === 'fr' ? '✅ Sauvegarder' : '✅ Save') : (lang === 'fr' ? '✏️ Modifier' : '✏️ Edit')}
-      </button>
-    )}
-  </div>
-)}
-{!isVerified && isOwnProfile && (
-  <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
-    style={{ background: '#F5EDD9', border: '2px solid #3D2B1F', borderRadius: 20, padding: '5px 12px', color: '#3D2B1F', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, cursor: 'pointer', boxShadow: '2px 2px 0 #3D2B1F', whiteSpace: 'nowrap', marginTop: 4 }}>
-    {saving ? '...' : editing ? (lang === 'fr' ? '✅ Sauvegarder' : '✅ Save') : (lang === 'fr' ? '✏️ Modifier' : '✏️ Edit')}
-  </button>
-)}
+            {editing ? (
+              <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                placeholder={lang === 'fr' ? 'Ton prenom' : 'Your name'}
+                style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px', width: '100%', boxSizing: 'border-box', marginBottom: 4 }} />
+            ) : (
+              <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff', marginBottom: 4 }}>{profile?.name || 'Anonyme'}</div>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              {isVerified && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                    <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
+                    <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 14, fontWeight: 700, color: '#fff', fontStyle: 'italic' }}>
+                    {lang === 'fr' ? 'profil vérifié' : 'verified profile'}
+                  </span>
+                </div>
+              )}
+              {!isVerified && <div />}
+              {isOwnProfile && (
+                <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
+                  style={{ background: '#F5EDD9', border: '2px solid #3D2B1F', borderRadius: 20, padding: '5px 12px', color: '#3D2B1F', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, cursor: 'pointer', boxShadow: '2px 2px 0 #3D2B1F', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                  {saving ? '...' : editing ? (lang === 'fr' ? '✅ Sauvegarder' : '✅ Save') : (lang === 'fr' ? '✏️ Modifier' : '✏️ Edit')}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -259,7 +252,6 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
             )}
           </div>
 
-          {/* WHATSAPP */}
           <div style={{ marginBottom: 10 }}>
             <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📱 {t('profile_whatsapp')}</div>
             {editing ? (
@@ -290,7 +282,6 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
             )}
           </div>
 
-          {/* INSTAGRAM */}
           <div>
             <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📷 {t('profile_instagram')}</div>
             {editing ? (
