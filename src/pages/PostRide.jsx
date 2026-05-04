@@ -72,7 +72,7 @@ const geocodeCity = async (city) => {
     setLoading(false)
   }
 
-  const headerColors = ['', '#3D2B1F', '#E8572A', '#E8572A']
+  const headerColors = ['', '#3D2B1F', '#E8572A', '#3D2B1F']
 
   return (
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -188,8 +188,8 @@ const geocodeCity = async (city) => {
 )}
 
             <Section title={t('post_note')}>
-              <textarea placeholder={t('post_note_placeholder')} value={form.note} onChange={e => setForm(p => ({ ...p, note: e.target.value }))} rows={3}
-                style={{ ...inputStyle, fontFamily: "'Kalam', cursive", resize: 'none', lineHeight: 1.6 }} />
+              <textarea placeholder={t('post_note_placeholder')} value={form.note} onChange={e => setForm(p => ({ ...p, note: e.target.value }))} rows={3} maxLength={300}
+  style={{ ...inputStyle, fontFamily: "'Kalam', cursive", resize: 'none', lineHeight: 1.6 }} />
             </Section>
 
             <Section title={t('post_women')}>
