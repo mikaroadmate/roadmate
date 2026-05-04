@@ -15,12 +15,12 @@ export default function PostRide({ user, onBack, onSuccess }) {
   const [error, setError] = useState('')
 
   const CATEGORIES = lang === 'fr' ? [
-    { id: 'travel', label: 'Voyage', icon: '✈️', desc: 'Inter-états & longue distance' },
+    { id: 'travel', label: 'Trajet', icon: '🛣️', desc: 'Inter-états & longue distance' },
     { id: 'work', label: 'Travail', icon: '💼', desc: 'Fermes, mines & emploi' },
     { id: 'daytrip', label: 'Excursion', icon: '🌊', desc: 'Plages, randos & tourisme' },
     { id: 'roadtrip', label: 'Road Trip', icon: '🚐', desc: 'Aventures multi-jours' },
   ] : [
-    { id: 'travel', label: 'Travel', icon: '✈️', desc: 'Interstate & long distance' },
+    { id: 'travel', label: 'Trip', icon: '🛣️', desc: 'Interstate & long distance' },
     { id: 'work', label: 'Work', icon: '💼', desc: 'Farms, mines & employment' },
     { id: 'daytrip', label: 'Day Trip', icon: '🌊', desc: 'Beaches, hikes & tourism' },
     { id: 'roadtrip', label: 'Road Trip', icon: '🚐', desc: 'Multi-day adventures' },

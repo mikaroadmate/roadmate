@@ -9,16 +9,16 @@ import { useLanguage } from '../LanguageContext'
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
 
 const CATEGORIES_FR = [
-  { id: 'all', label: 'Tous', icon: '🛣️' },
-  { id: 'travel', label: 'Voyage', icon: '✈️' },
+  { id: 'all', label: 'Tous', icon: '' },
+  { id: 'travel', label: 'Trajet', icon: '🛣️' },
   { id: 'work', label: 'Travail', icon: '💼' },
   { id: 'daytrip', label: 'Excursion', icon: '🌊' },
   { id: 'roadtrip', label: 'Road Trip', icon: '🚐' },
 ]
 
 const CATEGORIES_EN = [
-  { id: 'all', label: 'All', icon: '🛣️' },
-  { id: 'travel', label: 'Travel', icon: '✈️' },
+  { id: 'all', label: 'All', icon: '' },
+  { id: 'travel', label: 'Trip', icon: '🛣️' },
   { id: 'work', label: 'Work', icon: '💼' },
   { id: 'daytrip', label: 'Day Trip', icon: '🌊' },
   { id: 'roadtrip', label: 'Road Trip', icon: '🚐' },
