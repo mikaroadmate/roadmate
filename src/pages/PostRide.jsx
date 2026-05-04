@@ -72,7 +72,7 @@ const geocodeCity = async (city) => {
     setLoading(false)
   }
 
-  const headerColors = ['', '#3D2B1F', '#E8572A', '#4CAF7D']
+  const headerColors = ['', '#3D2B1F', '#E8572A', '#E8572A']
 
   return (
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -177,7 +177,7 @@ const geocodeCity = async (city) => {
       </button>
       <button onClick={() => setForm(p => ({ ...p, fuelShare: true, price: '' }))}
         style={{ flex: 1, padding: '14px', borderRadius: 14, border: '3px solid ' + (form.fuelShare ? '#3D2B1F' : '#EDE0CC'), background: form.fuelShare ? '#E8572A' : '#fff', color: form.fuelShare ? '#fff' : '#7B5C42', fontSize: 14, fontFamily: "'Fredoka One'", cursor: 'pointer', boxShadow: form.fuelShare ? '4px 4px 0 #3D2B1F' : 'none', textAlign: 'center' }}>
-        ⛽ {lang === 'fr' ? 'Essence' : 'Fuel share'}
+        ⛽ {lang === 'fr' ? 'Partage Essence' : 'Fuel share'}
       </button>
     </div>
     {!form.fuelShare && (
