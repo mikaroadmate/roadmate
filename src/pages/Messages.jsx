@@ -18,10 +18,10 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
 
   useEffect(() => { fetchConversations() }, [])
   useEffect(() => { fetchPendingBookings() }, [])
-useEffect(() => {
-  const interval = setInterval(() => { fetchPendingBookings() }, 5000)
-  return () => clearInterval(interval)
-}, [])
+  useEffect(() => {
+    const interval = setInterval(() => { fetchPendingBookings() }, 5000)
+    return () => clearInterval(interval)
+  }, [])
   useEffect(() => {
     if (activeConv) {
       fetchMessages(activeConv)
@@ -44,20 +44,18 @@ useEffect(() => {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
   const fetchPendingBookings = async () => {
-  const { count } = await supabase
-    .from('bookings')
-    .select('*', { count: 'exact', head: true })
-    .eq('driver_id', user.id)
-    .eq('seen_by_driver', false)
-
-  const { count: count2 } = await supabase
-    .from('bookings')
-    .select('*', { count: 'exact', head: true })
-    .eq('passenger_id', user.id)
-    .eq('seen_by_passenger', false)
-
-  setPendingBookings((count || 0) + (count2 || 0))
-}
+    const { count } = await supabase
+      .from('bookings')
+      .select('*', { count: 'exact', head: true })
+      .eq('driver_id', user.id)
+      .eq('seen_by_driver', false)
+    const { count: count2 } = await supabase
+      .from('bookings')
+      .select('*', { count: 'exact', head: true })
+      .eq('passenger_id', user.id)
+      .eq('seen_by_passenger', false)
+    setPendingBookings((count || 0) + (count2 || 0))
+  }
 
   const fetchConversations = async () => {
     setLoading(true)
@@ -71,6 +69,7 @@ useEffect(() => {
       const convMap = {}
       const unread = {}
       data.forEach(msg => {
+        if (msg.deleted_by?.includes(user.id)) return
         const otherId = msg.sender_id === user.id ? msg.receiver_id : msg.sender_id
         const otherProfile = msg.sender_id === user.id ? msg.receiver : msg.sender
         if (!convMap[otherId]) convMap[otherId] = { otherId, otherProfile, lastMsg: msg }
@@ -94,7 +93,7 @@ useEffect(() => {
       .select('*')
       .or('and(sender_id.eq.' + user.id + ',receiver_id.eq.' + otherId + '),and(sender_id.eq.' + otherId + ',receiver_id.eq.' + user.id + ')')
       .order('created_at', { ascending: true })
-    setMessages(data || [])
+    setMessages((data || []).filter(m => !m.deleted_by?.includes(user.id)))
     await supabase.from('messages').update({ read: true }).eq('receiver_id', user.id).eq('sender_id', otherId).eq('read', false)
     setUnreadMap(prev => ({ ...prev, [otherId]: 0 }))
   }
@@ -105,9 +104,15 @@ useEffect(() => {
   }
 
   const deleteConversation = async (otherId) => {
-    await supabase.from('messages').delete()
+    const { data: msgs } = await supabase.from('messages')
+      .select('id, deleted_by')
       .or('and(sender_id.eq.' + user.id + ',receiver_id.eq.' + otherId + '),and(sender_id.eq.' + otherId + ',receiver_id.eq.' + user.id + ')')
+    for (const msg of msgs || []) {
+      const newDeletedBy = [...(msg.deleted_by || []), user.id]
+      await supabase.from('messages').update({ deleted_by: newDeletedBy }).eq('id', msg.id)
+    }
     setConversations(prev => prev.filter(c => c.otherId !== otherId))
+    setUnreadMap(prev => { const next = { ...prev }; delete next[otherId]; return next })
   }
 
   const sendMessage = async () => {
@@ -152,7 +157,6 @@ useEffect(() => {
 
   const totalUnread = Object.values(unreadMap).reduce((a, b) => a + b, 0)
 
-  // Vue conversation active
   if (activeConv) {
     return (
       <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -219,7 +223,6 @@ useEffect(() => {
     )
   }
 
-  // Vue liste (Messages + Réservations)
   return (
     <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%' }}>
       <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
@@ -235,7 +238,6 @@ useEffect(() => {
           </button>
         </div>
 
-        {/* Sous-onglets */}
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => setMainTab('messages')}
             style={{ flex: 1, padding: '10px', borderRadius: 14, border: '2.5px solid rgba(255,255,255,0.3)', cursor: 'pointer', fontFamily: "'Fredoka One'", fontSize: 14, background: mainTab === 'messages' ? '#E8572A' : 'rgba(255,255,255,0.1)', color: '#fff', position: 'relative' }}>
