@@ -9,7 +9,7 @@ import { useLanguage } from '../LanguageContext'
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY
 
 const CATEGORIES_FR = [
-  { id: 'all', label: 'Tous', icon: '' },
+  
   { id: 'travel', label: 'Trajet', icon: '🛣️' },
   { id: 'work', label: 'Travail', icon: '💼' },
   { id: 'daytrip', label: 'Excursion', icon: '🌊' },
@@ -17,7 +17,7 @@ const CATEGORIES_FR = [
 ]
 
 const CATEGORIES_EN = [
-  { id: 'all', label: 'All', icon: '' },
+  
   { id: 'travel', label: 'Trip', icon: '🛣️' },
   { id: 'work', label: 'Work', icon: '💼' },
   { id: 'daytrip', label: 'Day Trip', icon: '🌊' },
@@ -93,7 +93,7 @@ export default function Home({ user, onSignOut, showCGU }) {
   const CATEGORIES = lang === 'fr' ? CATEGORIES_FR : CATEGORIES_EN
 
   const [rides, setRides] = useState([])
-  const [filterCat, setFilterCat] = useState('all')
+  const [filterCat, setFilterCat] = useState(null)
   const [filterType, setFilterType] = useState('all')
   const [filterWomen, setFilterWomen] = useState(false)
   const [filterDate, setFilterDate] = useState('')
@@ -166,7 +166,7 @@ export default function Home({ user, onSignOut, showCGU }) {
       .order('time', { ascending: true })
       .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1)
       .eq('active', true)
-    if (filterCat !== 'all') query = query.eq('category', filterCat)
+    if (filterCat) query = query.eq('category', filterCat)
     if (filterType !== 'all') query = query.eq('type', filterType)
     if (filterWomen) query = query.eq('women_only', true)
     if (filterDate) query = filterDateMode === 'exact' ? query.eq('date', filterDate) : query.gte('date', filterDate)
