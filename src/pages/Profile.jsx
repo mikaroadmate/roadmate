@@ -18,11 +18,6 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
-  const [showReviewForm, setShowReviewForm] = useState(false)
-  const [canReview, setCanReview] = useState(false)
-  const [rating, setRating] = useState(5)
-  const [comment, setComment] = useState('')
-  const [submittingReview, setSubmittingReview] = useState(false)
   const [editingRide, setEditingRide] = useState(null)
   const [showReportForm, setShowReportForm] = useState(false)
   const [reportReason, setReportReason] = useState('')
@@ -63,15 +58,6 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
       }))
     }
     setReviews(reviewsWithNames)
-    if (!isOwnProfile) {
-  const { data: bookingCheck } = await supabase
-    .from('bookings')
-    .select('id')
-    .eq('status', 'accepted')
-    .or('and(passenger_id.eq.' + user.id + ',driver_id.eq.' + targetId + '),and(passenger_id.eq.' + targetId + ',driver_id.eq.' + user.id + ')')
-    .maybeSingle()
-  setCanReview(!!bookingCheck)
-}
     setLoading(false)
   }
 
@@ -129,25 +115,6 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
     fetchProfile()
   }
 
-  const submitReview = async () => {
-    setSubmittingReview(true)
-    const { error } = await supabase.from('reviews').insert({
-      reviewer_id: user.id,
-      reviewed_id: targetId,
-      rating,
-      comment
-    })
-    if (!error) {
-      setMessage(lang === 'fr' ? 'Avis envoye ! ✅' : 'Review sent! ✅')
-      setShowReviewForm(false)
-      setComment('')
-      setRating(5)
-      fetchProfile()
-    }
-    setSubmittingReview(false)
-    setTimeout(() => setMessage(''), 3000)
-  }
-
   const submitReport = async () => {
     if (!reportReason.trim()) return
     setSubmittingReport(true)
@@ -178,56 +145,60 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
 
       {/* HEADER */}
       <div style={{ background: 'linear-gradient(135deg, #E8572A, #C4622D)', padding: 'calc(env(safe-area-inset-top) + 16px) 20px 20px' }}>
-        <div style={{ marginBottom: 20 }}>
-  <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
-    {t('post_back')}
-  </button>
-</div>
+        
+        {/* Retour */}
+        <div style={{ marginBottom: 16 }}>
+          <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+            {t('post_back')}
+          </button>
+        </div>
 
-<div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-  <div style={{ position: 'relative' }}>
-    <div style={{ width: 72, height: 72, borderRadius: 22, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 rgba(0,0,0,0.2)', overflow: 'hidden' }}>
-      {profile?.avatar_url ? <img src={profile.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
-    </div>
-    {isOwnProfile && (
-      <>
-        <button onClick={() => fileInputRef.current.click()} disabled={uploadingPhoto}
-          style={{ position: 'absolute', bottom: -6, right: -6, width: 26, height: 26, borderRadius: 8, background: '#fff', border: '2px solid #3D2B1F', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {uploadingPhoto ? '⏳' : '📷'}
-        </button>
-        <input ref={fileInputRef} type="file" accept="image/*" onChange={uploadAvatar} style={{ display: 'none' }} />
-      </>
-    )}
-  </div>
-  <div style={{ flex: 1 }}>
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-    {editing ? (
-      <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-        placeholder={lang === 'fr' ? 'Ton prenom' : 'Your name'}
-        style={{ fontSize: 22, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px', flex: 1, marginRight: 8 }} />
-    ) : (
-      <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>{profile?.name || 'Anonyme'}</div>
-    )}
-    {isOwnProfile && (
-      <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
-        style={{ background: '#F5EDD9', border: '2px solid #3D2B1F', borderRadius: 20, padding: '5px 14px', color: '#3D2B1F', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, cursor: 'pointer', boxShadow: '2px 2px 0 #3D2B1F', flexShrink: 0 }}>
-        {saving ? (lang === 'fr' ? 'Sauvegarde...' : 'Saving...') : editing ? (lang === 'fr' ? '✅ Sauvegarder' : '✅ Save') : (lang === 'fr' ? '✏️ Modifier' : '✏️ Edit')}
-      </button>
-    )}
-  </div>
-  {isVerified && (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
-      <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-        <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
-        <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-      <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 14, fontWeight: 700, color: '#fff', fontStyle: 'italic' }}>
-        {lang === 'fr' ? 'profil vérifié' : 'verified profile'}
-      </span>
-    </div>
-  )}
-</div>
-</div>
+        {/* Avatar + Nom + Modifier */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <div style={{ width: 72, height: 72, borderRadius: 22, background: '#E8572A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 rgba(0,0,0,0.2)', overflow: 'hidden' }}>
+              {profile?.avatar_url ? <img src={profile.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
+            </div>
+            {isOwnProfile && (
+              <>
+                <button onClick={() => fileInputRef.current.click()} disabled={uploadingPhoto}
+                  style={{ position: 'absolute', bottom: -6, right: -6, width: 26, height: 26, borderRadius: 8, background: '#fff', border: '2px solid #3D2B1F', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {uploadingPhoto ? '⏳' : '📷'}
+                </button>
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={uploadAvatar} style={{ display: 'none' }} />
+              </>
+            )}
+          </div>
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+              {editing ? (
+                <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                  placeholder={lang === 'fr' ? 'Ton prenom' : 'Your name'}
+                  style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px', flex: 1, minWidth: 0 }} />
+              ) : (
+                <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>{profile?.name || 'Anonyme'}</div>
+              )}
+              {isOwnProfile && (
+                <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
+                  style={{ background: '#F5EDD9', border: '2px solid #3D2B1F', borderRadius: 20, padding: '5px 12px', color: '#3D2B1F', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, cursor: 'pointer', boxShadow: '2px 2px 0 #3D2B1F', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                  {saving ? '...' : editing ? (lang === 'fr' ? '✅ Sauvegarder' : '✅ Save') : (lang === 'fr' ? '✏️ Modifier' : '✏️ Edit')}
+                </button>
+              )}
+            </div>
+            {isVerified && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                  <circle cx="7" cy="7" r="7" fill="#4CAF7D"/>
+                  <path d="M3.5 7L6 9.5L10.5 5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 14, fontWeight: 700, color: '#fff', fontStyle: 'italic' }}>
+                  {lang === 'fr' ? 'profil vérifié' : 'verified profile'}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Stats */}
         <div style={{ display: 'flex', gap: 8 }}>
@@ -237,10 +208,10 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
             ['🌍', profile?.nationality || '-', lang === 'fr' ? 'Nationalité' : 'Nationality']
           ].map(([icon, val, label]) => (
             <div key={label} style={{ flex: 1, background: '#F5EDD9', border: '2px solid #3D2B1F', borderRadius: 20, padding: '8px 4px', textAlign: 'center', boxShadow: '2px 2px 0 #3D2B1F' }}>
-  <div style={{ fontSize: 14 }}>{icon}</div>
-  <div style={{ fontSize: 13, fontFamily: "'Fredoka One'", color: '#3D2B1F', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{val}</div>
-  <div style={{ fontSize: 8, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>{label}</div>
-</div>
+              <div style={{ fontSize: 14 }}>{icon}</div>
+              <div style={{ fontSize: 13, fontFamily: "'Fredoka One'", color: '#3D2B1F', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{val}</div>
+              <div style={{ fontSize: 8, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>{label}</div>
+            </div>
           ))}
         </div>
       </div>
@@ -253,33 +224,33 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
 
         {/* TRAVELER INFO */}
         <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
-         <div style={{ marginBottom: 12 }}>
-  <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{t('profile_bio')}</div>
-  {editing ? (
-    <textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
-      placeholder={lang === 'fr' ? 'Parle de toi...' : 'Tell us about yourself...'}
-      rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6 }} />
-  ) : (
-    <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6 }}>{profile?.bio || (lang === 'fr' ? 'Aucune bio' : 'No bio')}</div>
-  )}
-</div>
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>{t('profile_bio')}</div>
+            {editing ? (
+              <textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
+                placeholder={lang === 'fr' ? 'Parle de toi...' : 'Tell us about yourself...'}
+                rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6 }} />
+            ) : (
+              <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6 }}>{profile?.bio || (lang === 'fr' ? 'Aucune bio' : 'No bio')}</div>
+            )}
+          </div>
 
-<div style={{ marginBottom: 12 }}>
-  <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📋 {t('profile_visa')}</div>
-  {editing ? (
-    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-      {VISAS.map(v => (
-        <button key={v} onClick={() => setForm(p => ({ ...p, visa: v }))}
-          style={{ padding: '5px 10px', borderRadius: 20, border: '2.5px solid ' + (form.visa === v ? '#3D2B1F' : '#EDE0CC'), background: form.visa === v ? '#E8572A' : '#fff', color: form.visa === v ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
-          {v}
-        </button>
-      ))}
-    </div>
-  ) : (
-    <div style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 20, background: '#FFF3E0', border: '2px solid #F97316', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#F97316' }}>
-      {profile?.visa || '-'}
-    </div>
-  )} 
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📋 {t('profile_visa')}</div>
+            {editing ? (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {VISAS.map(v => (
+                  <button key={v} onClick={() => setForm(p => ({ ...p, visa: v }))}
+                    style={{ padding: '5px 10px', borderRadius: 20, border: '2.5px solid ' + (form.visa === v ? '#3D2B1F' : '#EDE0CC'), background: form.visa === v ? '#E8572A' : '#fff', color: form.visa === v ? '#fff' : '#7B5C42', fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, cursor: 'pointer' }}>
+                    {v}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 20, background: '#FFF3E0', border: '2px solid #F97316', fontSize: 13, fontFamily: "'Nunito'", fontWeight: 800, color: '#F97316' }}>
+                {profile?.visa || '-'}
+              </div>
+            )}
           </div>
 
           {/* WHATSAPP */}
@@ -430,33 +401,28 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
                   </div>
                 ) : (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-  <div style={{ flex: 1, minWidth: 0 }}>
-    <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: ride.active ? '#3D2B1F' : '#B5967A' }}>
-      {ride.from_city} → {ride.to_city}
-    </div>
-    <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>
-      {ride.date ? ride.date.split('-').reverse().join('/') : ''} · {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}
-    </div>
-  </div>
-  <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
-    <button onClick={() => toggleRideActive(ride)}
-      style={{ background: ride.active ? '#E8F8EF' : '#FFF0EE', border: '2px solid ' + (ride.active ? '#4CAF7D' : '#E8572A'), borderRadius: 10, padding: '6px 8px', cursor: 'pointer', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: ride.active ? '#4CAF7D' : '#E8572A', width: 76, textAlign: 'center' }}>
-      {ride.active ? (lang === 'fr' ? '✅ Actif' : '✅ Active') : (lang === 'fr' ? '🔴 Complet' : '🔴 Full')}
-    </button>
-    <button onClick={() => setEditingRide({ ...ride })}
-      style={{ background: '#FFF3E0', border: '2px solid #F97316', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>✏️</button>
-    <button onClick={() => deleteRide(ride.id)}
-      style={{ background: '#FFF0EE', border: '2px solid #E8572A', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>🗑️</button>
-  </div>
-</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: ride.active ? '#3D2B1F' : '#B5967A' }}>{ride.from_city} → {ride.to_city}</div>
+                      <div style={{ fontSize: 11, fontFamily: "'Nunito'", fontWeight: 700, color: '#B5967A' }}>{ride.date ? ride.date.split('-').reverse().join('/') : ''} · {ride.seats} {lang === 'fr' ? 'place(s)' : 'seat(s)'}</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
+                      <button onClick={() => toggleRideActive(ride)}
+                        style={{ background: ride.active ? '#E8F8EF' : '#FFF0EE', border: '2px solid ' + (ride.active ? '#4CAF7D' : '#E8572A'), borderRadius: 10, padding: '6px 8px', cursor: 'pointer', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, color: ride.active ? '#4CAF7D' : '#E8572A', width: 76, textAlign: 'center' }}>
+                        {ride.active ? (lang === 'fr' ? '✅ Actif' : '✅ Active') : (lang === 'fr' ? '🔴 Complet' : '🔴 Full')}
+                      </button>
+                      <button onClick={() => setEditingRide({ ...ride })}
+                        style={{ background: '#FFF3E0', border: '2px solid #F97316', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>✏️</button>
+                      <button onClick={() => deleteRide(ride.id)}
+                        style={{ background: '#FFF0EE', border: '2px solid #E8572A', borderRadius: 10, padding: '6px 10px', cursor: 'pointer', fontSize: 14 }}>🗑️</button>
+                    </div>
+                  </div>
                 )}
               </div>
             ))}
           </div>
         )}
 
-       
-
+        {/* AVIS */}
         {reviews.length > 0 && (
           <div style={{ background: '#fff', borderRadius: 20, padding: 16, border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F' }}>
             <div style={{ fontSize: 16, fontFamily: "'Fredoka One'", color: '#E8572A', marginBottom: 12 }}>⭐ {lang === 'fr' ? 'Avis' : 'Reviews'} ({reviews.length})</div>
