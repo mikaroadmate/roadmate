@@ -319,7 +319,7 @@ export default function Home({ user, onSignOut, showCGU }) {
     <input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)}
       style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer', zIndex: 2 }} />
     <div style={{ padding: '6px 4px', borderRadius: 20, border: '2.5px solid ' + (filterDate ? '#3D2B1F' : '#EDE0CC'), background: filterDate ? '#3D2B1F' : '#fff', color: filterDate ? '#fff' : '#7B5C42', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, pointerEvents: 'none', textAlign: 'center', whiteSpace: 'nowrap' }}>
-      📅 {filterDate ? filterDate.split('-').reverse().join('/') : '📅 Date'}
+    {filterDate ? filterDate.split('-').reverse().join('/') : '📅 Date'}
     </div>
   </div>
   <button onClick={() => setFilterWomen(!filterWomen)}
