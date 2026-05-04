@@ -209,9 +209,9 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
         <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff' }}>{profile?.name || 'Anonyme'}</div>
         {isOwnProfile && (
           <button onClick={() => editing ? saveProfile() : setEditing(true)} disabled={saving}
-            style={{ background: editing ? '#4CAF7D' : 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '6px 12px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, cursor: 'pointer' }}>
-            {saving ? (lang === 'fr' ? 'Sauvegarde...' : 'Saving...') : editing ? t('profile_save') : t('profile_edit')}
-          </button>
+  style={{ background: '#F5EDD9', border: '2px solid #3D2B1F', borderRadius: 20, padding: '5px 14px', color: '#3D2B1F', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 12, cursor: 'pointer', boxShadow: '2px 2px 0 #3D2B1F' }}>
+  {saving ? (lang === 'fr' ? 'Sauvegarde...' : 'Saving...') : editing ? (lang === 'fr' ? '✅ Sauvegarder' : '✅ Save') : (lang === 'fr' ? '✏️ Modifier' : '✏️ Edit')}
+</button>
         )}
       </div>
     )}
@@ -236,11 +236,11 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
             ['⭐', avgRating || '0', lang === 'fr' ? 'Avis' : 'Reviews'],
             ['🌍', profile?.nationality || '-', lang === 'fr' ? 'Nationalité' : 'Nationality']
           ].map(([icon, val, label]) => (
-            <div key={label} style={{ flex: 1, background: 'rgba(255,255,255,0.15)', borderRadius: 14, padding: '10px 6px', textAlign: 'center', border: '2px solid rgba(255,255,255,0.3)' }}>
-              <div style={{ fontSize: 16 }}>{icon}</div>
-              <div style={{ fontSize: 14, fontFamily: "'Fredoka One'", color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{val}</div>
-              <div style={{ fontSize: 9, fontFamily: "'Nunito'", fontWeight: 800, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>{label}</div>
-            </div>
+            <div key={label} style={{ flex: 1, background: '#F5EDD9', border: '2px solid #3D2B1F', borderRadius: 20, padding: '8px 4px', textAlign: 'center', boxShadow: '2px 2px 0 #3D2B1F' }}>
+  <div style={{ fontSize: 14 }}>{icon}</div>
+  <div style={{ fontSize: 13, fontFamily: "'Fredoka One'", color: '#3D2B1F', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{val}</div>
+  <div style={{ fontSize: 8, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase' }}>{label}</div>
+</div>
           ))}
         </div>
       </div>
