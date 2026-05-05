@@ -66,17 +66,17 @@ export default function Map({ user, onBack, onContact }) {
       })
 
       map.current.addLayer({
-        id: 'clusters',
-        type: 'circle',
-        source: 'rides',
-        filter: ['has', 'point_count'],
-        paint: {
-          'circle-color': '#E8572A',
-          'circle-radius': ['step', ['get', 'point_count'], 20, 5, 30, 10, 40],
-          'circle-stroke-width': 3,
-          'circle-stroke-color': '#3D2B1F'
-        }
-      })
+  id: 'unclustered-point',
+  type: 'circle',
+  source: 'rides',
+  filter: ['!', ['has', 'point_count']],
+  paint: {
+    'circle-color': ['match', ['get', 'type'], 'offer', '#E8572A', '#3B82F6'],
+    'circle-radius': 18,
+    'circle-stroke-width': 3,
+    'circle-stroke-color': '#3D2B1F'
+  }
+})
 
       map.current.addLayer({
         id: 'cluster-count',
