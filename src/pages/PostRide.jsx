@@ -143,14 +143,16 @@ const geocodeCity = async (city) => {
                 style={inputStyle} />
             </Section>
             <div style={{ display: 'flex', gap: 10 }}>
-  <Section title={t('post_date')} style={{ flex: 1, minWidth: 0 }}>
+  <div style={{ flex: 1, minWidth: 0 }}>
+    <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10 }}>{t('post_date')}</div>
     <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
-      style={{ ...inputStyle, width: '100%', minWidth: 0 }} />
-  </Section>
-  <Section title={t('post_time')} style={{ flex: 1, minWidth: 0 }}>
+      style={{ width: '100%', padding: '13px 10px', borderRadius: 14, border: '3px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', boxSizing: 'border-box' }} />
+  </div>
+  <div style={{ flex: 1, minWidth: 0 }}>
+    <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10 }}>{t('post_time')}</div>
     <input type="time" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))}
-      style={{ ...inputStyle, width: '100%', minWidth: 0 }} />
-  </Section>
+      style={{ width: '100%', padding: '13px 10px', borderRadius: 14, border: '3px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', boxSizing: 'border-box' }} />
+  </div>
 </div>
           </>
         )}
