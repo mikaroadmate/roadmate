@@ -143,15 +143,15 @@ const geocodeCity = async (city) => {
                 style={inputStyle} />
             </Section>
             <div style={{ display: 'flex', gap: 10 }}>
-              <Section title={t('post_date')} style={{ flex: 1 }}>
-                <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
-                  style={{ ...inputStyle }} />
-              </Section>
-              <Section title={t('post_time')} style={{ flex: 1 }}>
-                <input type="time" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))}
-                  style={{ ...inputStyle }} />
-              </Section>
-            </div>
+  <Section title={t('post_date')} style={{ flex: 1, minWidth: 0 }}>
+    <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
+      style={{ ...inputStyle, width: '100%', minWidth: 0 }} />
+  </Section>
+  <Section title={t('post_time')} style={{ flex: 1, minWidth: 0 }}>
+    <input type="time" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))}
+      style={{ ...inputStyle, width: '100%', minWidth: 0 }} />
+  </Section>
+</div>
           </>
         )}
 
