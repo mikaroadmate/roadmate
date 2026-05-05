@@ -143,16 +143,26 @@ export default function PostRide({ user, onBack, onSuccess }) {
               <input placeholder={t('post_city_placeholder')} value={form.to_city} onChange={e => setForm(p => ({ ...p, to_city: e.target.value }))}
                 style={inputStyle} />
             </Section>
-            <div style={{ display: 'flex', gap: 10 }}>
-  <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', gap: 12 }}>
+  <div style={{ flex: 1 }}>
     <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10 }}>{t('post_date')}</div>
-   <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
-  style={{ width: '100%', padding: '13px 10px', borderRadius: 14, border: '3px solid #3D2B1F', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', boxSizing: 'border-box' }} />
+    <div style={{ position: 'relative', background: '#fff', borderRadius: 14, border: '3px solid #EDE0CC' }}>
+      <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
+        style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }} />
+      <div style={{ padding: '13px 10px', fontFamily: "'Nunito'", fontSize: 14, fontWeight: 600, color: form.date ? '#3D2B1F' : '#B5967A', textAlign: 'center' }}>
+        {form.date ? form.date.split('-').reverse().join('/') : '📅 Date'}
+      </div>
+    </div>
   </div>
-  <div style={{ flex: 1, minWidth: 0 }}>
+  <div style={{ flex: 1 }}>
     <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10 }}>{t('post_time')}</div>
-    <input type="time" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))}
-  style={{ width: '100%', padding: '13px 10px', borderRadius: 14, border: '3px solid #3D2B1F', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', boxSizing: 'border-box' }} />
+    <div style={{ position: 'relative', background: '#fff', borderRadius: 14, border: '3px solid #EDE0CC' }}>
+      <input type="time" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))}
+        style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }} />
+      <div style={{ padding: '13px 10px', fontFamily: "'Nunito'", fontSize: 14, fontWeight: 600, color: '#3D2B1F', textAlign: 'center' }}>
+        {form.time || '00:00'}
+      </div>
+    </div>
   </div>
 </div>
           </>
