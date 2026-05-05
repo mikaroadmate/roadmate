@@ -15,37 +15,38 @@ export default function PostRide({ user, onBack, onSuccess }) {
   const [error, setError] = useState('')
 
   const CATEGORIES = lang === 'fr' ? [
- { id: 'travel', label: 'Trajet', icon: '🛣️', desc: 'Point A → Point B, longue distance' },
- { id: 'work', label: 'Travail', icon: '💼', desc: 'Fermes, mines & emploi' },
- { id: 'daytrip', label: 'Excursion', icon: '🌊', desc: 'Plages, randos & tourisme' },
- { id: 'roadtrip', label: 'Road Trip', icon: '🚐', desc: 'Aventure, découverte & multi-étapes' },
-] : [
- { id: 'travel', label: 'Trip', icon: '🛣️', desc: 'Point A to Point B, long distance' },
- { id: 'work', label: 'Work', icon: '💼', desc: 'Farms, mines & employment' },
- { id: 'daytrip', label: 'Day Trip', icon: '🌊', desc: 'Beaches, hikes & tourism' },
- { id: 'roadtrip', label: 'Road Trip', icon: '🚐', desc: 'Adventure, sightseeing & multi-stop' },
-]
+    { id: 'travel', label: 'Trajet', icon: '🛣️', desc: 'Point A → Point B, longue distance' },
+    { id: 'work', label: 'Travail', icon: '💼', desc: 'Fermes, mines & emploi' },
+    { id: 'daytrip', label: 'Excursion', icon: '🌊', desc: 'Plages, randos & tourisme' },
+    { id: 'roadtrip', label: 'Road Trip', icon: '🚐', desc: 'Aventure, découverte & multi-étapes' },
+  ] : [
+    { id: 'travel', label: 'Trip', icon: '🛣️', desc: 'Point A to Point B, long distance' },
+    { id: 'work', label: 'Work', icon: '💼', desc: 'Farms, mines & employment' },
+    { id: 'daytrip', label: 'Day Trip', icon: '🌊', desc: 'Beaches, hikes & tourism' },
+    { id: 'roadtrip', label: 'Road Trip', icon: '🚐', desc: 'Adventure, sightseeing & multi-stop' },
+  ]
 
   const headerTitles = lang === 'fr'
     ? ['', 'Type & catégorie', 'Trajet & date', 'Détails & publication']
     : ['', 'Type & category', 'Route & date', 'Details & publish']
 
-const geocodeCity = async (city) => {
-  if (!city.trim()) return
-  try {
-    const base = 'https://api.mapbox.com/geocoding/v5/mapbox.places/'
-    const query = encodeURIComponent(city + ', Australia') + '.json'
-    const params = '?limit=1&access_token=' + MAPBOX_TOKEN
-    const res = await fetch(base + query + params)
-    const data = await res.json()
-    if (data.features && data.features.length > 0) {
-      const [lng, lat] = data.features[0].center
-      setCoords({ from_lat: lat, from_lng: lng })
+  const geocodeCity = async (city) => {
+    if (!city.trim()) return
+    try {
+      const base = 'https://api.mapbox.com/geocoding/v5/mapbox.places/'
+      const query = encodeURIComponent(city + ', Australia') + '.json'
+      const params = '?limit=1&access_token=' + MAPBOX_TOKEN
+      const res = await fetch(base + query + params)
+      const data = await res.json()
+      if (data.features && data.features.length > 0) {
+        const [lng, lat] = data.features[0].center
+        setCoords({ from_lat: lat, from_lng: lng })
+      }
+    } catch (e) {
+      console.log('Geocoding error:', e)
     }
-  } catch (e) {
-    console.log('Geocoding error:', e)
   }
-}
+
   const handleSubmit = async () => {
     setLoading(true)
     setError('')
@@ -143,55 +144,55 @@ const geocodeCity = async (city) => {
                 style={inputStyle} />
             </Section>
             <div style={{ display: 'flex', gap: 10 }}>
-  <div style={{ flex: 1, minWidth: 0 }}>
-    <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10 }}>{t('post_date')}</div>
-    <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
-      style={{ width: '100%', padding: '13px 10px', borderRadius: 14, border: '3px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', boxSizing: 'border-box' }} />
-  </div>
-  <div style={{ flex: 1, minWidth: 0 }}>
-    <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10 }}>{t('post_time')}</div>
-    <input type="time" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))}
-      style={{ width: '100%', padding: '13px 10px', borderRadius: 14, border: '3px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', boxSizing: 'border-box' }} />
-  </div>
-</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10 }}>{t('post_date')}</div>
+                <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
+                  style={{ width: '100%', padding: '13px 10px', borderRadius: 14, border: '3px solid #3D2B1F', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', boxSizing: 'border-box', boxShadow: '3px 3px 0 #3D2B1F' }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, color: '#7B5C42', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 10 }}>{t('post_time')}</div>
+                <input type="time" value={form.time} onChange={e => setForm(p => ({ ...p, time: e.target.value }))}
+                  style={{ width: '100%', padding: '13px 10px', borderRadius: 14, border: '3px solid #3D2B1F', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 600, color: '#3D2B1F', boxSizing: 'border-box', boxShadow: '3px 3px 0 #3D2B1F' }} />
+              </div>
+            </div>
           </>
         )}
 
         {step === 3 && (
           <>
             <Section title={t('post_seats')}>
-  <div style={{ display: 'flex', gap: 6 }}>
-    {['1','2','3','4'].map(n => (
-      <button key={n} onClick={() => setForm(p => ({ ...p, seats: n }))}
-        style={{ flex: 1, padding: '10px 0', borderRadius: 12, border: '2.5px solid ' + (form.seats === n ? '#3D2B1F' : '#EDE0CC'), background: form.seats === n ? '#E8572A' : '#fff', color: form.seats === n ? '#fff' : '#7B5C42', fontSize: 15, fontFamily: "'Fredoka One'", cursor: 'pointer', boxShadow: form.seats === n ? '3px 3px 0 #3D2B1F' : 'none' }}>
-        {n}
-      </button>
-    ))}
-  </div>
-</Section>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {['1','2','3','4'].map(n => (
+                  <button key={n} onClick={() => setForm(p => ({ ...p, seats: n }))}
+                    style={{ flex: 1, padding: '10px 0', borderRadius: 12, border: '2.5px solid ' + (form.seats === n ? '#3D2B1F' : '#EDE0CC'), background: form.seats === n ? '#E8572A' : '#fff', color: form.seats === n ? '#fff' : '#7B5C42', fontSize: 15, fontFamily: "'Fredoka One'", cursor: 'pointer', boxShadow: form.seats === n ? '3px 3px 0 #3D2B1F' : 'none' }}>
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </Section>
 
-{type === 'offer' && (
-  <Section title={lang === 'fr' ? 'Paiement' : 'Payment'}>
-    <div style={{ display: 'flex', gap: 10, marginBottom: form.fuelShare ? 0 : 10 }}>
-      <button onClick={() => setForm(p => ({ ...p, fuelShare: false }))}
-        style={{ flex: 1, padding: '14px', borderRadius: 14, border: '3px solid ' + (!form.fuelShare ? '#3D2B1F' : '#EDE0CC'), background: !form.fuelShare ? '#E8572A' : '#fff', color: !form.fuelShare ? '#fff' : '#7B5C42', fontSize: 14, fontFamily: "'Fredoka One'", cursor: 'pointer', boxShadow: !form.fuelShare ? '4px 4px 0 #3D2B1F' : 'none', textAlign: 'center' }}>
-        💰 {lang === 'fr' ? 'Prix / siège' : 'Price / seat'}
-      </button>
-      <button onClick={() => setForm(p => ({ ...p, fuelShare: true, price: '' }))}
-        style={{ flex: 1, padding: '14px', borderRadius: 14, border: '3px solid ' + (form.fuelShare ? '#3D2B1F' : '#EDE0CC'), background: form.fuelShare ? '#E8572A' : '#fff', color: form.fuelShare ? '#fff' : '#7B5C42', fontSize: 14, fontFamily: "'Fredoka One'", cursor: 'pointer', boxShadow: form.fuelShare ? '4px 4px 0 #3D2B1F' : 'none', textAlign: 'center' }}>
-        ⛽ {lang === 'fr' ? 'Partage Essence' : 'Fuel share'}
-      </button>
-    </div>
-    {!form.fuelShare && (
-      <input type="number" placeholder={lang === 'fr' ? 'Prix en $ par siège' : 'Price in $ per seat'} value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))}
-        style={{ ...inputStyle }} />
-    )}
-  </Section>
-)}
+            {type === 'offer' && (
+              <Section title={lang === 'fr' ? 'Paiement' : 'Payment'}>
+                <div style={{ display: 'flex', gap: 10, marginBottom: form.fuelShare ? 0 : 10 }}>
+                  <button onClick={() => setForm(p => ({ ...p, fuelShare: false }))}
+                    style={{ flex: 1, padding: '14px', borderRadius: 14, border: '3px solid ' + (!form.fuelShare ? '#3D2B1F' : '#EDE0CC'), background: !form.fuelShare ? '#E8572A' : '#fff', color: !form.fuelShare ? '#fff' : '#7B5C42', fontSize: 14, fontFamily: "'Fredoka One'", cursor: 'pointer', boxShadow: !form.fuelShare ? '4px 4px 0 #3D2B1F' : 'none', textAlign: 'center' }}>
+                    💰 {lang === 'fr' ? 'Prix / siège' : 'Price / seat'}
+                  </button>
+                  <button onClick={() => setForm(p => ({ ...p, fuelShare: true, price: '' }))}
+                    style={{ flex: 1, padding: '14px', borderRadius: 14, border: '3px solid ' + (form.fuelShare ? '#3D2B1F' : '#EDE0CC'), background: form.fuelShare ? '#E8572A' : '#fff', color: form.fuelShare ? '#fff' : '#7B5C42', fontSize: 14, fontFamily: "'Fredoka One'", cursor: 'pointer', boxShadow: form.fuelShare ? '4px 4px 0 #3D2B1F' : 'none', textAlign: 'center' }}>
+                    ⛽ {lang === 'fr' ? 'Partage Essence' : 'Fuel share'}
+                  </button>
+                </div>
+                {!form.fuelShare && (
+                  <input type="number" placeholder={lang === 'fr' ? 'Prix en $ par siège' : 'Price in $ per seat'} value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))}
+                    style={{ ...inputStyle }} />
+                )}
+              </Section>
+            )}
 
             <Section title={t('post_note')}>
               <textarea placeholder={t('post_note_placeholder')} value={form.note} onChange={e => setForm(p => ({ ...p, note: e.target.value }))} rows={3} maxLength={300}
-  style={{ ...inputStyle, fontFamily: "'Kalam', cursive", resize: 'none', lineHeight: 1.6 }} />
+                style={{ ...inputStyle, fontFamily: "'Kalam', cursive", resize: 'none', lineHeight: 1.6 }} />
             </Section>
 
             <Section title={t('post_women')}>
