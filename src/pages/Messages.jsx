@@ -164,10 +164,10 @@ export default function Messages({ user, contactId, onBack, onViewProfile }) {
     return (
       <div style={{ fontFamily: "'Fredoka One', cursive", background: '#F5EDD9', minHeight: '100vh', maxWidth: '100%', display: 'flex', flexDirection: 'column' }}>
         <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalam:wght@700&display=swap" rel="stylesheet" />
-        <div style={{ background: '#5BC8D4', padding: 'calc(env(safe-area-inset-top) + 16px) 22px 18px', flexShrink: 0 }}>
+        <div style={{ background: 'linear-gradient(135deg, #E8572A, #C4622D)', padding: 'calc(env(safe-area-inset-top) + 16px) 22px 18px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={() => setActiveConv(null)}
-              style={{ background: 'rgba(255,255,255,0.25)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#3D2B1F', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
+              style={{ background: 'rgba(255,255,255,0.25)', border: '2px solid rgba(255,255,255,0.4)', borderRadius: 12, padding: '8px 14px', color: '#fff', fontFamily: "'Nunito'", fontWeight: 800, fontSize: 13, cursor: 'pointer' }}>
               {t('post_back')}
             </button>
             <div style={{ width: 44, height: 44, borderRadius: 14, background: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, border: '2.5px solid #3D2B1F', overflow: 'hidden' }}>
