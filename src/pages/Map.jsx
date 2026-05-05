@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabase'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { useLanguage } from '../LanguageContext'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
 
 export default function Map({ user, onBack, onContact }) {
+  const { lang } = useLanguage()
   const mapContainer = useRef(null)
   const map = useRef(null)
   const [rides, setRides] = useState([])
@@ -66,17 +68,17 @@ export default function Map({ user, onBack, onContact }) {
       })
 
       map.current.addLayer({
-  id: 'unclustered-point',
-  type: 'circle',
-  source: 'rides',
-  filter: ['!', ['has', 'point_count']],
-  paint: {
-    'circle-color': ['match', ['get', 'type'], 'offer', '#E8572A', '#3B82F6'],
-    'circle-radius': 18,
-    'circle-stroke-width': 3,
-    'circle-stroke-color': '#3D2B1F'
-  }
-})
+        id: 'clusters',
+        type: 'circle',
+        source: 'rides',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': '#E8572A',
+          'circle-radius': ['step', ['get', 'point_count'], 20, 5, 30, 10, 40],
+          'circle-stroke-width': 3,
+          'circle-stroke-color': '#3D2B1F'
+        }
+      })
 
       map.current.addLayer({
         id: 'cluster-count',
@@ -97,7 +99,7 @@ export default function Map({ user, onBack, onContact }) {
         source: 'rides',
         filter: ['!', ['has', 'point_count']],
         paint: {
-          'circle-color': '#E8572A',
+          'circle-color': ['match', ['get', 'type'], 'offer', '#E8572A', '#3B82F6'],
           'circle-radius': 18,
           'circle-stroke-width': 3,
           'circle-stroke-color': '#3D2B1F'
@@ -175,7 +177,19 @@ export default function Map({ user, onBack, onContact }) {
         </div>
       </div>
 
-      <div ref={mapContainer} style={{ flex: 1, minHeight: '80vh', width: '100%' }} />
+      <div style={{ flex: 1, position: 'relative' }}>
+        <div ref={mapContainer} style={{ width: '100%', height: '100%', minHeight: '80vh' }} />
+        <div style={{ position: 'absolute', bottom: 30, left: 16, background: 'rgba(255,255,255,0.95)', borderRadius: 14, padding: '10px 14px', border: '2.5px solid #3D2B1F', boxShadow: '3px 3px 0 #3D2B1F', display: 'flex', flexDirection: 'column', gap: 6, zIndex: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#E8572A', border: '2px solid #3D2B1F', flexShrink: 0 }} />
+            <span style={{ fontFamily: "'Nunito'", fontSize: 12, fontWeight: 800, color: '#3D2B1F' }}>{lang === 'fr' ? 'Offre' : 'Offer'}</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#3B82F6', border: '2px solid #3D2B1F', flexShrink: 0 }} />
+            <span style={{ fontFamily: "'Nunito'", fontSize: 12, fontWeight: 800, color: '#3D2B1F' }}>{lang === 'fr' ? 'Cherche' : 'Seeking'}</span>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
