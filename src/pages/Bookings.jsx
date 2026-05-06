@@ -278,38 +278,40 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                   </div>
                 )}
 
-                <div style={{ display: 'flex', gap: 8, padding: '0 14px 14px' }}>
-                  {!isCancelled && (
-                    <button onClick={() => onContact(isDriver ? booking.passenger_id : booking.driver_id)}
-                      style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#F5EDD9', color: '#3D2B1F', fontSize: 13, fontFamily: "'Fredoka One'" }}>
-                      💬 {lang === 'fr' ? 'Contacter' : 'Contact'}
-                    </button>
-                  )}
-                  {isDriver && booking.status === 'pending' && (
-                    <>
-                      <button onClick={() => handleAcceptRefuse(booking.id, 'accepted')}
-                        style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #4CAF7D', cursor: 'pointer', background: '#E8F8EF', color: '#4CAF7D', fontSize: 13, fontFamily: "'Fredoka One'" }}>
-                        ✅ {lang === 'fr' ? 'Accepter' : 'Accept'}
-                      </button>
-                      <button onClick={() => handleAcceptRefuse(booking.id, 'refused')}
-                        style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #E8572A', cursor: 'pointer', background: '#FFF0EE', color: '#E8572A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
-                        ❌ {lang === 'fr' ? 'Refuser' : 'Refuse'}
-                      </button>
-                    </>
-                  )}
-                  {!isCancelled && ((!isDriver && (booking.status === 'pending' || booking.status === 'accepted')) || (isDriver && booking.status === 'accepted')) && (
-                    <button onClick={() => handleCancel(booking.id, isDriver)}
-                      style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #B5967A', cursor: 'pointer', background: '#F5EDD9', color: '#B5967A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
-                      🚫 {lang === 'fr' ? 'Annuler' : 'Cancel'}
-                    </button>
-                  )}
-                  {(isCancelled || booking.status === 'refused') && (
-                    <button onClick={() => handleHide(booking.id, isDriver)}
-                      style={{ flex: 1, padding: '10px', borderRadius: 12, border: '2.5px solid #B5967A', cursor: 'pointer', background: '#F5EDD9', color: '#B5967A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
-                      🗑️ {lang === 'fr' ? 'Supprimer' : 'Remove'}
-                    </button>
-                  )}
-                </div>
+                <div style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+  {isDriver && booking.status === 'pending' && (
+    <div style={{ display: 'flex', gap: 8 }}>
+      <button onClick={() => handleAcceptRefuse(booking.id, 'accepted')}
+        style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#4CAF7D', color: '#fff', fontSize: 14, fontFamily: "'Fredoka One'", boxShadow: '3px 3px 0 #3D2B1F' }}>
+        ✅ {lang === 'fr' ? 'Accepter' : 'Accept'}
+      </button>
+      <button onClick={() => handleAcceptRefuse(booking.id, 'refused')}
+        style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 14, fontFamily: "'Fredoka One'", boxShadow: '3px 3px 0 #3D2B1F' }}>
+        ❌ {lang === 'fr' ? 'Refuser' : 'Refuse'}
+      </button>
+    </div>
+  )}
+  <div style={{ display: 'flex', gap: 8 }}>
+    {!isCancelled && (
+      <button onClick={() => onContact(isDriver ? booking.passenger_id : booking.driver_id)}
+        style={{ flex: 1, padding: '10px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#F5EDD9', color: '#3D2B1F', fontSize: 13, fontFamily: "'Fredoka One'" }}>
+        💬 {lang === 'fr' ? 'Contacter' : 'Contact'}
+      </button>
+    )}
+    {!isCancelled && ((!isDriver && (booking.status === 'pending' || booking.status === 'accepted')) || (isDriver && booking.status === 'accepted')) && (
+      <button onClick={() => handleCancel(booking.id, isDriver)}
+        style={{ flex: 1, padding: '10px', borderRadius: 14, border: '2.5px solid #B5967A', cursor: 'pointer', background: '#F5EDD9', color: '#B5967A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
+        🚫 {lang === 'fr' ? 'Annuler' : 'Cancel'}
+      </button>
+    )}
+    {(isCancelled || booking.status === 'refused') && (
+      <button onClick={() => handleHide(booking.id, isDriver)}
+        style={{ flex: 1, padding: '10px', borderRadius: 14, border: '2.5px solid #B5967A', cursor: 'pointer', background: '#F5EDD9', color: '#B5967A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
+        🗑️ {lang === 'fr' ? 'Supprimer' : 'Remove'}
+      </button>
+    )}
+  </div>
+</div>
               </div>
             )
           })
