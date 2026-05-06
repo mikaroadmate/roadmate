@@ -178,7 +178,7 @@ export default function Map({ user, onBack, onContact }) {
       </div>
 
       <div style={{ flex: 1, position: 'relative' }}>
-        <div ref={mapContainer} style={{ width: '100%', height: '100%', minHeight: '80vh' }} />
+  <div ref={mapContainer} style={{ position: 'absolute', inset: 0 }} />
         <div style={{ position: 'absolute', bottom: 30, left: 16, background: 'rgba(255,255,255,0.95)', borderRadius: 14, padding: '10px 14px', border: '2.5px solid #3D2B1F', boxShadow: '3px 3px 0 #3D2B1F', display: 'flex', flexDirection: 'column', gap: 6, zIndex: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#E8572A', border: '2px solid #3D2B1F', flexShrink: 0 }} />
