@@ -300,9 +300,9 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
     )}
     {!isCancelled && ((!isDriver && (booking.status === 'pending' || booking.status === 'accepted')) || (isDriver && booking.status === 'accepted')) && (
       <button onClick={() => handleCancel(booking.id, isDriver)}
-        style={{ flex: 1, padding: '10px', borderRadius: 14, border: '2.5px solid #B5967A', cursor: 'pointer', background: '#F5EDD9', color: '#B5967A', fontSize: 13, fontFamily: "'Fredoka One'" }}>
-        🚫 {lang === 'fr' ? 'Annuler' : 'Cancel'}
-      </button>
+  style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#B5967A', color: '#fff', fontSize: 14, fontFamily: "'Fredoka One'", boxShadow: '3px 3px 0 #3D2B1F' }}>
+  🚫 {lang === 'fr' ? 'Annuler' : 'Cancel'}
+</button>
     )}
     {(isCancelled || booking.status === 'refused') && (
       <button onClick={() => handleHide(booking.id, isDriver)}
