@@ -230,7 +230,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
                 placeholder={lang === 'fr' ? 'Parle de toi...' : 'Tell us about yourself...'}
                 rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6 }} />
             ) : (
-              <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6 }}>{profile?.bio || (lang === 'fr' ? 'Aucune bio' : 'No bio')}</div>
+               <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{profile?.bio || (lang === 'fr' ? 'Aucune bio' : 'No bio')}</div>
             )}
           </div>
 
