@@ -22,7 +22,7 @@ export default function Map({ user, onBack, onContact }) {
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v12',
         center: [133.7751, -25.2744],
-        zoom: 3
+        zoom: 2
       })
     }
   }, [])
