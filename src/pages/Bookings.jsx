@@ -147,8 +147,9 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
     const updateData = isDriver ? { reviewed_by_driver: true } : { reviewed_by_passenger: true }
     await supabase.from('bookings').update(updateData).eq('id', bookingId)
 
-    const updatedBooking = { ...booking, ...updateData }
-    if (updatedBooking.reviewed_by_driver && updatedBooking.reviewed_by_passenger) {
+    const { data: freshBooking } = await supabase.from('bookings').select('reviewed_by_driver, reviewed_by_passenger').eq('id', bookingId).single()
+const updatedBooking = { ...freshBooking, ...updateData }
+if (updatedBooking.reviewed_by_driver && updatedBooking.reviewed_by_passenger) {
       await supabase.from('bookings').update({ archived: true }).eq('id', bookingId)
       setBookings(prev => prev.filter(b => b.id !== bookingId))
     } else {
