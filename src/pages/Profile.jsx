@@ -30,7 +30,8 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
   const fetchProfile = async () => {
     setLoading(true)
     const { data: profileData } = await supabase.from('profiles').select('*').eq('id', targetId).single()
-    const { data: ridesData } = await supabase.from('rides').select('*').eq('user_id', targetId).order('created_at', { ascending: false })
+   const { data: ridesData } = await supabase.from('rides').select('*').eq('user_id', targetId).order('created_at', { ascending: false })
+const { data: completedRidesData } = await supabase.from('bookings').select('id').eq('driver_id', targetId).eq('archived', true)
     const { data: reviewsData } = await supabase.from('reviews').select('*').eq('reviewed_id', targetId).order('created_at', { ascending: false })
 
     if (profileData) {
@@ -52,9 +53,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
     }
 
     setRides(ridesData || [])
-    const today = new Date().toISOString().split('T')[0]
-    setPastRides(ridesData ? ridesData.filter(r => r.date && r.date < today) : [])
-
+setPastRides(completedRidesData || [])
     let reviewsWithNames = reviewsData || []
     if (reviewsData && reviewsData.length > 0) {
       const reviewerIds = [...new Set(reviewsData.map(r => r.reviewer_id))]
