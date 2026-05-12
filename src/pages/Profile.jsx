@@ -133,11 +133,12 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
   })
 
   await supabase.functions.invoke('notify-report', {
-    body: {
+    body: JSON.stringify({
       reportedUserId: targetId,
       reporterUserId: user.id,
       reason: reportReason
-    }
+    }),
+    headers: { 'Content-Type': 'application/json' }
   })
 
   setSubmittingReport(false)

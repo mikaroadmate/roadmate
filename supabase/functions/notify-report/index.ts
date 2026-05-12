@@ -14,7 +14,7 @@ serve(async (req) => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "RoadMate <noreply@roadmateoz.app>",
+        from: "RoadMate <onboarding@resend.dev>",
         to: "beaudeau_mickael@live.fr",
         subject: "🚨 Nouveau signalement RoadMate",
         html: `
