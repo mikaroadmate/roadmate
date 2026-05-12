@@ -123,19 +123,30 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
   }
 
   const submitReport = async () => {
-    if (!reportReason.trim()) return
-    setSubmittingReport(true)
-    await supabase.from('reports').insert({
-      reporter_id: user.id,
-      reported_id: targetId,
+  if (!reportReason.trim()) return
+  setSubmittingReport(true)
+  
+  await supabase.from('reports').insert({
+    reporter_id: user.id,
+    reported_id: targetId,
+    reason: reportReason
+  })
+
+  await supabase.functions.invoke('notify-report', {
+    body: {
+      reportedUserId: targetId,
+      reporterUserId: user.id,
       reason: reportReason
-    })
-    setSubmittingReport(false)
-    setShowReportForm(false)
-    setReportReason('')
-    setMessage(lang === 'fr' ? 'Signalement envoyé ✅' : 'Report sent ✅')
-    setTimeout(() => setMessage(''), 3000)
-  }
+    }
+  })
+
+  setSubmittingReport(false)
+  setShowReportForm(false)
+  setReportReason('')
+  setMessage(lang === 'fr' ? 'Signalement envoyé ✅' : 'Report sent ✅')
+  setTimeout(() => setMessage(''), 3000)
+}
+
 
   const avgRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : null
   
