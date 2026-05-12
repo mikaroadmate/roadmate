@@ -161,7 +161,7 @@ export default function Home({ user, onSignOut, showCGU }) {
 
   const buildQuery = (currentPage) => {
     let query = supabase.from('rides')
-      .select('*, profiles(name, nationality, verified, avatar_url, whatsapp, instagram)')
+      .select('*, profiles(name, nationality, verified, avatar_url, whatsapp, instagram, last_name)')
       .order('date', { ascending: true })
       .order('time', { ascending: true })
       .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1)
@@ -375,7 +375,12 @@ export default function Home({ user, onSignOut, showCGU }) {
               const cat = CATEGORIES.find(c => c.id === ride.category)
               const colors = CAT_COLORS[ride.category] || { bg: '#F5EDD9', color: '#EDE0CC' }
               const isFav = favorites.includes(ride.id)
-              const isVerified = ride.profiles?.whatsapp || ride.profiles?.instagram
+              const isVerified = !!(
+  ride.profiles?.name &&
+  ride.profiles?.last_name &&
+  ride.profiles?.nationality &&
+  (ride.profiles?.whatsapp || ride.profiles?.instagram)
+)
               return (
                 <div key={ride.id} style={{ background: '#fff', borderRadius: 20, overflow: 'hidden', border: '3px solid #3D2B1F', boxShadow: '4px 4px 0 #3D2B1F', marginBottom: 12 }}>
 
