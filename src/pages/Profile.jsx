@@ -251,7 +251,16 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
               <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{profile?.bio || (lang === 'fr' ? 'Aucune bio' : 'No bio')}</div>
             )}
           </div>
-
+<div style={{ marginBottom: 12 }}>
+  <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>🌍 {lang === 'fr' ? 'Nationalité' : 'Nationality'}</div>
+  {editing ? (
+    <input value={form.nationality} onChange={e => setForm(p => ({ ...p, nationality: e.target.value }))}
+      placeholder={lang === 'fr' ? 'Ex: French, Australian...' : 'Ex: French, Australian...'}
+      style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F', boxSizing: 'border-box' }} />
+  ) : (
+    <div style={{ fontSize: 14, fontFamily: "'Nunito'", fontWeight: 700, color: '#3D2B1F' }}>{profile?.nationality || (lang === 'fr' ? 'Non renseignée' : 'Not specified')}</div>
+  )}
+</div>
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 10, fontFamily: "'Nunito'", fontWeight: 800, color: '#B5967A', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>📋 {t('profile_visa')}</div>
             {editing ? (
