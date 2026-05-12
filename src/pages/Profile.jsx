@@ -11,7 +11,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
 
   const [profile, setProfile] = useState(null)
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ name: '', nationality: '', visa: 'WHV', bio: '', whatsapp: '', instagram: '', show_whatsapp: false, show_instagram: false, vehicle_brand: '', vehicle_model: '', vehicle_color: '' })
+  const [form, setForm] = useState({ name: '', last_name: '', nationality: '', visa: 'WHV', bio: '', whatsapp: '', instagram: '', show_whatsapp: false, show_instagram: false, vehicle_brand: '', vehicle_model: '', vehicle_color: '' })
   const [rides, setRides] = useState([])
   const [pastRides, setPastRides] = useState([])
   const [reviews, setReviews] = useState([])
@@ -37,6 +37,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
       setProfile(profileData)
       setForm({
         name: profileData.name || '',
+        last_name: profileData.last_name || '',
         nationality: profileData.nationality || '',
         visa: profileData.visa || 'WHV',
         bio: profileData.bio || '',
@@ -137,7 +138,13 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
   }
 
   const avgRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : null
-  const isVerified = !!(profile?.whatsapp || profile?.instagram)
+  
+  const isVerified = !!(
+    profile?.name &&
+    profile?.last_name &&
+    profile?.nationality &&
+    (profile?.whatsapp || profile?.instagram)
+  )
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#F5EDD9', fontFamily: "'Kalam', cursive", fontSize: 20, color: '#B5967A' }}>
@@ -176,9 +183,14 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
 
           <div style={{ flex: 1, minWidth: 0 }}>
             {editing ? (
-              <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                placeholder={lang === 'fr' ? 'Ton prenom' : 'Your name'}
-                style={{ fontSize: 20, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px', width: '100%', boxSizing: 'border-box', marginBottom: 4 }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 4 }}>
+                <input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                  placeholder={lang === 'fr' ? 'Prénom' : 'First name'}
+                  style={{ fontSize: 18, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px', width: '100%', boxSizing: 'border-box' }} />
+                <input value={form.last_name} onChange={e => setForm(p => ({ ...p, last_name: e.target.value }))}
+                  placeholder={lang === 'fr' ? 'Nom de famille' : 'Last name'}
+                  style={{ fontSize: 18, fontFamily: "'Fredoka One'", color: '#3D2B1F', background: 'rgba(255,255,255,0.9)', border: '2px solid #3D2B1F', borderRadius: 10, padding: '4px 10px', width: '100%', boxSizing: 'border-box' }} />
+              </div>
             ) : (
               <div style={{ fontSize: 26, fontFamily: "'Fredoka One'", color: '#fff', marginBottom: 4 }}>{profile?.name || 'Anonyme'}</div>
             )}
