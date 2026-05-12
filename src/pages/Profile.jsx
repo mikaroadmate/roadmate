@@ -133,12 +133,11 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
   })
 
   await supabase.functions.invoke('notify-report', {
-    body: JSON.stringify({
+    body: {
       reportedUserId: targetId,
       reporterUserId: user.id,
       reason: reportReason
-    }),
-    headers: { 'Content-Type': 'application/json' }
+    }
   })
 
   setSubmittingReport(false)
@@ -147,7 +146,6 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
   setMessage(lang === 'fr' ? 'Signalement envoyé ✅' : 'Report sent ✅')
   setTimeout(() => setMessage(''), 3000)
 }
-
 
   const avgRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1) : null
   

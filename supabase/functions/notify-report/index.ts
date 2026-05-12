@@ -2,8 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 serve(async (req) => {
   try {
-    const body = await req.text();
-    const { reportedUserId, reporterUserId, reason } = JSON.parse(body || '{}');
+    const { reportedUserId, reporterUserId, reason } = await req.json();
 
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 
@@ -17,12 +16,10 @@ serve(async (req) => {
         from: "RoadMate <onboarding@resend.dev>",
         to: "beaudeau_mickael@live.fr",
         subject: "🚨 Nouveau signalement RoadMate",
-        html: `
-          <h2>Nouveau signalement</h2>
+        html: `<h2>Nouveau signalement</h2>
           <p><b>Signalé :</b> ${reportedUserId}</p>
           <p><b>Signalé par :</b> ${reporterUserId}</p>
-          <p><b>Raison :</b> ${reason}</p>
-        `,
+          <p><b>Raison :</b> ${reason}</p>`,
       }),
     });
 
