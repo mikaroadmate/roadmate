@@ -13,6 +13,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({ name: '', nationality: '', visa: 'WHV', bio: '', whatsapp: '', instagram: '', show_whatsapp: false, show_instagram: false, vehicle_brand: '', vehicle_model: '', vehicle_color: '' })
   const [rides, setRides] = useState([])
+  const [pastRides, setPastRides] = useState([])
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -30,9 +31,8 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
     setLoading(true)
     const { data: profileData } = await supabase.from('profiles').select('*').eq('id', targetId).single()
     const { data: ridesData } = await supabase.from('rides').select('*').eq('user_id', targetId).order('created_at', { ascending: false })
-const today = new Date().toISOString().split('T')[0]
-const pastRides = ridesData ? ridesData.filter(r => r.date && r.date < today) : []
     const { data: reviewsData } = await supabase.from('reviews').select('*').eq('reviewed_id', targetId).order('created_at', { ascending: false })
+
     if (profileData) {
       setProfile(profileData)
       setForm({
@@ -49,7 +49,11 @@ const pastRides = ridesData ? ridesData.filter(r => r.date && r.date < today) : 
         vehicle_color: profileData.vehicle_color || ''
       })
     }
+
     setRides(ridesData || [])
+    const today = new Date().toISOString().split('T')[0]
+    setPastRides(ridesData ? ridesData.filter(r => r.date && r.date < today) : [])
+
     let reviewsWithNames = reviewsData || []
     if (reviewsData && reviewsData.length > 0) {
       const reviewerIds = [...new Set(reviewsData.map(r => r.reviewer_id))]
@@ -232,7 +236,7 @@ const pastRides = ridesData ? ridesData.filter(r => r.date && r.date < today) : 
                 placeholder={lang === 'fr' ? 'Parle de toi...' : 'Tell us about yourself...'}
                 rows={3} style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '2.5px solid #EDE0CC', background: '#fff', fontSize: 14, fontFamily: "'Kalam', cursive", color: '#3D2B1F', resize: 'none', boxSizing: 'border-box', lineHeight: 1.6 }} />
             ) : (
-               <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{profile?.bio || (lang === 'fr' ? 'Aucune bio' : 'No bio')}</div>
+              <div style={{ fontSize: 14, fontFamily: "'Kalam', cursive", color: '#7B5C42', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{profile?.bio || (lang === 'fr' ? 'Aucune bio' : 'No bio')}</div>
             )}
           </div>
 
