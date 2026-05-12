@@ -30,6 +30,8 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
     setLoading(true)
     const { data: profileData } = await supabase.from('profiles').select('*').eq('id', targetId).single()
     const { data: ridesData } = await supabase.from('rides').select('*').eq('user_id', targetId).order('created_at', { ascending: false })
+const today = new Date().toISOString().split('T')[0]
+const pastRides = ridesData ? ridesData.filter(r => r.date && r.date < today) : []
     const { data: reviewsData } = await supabase.from('reviews').select('*').eq('reviewed_id', targetId).order('created_at', { ascending: false })
     if (profileData) {
       setProfile(profileData)
@@ -202,7 +204,7 @@ export default function Profile({ user, viewedUserId, onBack, onShowCGU }) {
         {/* Stats */}
         <div style={{ display: 'flex', gap: 8 }}>
           {[
-            ['🚐', rides.length, lang === 'fr' ? 'Trajets' : 'Rides'],
+            ['🚐', pastRides.length, lang === 'fr' ? 'Trajets' : 'Rides'],
             ['⭐', avgRating || '0', lang === 'fr' ? 'Avis' : 'Reviews'],
             ['🌍', profile?.nationality || '-', lang === 'fr' ? 'Nationalité' : 'Nationality']
           ].map(([icon, val, label]) => (
