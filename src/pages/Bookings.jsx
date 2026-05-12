@@ -67,6 +67,11 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
     await supabase.from('bookings').update({ seen_by_passenger: true }).eq('passenger_id', user.id).eq('seen_by_passenger', false)
   }
 
+  const getFromCity = (booking) => booking.from_city || booking.rides?.from_city || ''
+  const getToCity = (booking) => booking.to_city || booking.rides?.to_city || ''
+  const getDate = (booking) => booking.ride_date || booking.rides?.date || ''
+  const getTime = (booking) => booking.ride_time || booking.rides?.time || ''
+
   const handleAcceptRefuse = async (bookingId, status) => {
     const booking = bookings.find(b => b.id === bookingId)
     await supabase.from('bookings').update({ status, seen_by_passenger: false }).eq('id', bookingId)
@@ -87,7 +92,7 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
       const title = status === 'accepted'
         ? (lang === 'fr' ? '✅ Réservation acceptée !' : '✅ Booking accepted!')
         : (lang === 'fr' ? '❌ Réservation refusée' : '❌ Booking refused')
-      const body = (booking.rides?.from_city || '') + ' → ' + (booking.rides?.to_city || '')
+      const body = getFromCity(booking) + ' → ' + getToCity(booking)
       await fetch('/api/send-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: subData.subscription, title, body }) })
     }
 
@@ -110,7 +115,7 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
     const { data: subData } = await supabase.from('push_subscriptions').select('subscription').eq('user_id', notifyUserId).maybeSingle()
     if (subData) {
       const title = lang === 'fr' ? '🚫 Réservation annulée' : '🚫 Booking cancelled'
-      const body = (booking.rides?.from_city || '') + ' → ' + (booking.rides?.to_city || '')
+      const body = getFromCity(booking) + ' → ' + getToCity(booking)
       await fetch('/api/send-notification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: subData.subscription, title, body }) })
     }
 
@@ -142,7 +147,6 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
     const updateData = isDriver ? { reviewed_by_driver: true } : { reviewed_by_passenger: true }
     await supabase.from('bookings').update(updateData).eq('id', bookingId)
 
-    // Si les deux ont reviewé → archiver
     const updatedBooking = { ...booking, ...updateData }
     if (updatedBooking.reviewed_by_driver && updatedBooking.reviewed_by_passenger) {
       await supabase.from('bookings').update({ archived: true }).eq('id', bookingId)
@@ -154,9 +158,11 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
   }
 
   const isRidePast = (booking) => {
-    if (!booking.rides?.date) return false
-    const parts = booking.rides.date.split('-')
-    const timeParts = (booking.rides.time || '23:59').split(':')
+    const date = getDate(booking)
+    if (!date) return false
+    const parts = date.split('-')
+    const time = getTime(booking)
+    const timeParts = (time || '23:59').split(':')
     const rideDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), parseInt(timeParts[0]), parseInt(timeParts[1]))
     return new Date() > rideDate
   }
@@ -235,12 +241,12 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                 <div style={{ background: 'linear-gradient(135deg, #E8572A, #C4622D)', padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5, flexWrap: 'wrap' }}>
-                      <span style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.2)' }}>{booking.rides?.from_city}</span>
+                      <span style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.2)' }}>{getFromCity(booking)}</span>
                       <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', flexShrink: 0 }}>→</span>
-                      <span style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.2)' }}>{booking.rides?.to_city}</span>
+                      <span style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#fff', textShadow: '1px 1px 0 rgba(0,0,0,0.2)' }}>{getToCity(booking)}</span>
                     </div>
                     <span style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>
-                      📅 {booking.rides?.date ? booking.rides.date.split('-').reverse().join('/') : ''}{booking.rides?.time ? ' · ' + booking.rides.time : ''}
+                      📅 {getDate(booking) ? getDate(booking).split('-').reverse().join('/') : ''}{getTime(booking) ? ' · ' + getTime(booking) : ''}
                     </span>
                   </div>
                   <div style={{ fontSize: 12, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: status.color + '33', color: '#fff', border: '2px solid rgba(255,255,255,0.4)', flexShrink: 0 }}>
@@ -296,13 +302,15 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                     </button>
                   </div>
                 )}
-{booking.status === 'accepted' && past && confirmedByMe && reviewedByMe && !booking.archived && (
-  <div style={{ margin: '0 14px 12px', background: '#F5EDD9', borderRadius: 12, padding: '10px 14px', border: '2px dashed #B5967A', textAlign: 'center' }}>
-    <div style={{ fontFamily: "'Nunito'", fontSize: 13, fontWeight: 700, color: '#B5967A' }}>
-      ⏳ {lang === 'fr' ? `En attente de l'avis de ${person?.name || 'l\'autre'}` : `Waiting for ${person?.name || 'the other'}'s review`}
-    </div>
-  </div>
-)}
+
+                {booking.status === 'accepted' && past && confirmedByMe && reviewedByMe && !booking.archived && (
+                  <div style={{ margin: '0 14px 12px', background: '#F5EDD9', borderRadius: 12, padding: '10px 14px', border: '2px dashed #B5967A', textAlign: 'center' }}>
+                    <div style={{ fontFamily: "'Nunito'", fontSize: 13, fontWeight: 700, color: '#B5967A' }}>
+                      ⏳ {lang === 'fr' ? `En attente de l'avis de ${person?.name || "l'autre"}` : `Waiting for ${person?.name || 'the other'}'s review`}
+                    </div>
+                  </div>
+                )}
+
                 {tab !== 'history' && (
                   <div style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {isDriver && booking.status === 'pending' && (
@@ -325,6 +333,12 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                         </button>
                       )}
                       {!isCancelled && !reviewedByMe && ((!isDriver && (booking.status === 'pending' || booking.status === 'accepted')) || (isDriver && booking.status === 'accepted')) && (
+                        <button onClick={() => handleCancel(booking.id, isDriver)}
+                          style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 14, fontFamily: "'Fredoka One'", boxShadow: '3px 3px 0 #3D2B1F' }}>
+                          🚫 {lang === 'fr' ? 'Annuler' : 'Cancel'}
+                        </button>
+                      )}
+                      {(isCancelled || booking.status === 'refused') && (
                         <button onClick={() => handleHide(booking.id, isDriver)}
                           style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#F5EDD9', color: '#3D2B1F', fontSize: 14, fontFamily: "'Fredoka One'" }}>
                           🗑️ {lang === 'fr' ? 'Supprimer' : 'Remove'}

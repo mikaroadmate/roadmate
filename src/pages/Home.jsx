@@ -207,7 +207,17 @@ export default function Home({ user, onSignOut, showCGU }) {
       alert(lang === 'fr' ? 'Tu as déjà une demande pour ce trajet !' : 'You already have a request for this ride!')
       return
     }
-    const { error } = await supabase.from('bookings').insert({ ride_id: ride.id, passenger_id: user.id, driver_id: ride.user_id, status: 'pending', seen_by_driver: false }).select().single()
+    const { error } = await supabase.from('bookings').insert({ 
+  ride_id: ride.id, 
+  passenger_id: user.id, 
+  driver_id: ride.user_id, 
+  status: 'pending', 
+  seen_by_driver: false,
+  from_city: ride.from_city,
+  to_city: ride.to_city,
+  ride_date: ride.date,
+  ride_time: ride.time
+}).select().single()
     if (!error) {
       const { data: subData } = await supabase.from('push_subscriptions').select('subscription').eq('user_id', ride.user_id).maybeSingle()
       if (subData) {
