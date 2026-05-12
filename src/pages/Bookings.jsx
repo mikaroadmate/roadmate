@@ -21,7 +21,7 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
         const updated = payload.new
         const isDriver = tab === 'received'
         const hiddenForMe = isDriver ? updated.hidden_by_driver : updated.hidden_by_passenger
-        if (hiddenForMe) {
+        if (hiddenForMe && tab !== 'history') {
           setBookings(prev => prev.filter(b => b.id !== updated.id))
         } else {
           setBookings(prev => prev.map(b => b.id === updated.id ? { ...b, ...updated } : b))
@@ -39,9 +39,13 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
       .order('created_at', { ascending: false })
 
     if (tab === 'received') {
-      query = query.eq('driver_id', user.id).eq('hidden_by_driver', false)
-    } else {
-      query = query.eq('passenger_id', user.id).eq('hidden_by_passenger', false)
+      query = query.eq('driver_id', user.id).eq('hidden_by_driver', false).eq('archived', false)
+    } else if (tab === 'sent') {
+      query = query.eq('passenger_id', user.id).eq('hidden_by_passenger', false).eq('archived', false)
+    } else if (tab === 'history') {
+      query = query
+        .eq('archived', true)
+        .or('driver_id.eq.' + user.id + ',passenger_id.eq.' + user.id)
     }
 
     const { data } = await query
@@ -99,8 +103,8 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
     await supabase.from('bookings').update({ ...updateData, [notifyCol]: false }).eq('id', bookingId)
 
     if (booking?.status === 'accepted' && booking?.ride_id) {
-  await supabase.rpc('restore_seat', { booking_id: bookingId })
-}
+      await supabase.rpc('restore_seat', { booking_id: bookingId })
+    }
 
     const notifyUserId = isDriver ? booking.passenger_id : booking.driver_id
     const { data: subData } = await supabase.from('push_subscriptions').select('subscription').eq('user_id', notifyUserId).maybeSingle()
@@ -137,7 +141,15 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
     })
     const updateData = isDriver ? { reviewed_by_driver: true } : { reviewed_by_passenger: true }
     await supabase.from('bookings').update(updateData).eq('id', bookingId)
-    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...updateData } : b))
+
+    // Si les deux ont reviewé → archiver
+    const updatedBooking = { ...booking, ...updateData }
+    if (updatedBooking.reviewed_by_driver && updatedBooking.reviewed_by_passenger) {
+      await supabase.from('bookings').update({ archived: true }).eq('id', bookingId)
+      setBookings(prev => prev.filter(b => b.id !== bookingId))
+    } else {
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...updateData } : b))
+    }
     setReviewForms(prev => ({ ...prev, [bookingId]: null }))
   }
 
@@ -176,10 +188,10 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
 
       <div style={{ padding: '12px 22px' }}>
         <div style={{ display: 'flex', gap: 8 }}>
-          {['received', 'sent'].map(t => (
+          {['received', 'sent', 'history'].map(t => (
             <button key={t} onClick={() => setTab(t)}
-              style={{ flex: 1, padding: '10px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', fontFamily: "'Fredoka One'", fontSize: 14, background: tab === t ? '#3D2B1F' : '#fff', color: tab === t ? '#fff' : '#7B5C42' }}>
-              {t === 'received' ? (lang === 'fr' ? '📥 Reçues' : '📥 Received') : (lang === 'fr' ? '📤 Envoyées' : '📤 Sent')}
+              style={{ flex: 1, padding: '10px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', fontFamily: "'Fredoka One'", fontSize: 13, background: tab === t ? '#3D2B1F' : '#fff', color: tab === t ? '#fff' : '#7B5C42' }}>
+              {t === 'received' ? (lang === 'fr' ? '📥 Reçues' : '📥 Received') : t === 'sent' ? (lang === 'fr' ? '📤 Envoyées' : '📤 Sent') : (lang === 'fr' ? '📚 Historique' : '📚 History')}
             </button>
           ))}
         </div>
@@ -192,27 +204,29 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
           </div>
         ) : bookings.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40 }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🤝</div>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>{tab === 'history' ? '📚' : '🤝'}</div>
             <div style={{ fontFamily: "'Fredoka One'", fontSize: 20, color: '#3D2B1F', marginBottom: 6 }}>
-              {lang === 'fr' ? 'Aucune réservation' : 'No bookings yet'}
+              {tab === 'history' ? (lang === 'fr' ? 'Aucun historique' : 'No history yet') : (lang === 'fr' ? 'Aucune réservation' : 'No bookings yet')}
             </div>
             <div style={{ fontFamily: "'Kalam', cursive", color: '#B5967A', fontSize: 15 }}>
               {tab === 'received'
                 ? (lang === 'fr' ? 'Les demandes de place apparaîtront ici' : 'Seat requests will appear here')
-                : (lang === 'fr' ? 'Tes demandes envoyées apparaîtront ici' : 'Your sent requests will appear here')}
+                : tab === 'sent'
+                ? (lang === 'fr' ? 'Tes demandes envoyées apparaîtront ici' : 'Your sent requests will appear here')
+                : (lang === 'fr' ? 'Tes trajets terminés apparaîtront ici' : 'Your completed trips will appear here')}
             </div>
           </div>
         ) : (
           bookings.map(booking => {
             const status = statusLabel(booking.status)
-            const isDriver = tab === 'received'
+            const isDriver = tab === 'received' || (tab === 'history' && booking.driver_id === user.id)
             const person = isDriver ? booking.profiles : booking.driver
             const isCancelled = booking.status === 'cancelled'
             const past = isRidePast(booking)
             const confirmedByMe = isDriver ? booking.completed_by_driver : booking.completed_by_passenger
             const reviewedByMe = isDriver ? booking.reviewed_by_driver : booking.reviewed_by_passenger
-            const showConfirm = booking.status === 'accepted' && past && !confirmedByMe
-            const showReview = booking.status === 'accepted' && past && confirmedByMe && !reviewedByMe
+            const showConfirm = booking.status === 'accepted' && past && !confirmedByMe && tab !== 'history'
+            const showReview = booking.status === 'accepted' && past && confirmedByMe && !reviewedByMe && tab !== 'history'
             const reviewForm = reviewForms[booking.id] || { rating: 5, comment: '' }
 
             return (
@@ -239,6 +253,11 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                     {person?.avatar_url ? <img src={person.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🤙'}
                   </div>
                   <div style={{ fontFamily: "'Fredoka One'", fontSize: 18, color: '#E8572A' }}>{person?.name || 'Anonyme'}</div>
+                  {tab === 'history' && (
+                    <div style={{ marginLeft: 'auto', fontSize: 11, fontFamily: "'Nunito'", fontWeight: 800, padding: '4px 10px', borderRadius: 20, background: '#E8F8EF', color: '#4CAF7D', border: '2px solid #4CAF7D' }}>
+                      ✅ {lang === 'fr' ? 'Terminé' : 'Completed'}
+                    </div>
+                  )}
                 </div>
 
                 {showConfirm && (
@@ -278,40 +297,42 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                   </div>
                 )}
 
-                <div style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-  {isDriver && booking.status === 'pending' && (
-    <div style={{ display: 'flex', gap: 8 }}>
-      <button onClick={() => handleAcceptRefuse(booking.id, 'accepted')}
-        style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#4CAF7D', color: '#fff', fontSize: 14, fontFamily: "'Fredoka One'", boxShadow: '3px 3px 0 #3D2B1F' }}>
-        ✅ {lang === 'fr' ? 'Accepter' : 'Accept'}
-      </button>
-      <button onClick={() => handleAcceptRefuse(booking.id, 'refused')}
-        style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 14, fontFamily: "'Fredoka One'", boxShadow: '3px 3px 0 #3D2B1F' }}>
-        ❌ {lang === 'fr' ? 'Refuser' : 'Refuse'}
-      </button>
-    </div>
-  )}
-  <div style={{ display: 'flex', gap: 8 }}>
-    {!isCancelled && (
-      <button onClick={() => onContact(isDriver ? booking.passenger_id : booking.driver_id)}
-        style={{ flex: 1, padding: '10px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#F5EDD9', color: '#3D2B1F', fontSize: 13, fontFamily: "'Fredoka One'" }}>
-        💬 {lang === 'fr' ? 'Contacter' : 'Contact'}
-      </button>
-    )}
-    {!isCancelled && ((!isDriver && (booking.status === 'pending' || booking.status === 'accepted')) || (isDriver && booking.status === 'accepted')) && (
-      <button onClick={() => handleCancel(booking.id, isDriver)}
-  style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 14, fontFamily: "'Fredoka One'", boxShadow: '3px 3px 0 #3D2B1F' }}>
-  🚫 {lang === 'fr' ? 'Annuler' : 'Cancel'}
-</button>
-    )}
-    {(isCancelled || booking.status === 'refused') && (
-      <button onClick={() => handleHide(booking.id, isDriver)}
-  style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#F5EDD9', color: '#3D2B1F', fontSize: 14, fontFamily: "'Fredoka One'", boxShadow: '3px 3px 0 #3D2B1F' }}>
-  🗑️ {lang === 'fr' ? 'Supprimer' : 'Remove'}
-</button>
-    )}
-  </div>
-</div>
+                {tab !== 'history' && (
+                  <div style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {isDriver && booking.status === 'pending' && (
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => handleAcceptRefuse(booking.id, 'accepted')}
+                          style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#4CAF7D', color: '#fff', fontSize: 14, fontFamily: "'Fredoka One'", boxShadow: '3px 3px 0 #3D2B1F' }}>
+                          ✅ {lang === 'fr' ? 'Accepter' : 'Accept'}
+                        </button>
+                        <button onClick={() => handleAcceptRefuse(booking.id, 'refused')}
+                          style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 14, fontFamily: "'Fredoka One'", boxShadow: '3px 3px 0 #3D2B1F' }}>
+                          ❌ {lang === 'fr' ? 'Refuser' : 'Refuse'}
+                        </button>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {!isCancelled && (
+                        <button onClick={() => onContact(isDriver ? booking.passenger_id : booking.driver_id)}
+                          style={{ flex: 1, padding: '10px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#F5EDD9', color: '#3D2B1F', fontSize: 13, fontFamily: "'Fredoka One'" }}>
+                          💬 {lang === 'fr' ? 'Contacter' : 'Contact'}
+                        </button>
+                      )}
+                      {!isCancelled && ((!isDriver && (booking.status === 'pending' || booking.status === 'accepted')) || (isDriver && booking.status === 'accepted')) && (
+                        <button onClick={() => handleCancel(booking.id, isDriver)}
+                          style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 14, fontFamily: "'Fredoka One'", boxShadow: '3px 3px 0 #3D2B1F' }}>
+                          🚫 {lang === 'fr' ? 'Annuler' : 'Cancel'}
+                        </button>
+                      )}
+                      {(isCancelled || booking.status === 'refused') && (
+                        <button onClick={() => handleHide(booking.id, isDriver)}
+                          style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#F5EDD9', color: '#3D2B1F', fontSize: 14, fontFamily: "'Fredoka One'" }}>
+                          🗑️ {lang === 'fr' ? 'Supprimer' : 'Remove'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })
