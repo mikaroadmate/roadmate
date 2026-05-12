@@ -296,7 +296,13 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                     </button>
                   </div>
                 )}
-
+{booking.status === 'accepted' && past && confirmedByMe && reviewedByMe && !booking.archived && (
+  <div style={{ margin: '0 14px 12px', background: '#F5EDD9', borderRadius: 12, padding: '10px 14px', border: '2px dashed #B5967A', textAlign: 'center' }}>
+    <div style={{ fontFamily: "'Nunito'", fontSize: 13, fontWeight: 700, color: '#B5967A' }}>
+      ⏳ {lang === 'fr' ? `En attente de l'avis de ${person?.name || 'l\'autre'}` : `Waiting for ${person?.name || 'the other'}'s review`}
+    </div>
+  </div>
+)}
                 {tab !== 'history' && (
                   <div style={{ padding: '0 14px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                     {isDriver && booking.status === 'pending' && (
@@ -318,13 +324,7 @@ export default function Bookings({ user, onBack, onContact, embedded = false }) 
                           💬 {lang === 'fr' ? 'Contacter' : 'Contact'}
                         </button>
                       )}
-                      {!isCancelled && ((!isDriver && (booking.status === 'pending' || booking.status === 'accepted')) || (isDriver && booking.status === 'accepted')) && (
-                        <button onClick={() => handleCancel(booking.id, isDriver)}
-                          style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#E8572A', color: '#fff', fontSize: 14, fontFamily: "'Fredoka One'", boxShadow: '3px 3px 0 #3D2B1F' }}>
-                          🚫 {lang === 'fr' ? 'Annuler' : 'Cancel'}
-                        </button>
-                      )}
-                      {(isCancelled || booking.status === 'refused') && (
+                      {!isCancelled && !reviewedByMe && ((!isDriver && (booking.status === 'pending' || booking.status === 'accepted')) || (isDriver && booking.status === 'accepted')) && (
                         <button onClick={() => handleHide(booking.id, isDriver)}
                           style={{ flex: 1, padding: '12px', borderRadius: 14, border: '2.5px solid #3D2B1F', cursor: 'pointer', background: '#F5EDD9', color: '#3D2B1F', fontSize: 14, fontFamily: "'Fredoka One'" }}>
                           🗑️ {lang === 'fr' ? 'Supprimer' : 'Remove'}
